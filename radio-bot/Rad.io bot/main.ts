@@ -92,7 +92,7 @@ function scrollRequest(message, currentPage, allPages) {
 	return res;
 };
 
-const save = async (rowObj, type) => {
+async function save(rowObj, type) => {
 	switch (type) {
 		case 'prefix':
 			await sql.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
@@ -107,7 +107,7 @@ const save = async (rowObj, type) => {
 			await sql.run(`INSERT INTO ${type} (guildID, type, name, url) VALUES (?, ?, ?, ?)`, [rowObj.guildID, rowObj.type, rowObj.name, rowObj.url]);
 			break;
 		case 'role':
-			await sql.run(`DELETE FROM ${type} WHERE (guildID = ?), (roleID = ?)`, [rowObj.guildID, rowObj.roleID]);
+			await sql.run(`DELETE FROM ${type} WHERE (guildID = ?) AND (roleID = ?)`, [rowObj.guildID, rowObj.roleID]);
 			await sql.run(`INSERT INTO ${type} (guildID, roleID, commands) VALUES (?, ?, ?)`, [rowObj.guildID, rowObj.roleID, rowObj.commands]);
 			break;
 	};
