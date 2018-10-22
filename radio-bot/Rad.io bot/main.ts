@@ -479,7 +479,7 @@ let commands = {
 			catch (err) {
 				if (typeof err != 'string')
 					return void console.log(err);
-				embed.setTitle(`Találatok - ${err}`);
+				embed.setTitle(`❯ Találatok - ${err}`);
 				message.edit(embed);
 				return;
 			}
