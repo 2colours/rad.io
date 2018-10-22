@@ -863,7 +863,7 @@ function setPStatus() {
 	let presence = `${randomRadioName} | ${randomElement(presenceEndings)}`;
 	client.user.setPresence({ game: { name: presence, type: 'LISTENING' } });
 };
-
+/*
 function unescapeHtml(safe) {
 	return safe
 		.replace(/&amp;/g, "&")
@@ -872,7 +872,7 @@ function unescapeHtml(safe) {
 		.replace(/&quot;/g, "\"")
 		.replace(/&#0*39;/g, "'");
 };
-
+*/
 function updateStatusChannels() {
 	if (client.user.id != '430326522146979861') return;
 	let guildsChan: Discord.VoiceChannel = client.channels.get('470522240551616523') as Discord.VoiceChannel;
