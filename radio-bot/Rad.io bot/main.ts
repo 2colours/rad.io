@@ -709,12 +709,18 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			}));
 
 	},
+	granteveryone(param) {
+		commands.grant.call(this,param+' @everyone');
+	},
 	deny(param) {
 		permissionReused.call(this, param, (commands, roleCommands) =>
 			commands.forEach(elem => {
 				if (roleCommands.includes(elem))
 					roleCommands.splice(roleCommands.indexOf(elem), 1);
 			}));
+	},
+	denyeveryone(param) {
+		commands.deny.call(this,param+' @everyone');
 	},
 	nowplaying(param) {
 		let nowPlayingData = this.guild.voiceConnection.channel.guildPlayer.getNowPlayingData();
