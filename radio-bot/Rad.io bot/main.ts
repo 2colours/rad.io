@@ -777,7 +777,7 @@ async function permissionReused(param, filler) {
 	}
 	if (!commands)
 		return void this.reply('az első paraméter üres.');
-	commands = commands.split('|');
+	commands = commands.toLowerCase()=='all' ? debatedCommands : commands.split('|');
 	let firstWrong = commands.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void this.reply(`\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.`);
