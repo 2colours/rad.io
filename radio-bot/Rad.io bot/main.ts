@@ -62,7 +62,7 @@ function commonEmbed(cmd) {
 		.setFooter(`${prefix}${cmd} - ${client.user.username}`, client.user.avatarURL)
 		.setTimestamp();
 };
-function hourMinSec(minutes, seconds) {
+function hourMinSec(minutes, seconds = 0) {
 	let hours = Math.floor(minutes / 60);
 	minutes %= 60;
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
