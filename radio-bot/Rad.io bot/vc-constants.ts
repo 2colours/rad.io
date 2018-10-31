@@ -1,8 +1,8 @@
-const defaultConfig = {
+export const defaultConfig = {
 	'prefix': '.',
 	'fallback': 'radio'
 };
-const radios = {
+export const radios = {
 'kossuth': {
 	name: 'Kossuth Rádió',
 	url: 'http://icast.connectmedia.hu/4736/mr1.mp3',
@@ -260,7 +260,4 @@ const radios = {
 }
 };
 
-const youtubeEmoji = '447036877745160204';
-module.exports = {
-defaultConfig,radios,youtubeEmoji
-};
+export const youtubeEmoji = '447036877745160204';

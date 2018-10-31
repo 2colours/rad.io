@@ -92,7 +92,7 @@ function scrollRequest(message: Discord.Message, currentPage: number, allPages: 
 	return res;
 };
 
-async function save(rowObj, type) => {
+async function save(rowObj, type) {
 	switch (type) {
 		case 'prefix':
 			await sql.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
