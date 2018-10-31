@@ -6,7 +6,6 @@ const apiKey = process.env.youtubeApiKey;
 const yd: any = require('ytdl-core'); //Nem illik közvetlenül hívni
 const ytdl = url => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const sscanf = require('scanf').sscanf;
-const request: any = require('request-promise-native');
 const fs = require('fs');
 const sql = require('sqlite');
 const constants = require('./vc-constants');
@@ -68,26 +67,26 @@ function hourMinSec(minutes, seconds) {
 	minutes %= 60;
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
-function scrollRequest(message, currentPage, allPages) {
+function scrollRequest(message: Discord.Message, currentPage: number, allPages: number) {
 	let res = new Promise(async (resolve, reject) => {
 		let emojis = [];
 		if (currentPage > 1)
 			emojis.push('◀');
 		if (currentPage < allPages)
 			emojis.push('▶');
-		const filter = (reaction, user) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
+		const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
 		const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 10000 });
 		collector.on('collect', r => {
 			resolve(r.emoji.name == '◀' ? currentPage - 1 : currentPage + 1);
 			collector.stop();
 		});
-		collector.on('end', collected => {
+		collector.on('end', _ => {
 			reject(' lejárt az idő.');
 		});
 		for (let emoji of emojis) {
 			let reaction = await message.react(emoji);
 			res
-				.then(index => reaction.remove(client.user), err => reaction.remove(client.user));
+				.then(_ => reaction.remove(client.user), _ => reaction.remove(client.user));
 		}
 	});
 	return res;
@@ -113,8 +112,8 @@ async function save(rowObj, type) => {
 			break;
 	};
 };
-
-const refreshDB = async () => {
+/*
+async function refreshDB() {
 	const json = JSON.parse(fs.readFileSync('vc-config.json'));
 
 	await sql.run('CREATE TABLE IF NOT EXISTS prefix (guildID TEXT, prefix TEXT)').catch(console.error);
@@ -139,8 +138,8 @@ const refreshDB = async () => {
 			await sql.run('INSERT INTO role (guildID, roleID, commands) VALUES (?, ?, ?)', [guildID, roleID, json.roles[guildID][roleID].join('|')]);
 	}
 };
-
-const loadCFG = async () => {
+*/
+async function loadCFG() {
 	let prefixes = {};
 	let fallbackModes = {};
 	let fallbackData = {};
@@ -200,7 +199,7 @@ function getEmoji(type) {
 	return emojis[type];
 }
 let dispatchers = [];
-function repeatCounter(nTimes) {
+function repeatCounter(nTimes: number) {
 	return () => nTimes-- > 0;
 }
 class Playable {
@@ -216,7 +215,7 @@ class Playable {
 	askRepeat() {
 		return false;
 	}
-	play(voiceConnection, vol) {
+	play(voiceConnection: Discord.VoiceConnection, vol: number) {
 		return new Promise((resolve, reject) => {
 			if (!this.data) {
 				this.skip = () => resolve(true);
@@ -242,10 +241,8 @@ class Playable {
 	}
 }
 class VoiceHandler {
-	private controlledPlayer: GuildPlayer;
-	private timeoutId?
-	constructor(guildPlayer) {
-		this.controlledPlayer = guildPlayer;
+	private timeoutId?;
+	constructor(private controlledPlayer: GuildPlayer) {
 	}
 	eventTriggered() {
 		let voiceEmpty = !this.controlledPlayer.ownerChannel.members.some(member => !member.user.bot);
@@ -270,7 +267,7 @@ class GuildPlayer {
 	private handler: VoiceHandler;
 	private volume: number;
 	private oldVolume?: number;
-	constructor(voiceChannel, textChannel, musicToPlay?: any) {
+	constructor(voiceChannel: Discord.VoiceChannel, textChannel: Discord.TextChannel, musicToPlay?: any) {
 		this.ownerChannel = voiceChannel;
 		this.announcementChannel = textChannel;
 		this.nowPlaying = new Playable(musicToPlay);
@@ -316,7 +313,7 @@ class GuildPlayer {
 			throw 'Nincs lenémítva a bot.';
 		this.setVolume(this.oldVolume);
 	}
-	setVolume(vol) {
+	setVolume(vol: number) {
 		if (!this.ownerChannel.connection.dispatcher)
 			throw 'Semmi nincs lejátszás alatt.';
 		this.ownerChannel.connection.dispatcher.setVolume(vol);
@@ -325,7 +322,7 @@ class GuildPlayer {
 	skip() {
 		this.nowPlaying.skip();
 	}
-	repeat(maxTimes) {
+	repeat(maxTimes?: number) {
 		if (!this.nowPlaying.isDefinite())
 			throw 'Végtelen streameket nem lehet loopoltatni.';
 		if (!maxTimes)
@@ -381,7 +378,7 @@ class GuildPlayer {
 		return this.nowPlaying.data;
 	}
 };
-function shuffle(array) {
+function shuffle(array: Array<any>) {
 	for (let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * i) + 1;
 		[array[i], array[j]] = [array[j], array[i]];
@@ -402,7 +399,7 @@ function saveJSON(object, fileName) {
 	fs.writeFileSync(fileName, JSON.stringify(object));
 };
 let commands = {
-	async join(param) {
+	async join(param:string) {
 		let voiceChannel = this.member.voiceChannel;
 		let channelToPlay = sscanf(param, '%s') || '';
 		let randChannel = randomElement(channels);
@@ -422,9 +419,8 @@ let commands = {
 			console.error(ex);
 		}
 	},
-	async yt(param) {
+	async yt(param: string):Promise<void> {
 		let voiceChannel = this.member.voiceChannel;
-		let ownVoice = this.guild.voiceConnection;
 		param = param.trim();
 		if (param.search(/https?:\/\//) == 0) {
 			let ytVideo = await youtube.getVideoByUrl(param);
