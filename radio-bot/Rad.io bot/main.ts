@@ -832,16 +832,10 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 });
 
 client.on('guildCreate', guild => {
-	const created = moment(guild.createdAt).format("MMM Do YY");
-	const embed = new Discord.RichEmbed()
-		.setDescription(`ID: ${guild.id}
-Members: ${guild.memberCount}
-Owner: ${guild.owner ? guild.owner.user.tag : 'unable to fetch'}
-Created At: ${created}
-Icon: [Link](${guild.iconURL ? guild.iconURL : client.user.displayAvatarURL})`);
-	((devChannel()) as Discord.TextChannel).send(`**${client.user.tag}** joined \`${guild.name}\``, { embed: embed }).catch(console.error);
+	logGuildJoin(guild);
 	setPStatus();
-	updateStatusChannels()
+	updateStatusChannels();
+	sendWelcome(guild);
 });
 
 client.on('guildDelete', guild => {
@@ -850,7 +844,32 @@ client.on('guildDelete', guild => {
 	updateStatusChannels()
 });
 
-function randomElement(array) {
+function logGuildJoin(guild: Discord.Guild) {
+	const created = moment(guild.createdAt).format("MMM Do YY");
+	const embed = new Discord.RichEmbed()
+		.setDescription(`ID: ${guild.id}
+Members: ${guild.memberCount}
+Owner: ${guild.owner ? guild.owner.user.tag : 'unable to fetch'}
+Created At: ${created}
+Icon: [Link](${guild.iconURL ? guild.iconURL : client.user.displayAvatarURL})`);
+	((devChannel()) as Discord.TextChannel).send(`**${client.user.tag}** joined \`${guild.name}\``, { embed: embed }).catch(console.error);
+}
+
+async function sendWelcome(guild: Discord.Guild) {
+	for (let channel of guild.channels.values()) {
+		if (!(channel instanceof Discord.TextChannel))
+			continue;
+		let textChannel = channel as Discord.TextChannel;
+		try {
+			await textChannel.send('---Hasznos infó---');
+			break;
+		}
+		catch (ex) {
+		}
+	}
+}
+
+function randomElement(array:Array<any>) {
 	return array[(Math.random() * array.length) | 0];
 };
 
