@@ -597,14 +597,14 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			await message.edit({ embed: completeEmbed });
 		}
 	},
-	voicecount(param) {
+	voicecount(_: string) {
 		this.channel.send(`${client.voiceConnections.array().length} voice connection(s) right now.`);
 	},
-	async setprefix(param) {
+	async setprefix(param: string): void {
 		if (!param)
 			return void this.reply('ez nem lehet prefix!');
 		let newPrefix = param.toLowerCase();
-		config.prefixes[this.guild.id] = newPrefix;
+		config.prefixes.set(this.guild.id, newPrefix);
 		try {
 			await save({ guildID: this.guild.id, prefix: newPrefix }, 'prefix');
 			this.channel.send(`${newPrefix} **az új prefix.**`).catch(() => { });
@@ -615,7 +615,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			this.channel.send(`${newPrefix} **a prefix, de csak leállásig...**`).catch(console.error);
 		}
 	},
-	async queue(param) {
+	async queue(_: string): Promise<void> {
 		let queue = this.guild.voiceConnection.channel.guildPlayer.getQueueData();
 		if (queue.length == 0)
 			return void this.channel.send('**A sor jelenleg üres.**');
@@ -642,7 +642,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			await message.edit({ embed: completeEmbed });
 		}
 	},
-	async fallback(param) {
+	async fallback(param: string): Promise<void>{
 		const aliases = {
 			'r': 'radio',
 			's': 'silence',
@@ -652,7 +652,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		mode = aliases[mode] || mode;
 		if (!['radio', 'silence', 'leave'].includes(mode))
 			return void this.reply("ilyen fallback mód nem létezik.");
-		config.fallbackModes[this.guild.id] = mode;
+		config.fallbackModes.set(this.guild.id, mode);
 		this.channel.send(`**Új fallback: ${mode}. **`);
 		try {
 			await save({ guildID: this.guild.id, type: mode }, 'fallbackModes');
@@ -662,7 +662,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			this.channel.send('**Mentés sikertelen.**');
 		}
 	},
-	async fallbackradio(param) {
+	async fallbackradio(param: string): Promise<void> {
 		let given = sscanf(param, '%s') || '';
 		if (given in radios) {
 			var fr = Object.assign({ type: 'radio' }, radios[given]);
@@ -675,7 +675,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			};
 		else
 			return void this.reply('érvénytelen rádióadó.');
-		config.fallbackChannels[this.guild.id] = fr;
+		config.fallbackChannels.set(this.guild.id, fr);
 		this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`).catch(console.error);
 		try {
 			await save({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url }, 'fallbackData');
@@ -685,12 +685,11 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**').catch(console.error);
 		}
 	},
-	skip(param) {
+	skip(_:string) {
 		this.guild.voiceConnection.channel.guildPlayer.skip();
 	},
-	tune(param) {
+	tune(param: string) {
 		let voiceChannel = this.member.voiceChannel;
-		let ownVoice = this.guild.voiceConnection;
 		let channel = sscanf(param, '%s') || '';
 		let randChannel = randomElement(channels);
 		if (!radios[channel]) {
@@ -699,7 +698,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		}
 		forceSchedule(this.channel, voiceChannel, Object.assign({ type: 'radio' }, radios[channel]));
 	},
-	grant(param) {
+	grant(param: string) {
 		permissionReused.call(this, param, (commands, roleCommands) =>
 			commands.forEach(elem => {
 				if (!roleCommands.includes(elem))
@@ -707,20 +706,20 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			}));
 
 	},
-	granteveryone(param) {
+	granteveryone(param: string) {
 		commands.grant.call(this,param+' @everyone');
 	},
-	deny(param) {
+	deny(param: string) {
 		permissionReused.call(this, param, (commands, roleCommands) =>
 			commands.forEach(elem => {
 				if (roleCommands.includes(elem))
 					roleCommands.splice(roleCommands.indexOf(elem), 1);
 			}));
 	},
-	denyeveryone(param) {
+	denyeveryone(param: string) {
 		commands.deny.call(this,param+' @everyone');
 	},
-	nowplaying(param) {
+	nowplaying(_: string): Promise<void> {
 		let nowPlayingData = this.guild.voiceConnection.channel.guildPlayer.getNowPlayingData();
 		if (!nowPlayingData)
 			return void this.channel.send('**CSEND**');
@@ -729,7 +728,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			.setDescription(`${getEmoji(nowPlayingData.type)} ${nowPlayingData.name}`);
 		this.channel.send({ embed });
 	},
-	volume(param) {
+	volume(param: string): void {
 		let vol = sscanf(param, '%d');
 		if (vol == undefined || vol <= 0 || vol > 15)
 			return void this.reply('paraméterként szám elvárt. (1-15)').catch(console.error);
@@ -743,7 +742,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			this.reply(`hiba - ${ex}`);
 		}
 	},
-	mute(param) {
+	mute(_: string) {
 		try {
 			this.guild.voiceConnection.channel.guildPlayer.mute();
 			this.react('☑').catch(console.error);
@@ -752,7 +751,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			this.reply(`hiba - ${ex}`);
 		}
 	},
-	unmute(param) {
+	unmute(_: string) {
 		try {
 			this.guild.voiceConnection.channel.guildPlayer.unmute();
 			this.react('☑').catch(console.error);
@@ -765,7 +764,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 
 Object.keys(decorators).forEach(cmdName => decorateCommand(cmdName, decorators[cmdName]));
 
-async function permissionReused(param, filler) {
+async function permissionReused(param: string, filler): Promise<void> {
 	try {
 		var [commands = '', roleName = ''] = sscanf(param, '%s %S');
 	}
@@ -798,7 +797,7 @@ async function permissionReused(param, filler) {
 client.on("message", async (message) => {
 
 	if (message.guild == null) return;
-	let prefix = config.prefixes[message.guild.id] || defaultConfig.prefix;
+	let prefix = config.prefixes.get(message.guild.id) || defaultConfig.prefix;
 	if (message.mentions.users.has(client.user.id))
 		return void commands.help.call(message, '');
 	let content = message.content;
