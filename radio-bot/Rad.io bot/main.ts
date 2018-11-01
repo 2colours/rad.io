@@ -4,7 +4,7 @@ const client = new Discord.Client();
 const token = process.env.radioToken;
 const apiKey = process.env.youtubeApiKey;
 const yd: any = require('ytdl-core'); //Nem illik közvetlenül hívni
-const ytdl = url => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
+const ytdl = (url:string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const sscanf = require('scanf').sscanf;
 const fs = require('fs');
 const sql = require('sqlite');
@@ -20,7 +20,7 @@ interface Config {
 	fallbackChannels: Map<Discord.Snowflake, any>; //TODO nem any, a Datát még definiálni kell!
 	roles: Map<Discord.Snowflake, any>; //TODO ez sem any, hanem valamilyen Map → a role ID is Snowflake?
 }
-const parameterNeeded = action => function (param) {
+const parameterNeeded = action => function (param:string) {
 	if (!sscanf(param, '%s'))
 		commands.help.call(this, this.cmdName);
 	else
@@ -60,7 +60,7 @@ let config: Config;
 
 sql.open("./radio.sqlite");
 
-function commonEmbed(cmd) {
+function commonEmbed(cmd:string) { //TODO ez sem akármilyen string, hanem parancsnév
 	let prefix = config.prefixes[this.guild.id] || defaultConfig.prefix;
 	return new Discord.RichEmbed()
 		.setColor(embedC)
