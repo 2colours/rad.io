@@ -29,7 +29,7 @@ const parameterNeeded = action => function (param) {
 const aggregateDecorators = decorators => action => decorators.reduceRight((act, dec) => dec(act), action);
 function decorateCommand(cmdName, decorators) {
 	commands[cmdName] = aggregateDecorators(decorators)(commands[cmdName]/*,cmdName*/);
-};
+}; 
 const decorators = {
 	setprefix: [adminNeeded, parameterNeeded],
 	fallbackradio: [adminNeeded, parameterNeeded],
