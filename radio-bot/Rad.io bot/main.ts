@@ -52,7 +52,7 @@ const decorators = {
 	mute: [vcBotNeeded, vcUserNeeded, sameVcNeeded],
 	unmute: [vcBotNeeded, vcUserNeeded, sameVcNeeded]
 };
-import { YouTube } from 'better-youtube-api';
+import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 const devChannel = () => client.channels.get('470574072565202944');
 
@@ -388,20 +388,23 @@ function shuffle(array: Array<any>) {
 		[array[i], array[j]] = [array[j], array[i]];
 	}
 };
-function attach(baseDict, guildId, defaultValue) {
-	return baseDict[guildId] || (baseDict[guildId] = defaultValue);
+function attach(baseDict:Map<Discord.Snowflake,any>, guildId:Discord.Snowflake, defaultValue:any) {
+	baseDict=baseDict.get(guildId)? baseDict:baseDict.set(guildId, defaultValue);
+	return baseDict.get(guildId);
 };
-async function forceSchedule(textChannel, voiceChannel, playableData) {
-	if (!voiceChannel.guildPlayer) {
+async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, playableData) {
+	if (!voiceChannel['guildPlayer']) {
 		await voiceChannel.join();
-		voiceChannel.guildPlayer = new GuildPlayer(voiceChannel, textChannel, playableData);
+		voiceChannel['guildPlayer'] = new GuildPlayer(voiceChannel, textChannel, playableData);
 		return;
 	}
-	voiceChannel.guildPlayer.schedule(playableData);
+	voiceChannel['guildPlayer'].schedule(playableData);
 };
-function saveJSON(object, fileName) {
+/*
+function saveJSON(object, fileName:string) {
 	fs.writeFileSync(fileName, JSON.stringify(object));
 };
+*/
 let commands = {
 	async join(param:string) {
 		let voiceChannel = this.member.voiceChannel;
@@ -439,7 +442,7 @@ let commands = {
 			let results = await youtube.searchVideos(ytString, 5);
 			if (!results || results.length == 0)
 				return void this.reply('nincs találat.');
-			await Promise.all(results.map(elem => elem.fetch()));
+			await Promise.all(results.map((elem:Video) => elem.fetch()));
 			try {
 				var message, embed;
 				var selectedResult;
@@ -455,7 +458,7 @@ let commands = {
 						let counter = 1;
 						embed = commonEmbed.call(this, 'yt')
 							.setTitle("❯ Találatok")
-							.setDescription(results.map(elem => `__${counter++}.__ - ${elem.title} \`(${hourMinSec(elem.minutes, elem.seconds)})\``).join('\n'));
+							.setDescription(results.map((elem:Video) => `__${counter++}.__ - ${elem.title} \`(${hourMinSec(elem.minutes, elem.seconds)})\``).join('\n'));
 						message = await this.channel.send(embed);
 						const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
 						const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 30000 });
@@ -536,7 +539,7 @@ let commands = {
 			.addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
 		this.channel.send({ embed }).catch(console.error);
 	},
-	async shuffle(param) {
+	async shuffle(_:string) {
 		let clientChannel = this.guild.voiceConnection.channel;
 		try {
 			clientChannel.guildPlayer.shuffle();
@@ -546,7 +549,7 @@ let commands = {
 			this.reply(`hiba - ${ex}`);
 		}
 	},
-	help(param: string) {
+	help(param: string):void {
 		let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 		let helpCommand = sscanf(param, '%s');
 		if (!helpCommand) {
@@ -600,7 +603,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 	voicecount(_: string) {
 		this.channel.send(`${client.voiceConnections.array().length} voice connection(s) right now.`);
 	},
-	async setprefix(param: string): void {
+	async setprefix(param: string): Promise<void> {
 		if (!param)
 			return void this.reply('ez nem lehet prefix!');
 		let newPrefix = param.toLowerCase();
@@ -699,7 +702,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		forceSchedule(this.channel, voiceChannel, Object.assign({ type: 'radio' }, radios[channel]));
 	},
 	grant(param: string) {
-		permissionReused.call(this, param, (commands, roleCommands) =>
+		permissionReused.call(this, param, (commands:Array<string>, roleCommands:Array<string>) =>
 			commands.forEach(elem => {
 				if (!roleCommands.includes(elem))
 					roleCommands.push(elem);
@@ -710,7 +713,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		commands.grant.call(this,param+' @everyone');
 	},
 	deny(param: string) {
-		permissionReused.call(this, param, (commands, roleCommands) =>
+		permissionReused.call(this, param, (commands:Array<string>, roleCommands:Array<string>) =>
 			commands.forEach(elem => {
 				if (roleCommands.includes(elem))
 					roleCommands.splice(roleCommands.indexOf(elem), 1);
@@ -764,7 +767,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 
 Object.keys(decorators).forEach(cmdName => decorateCommand(cmdName, decorators[cmdName]));
 
-async function permissionReused(param: string, filler): Promise<void> {
+async function permissionReused(param: string, filler:(affectedCommands:Array<string>,configedCommands:Array<string>)=>void): Promise<void> {
 	try {
 		var [commands = '', roleName = ''] = sscanf(param, '%s %S');
 	}
@@ -774,18 +777,18 @@ async function permissionReused(param: string, filler): Promise<void> {
 	}
 	if (!commands)
 		return void this.reply('az első paraméter üres.');
-	commands = commands.toLowerCase()=='all' ? debatedCommands : commands.split('|');
-	let firstWrong = commands.find(elem => !debatedCommands.includes(elem));
+	let commandsArray:Array<string> = commands.toLowerCase()=='all' ? debatedCommands : commands.split('|');
+	let firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void this.reply(`\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.`);
-	let role = this.guild.roles.find(elem => elem.name == roleName);
+	let role = this.guild.roles.find((elem:Discord.Role) => elem.name == roleName);
 	if (!role)
 		return void this.reply('nem létezik a megadott role.');
 	let currentRoles = attach(config.roles, this.guild.id, new Object());
 	let roleCommands = attach(currentRoles, role.id, new Array());
-	filler(commands, roleCommands);
+	filler(commandsArray, roleCommands);
 	try {
-		await save({ guildID: this.guild.id, roleID: role.id, commands: commands.join('|') }, 'role');
+		await save({ guildID: this.guild.id, roleID: role.id, commands: commandsArray.join('|') }, 'role');
 		this.channel.send(`**Új jogosultságok mentve.**`);
 	}
 	catch (ex) {
