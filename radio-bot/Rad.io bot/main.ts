@@ -14,6 +14,12 @@ const moment = require('moment');
 const embedC = 0xfcf5d2;
 const { defaultConfig, radios, youtubeEmoji } = constants;
 const { isAloneUser, pass, isAloneBot, nonFallbackNeeded, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, permissionNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } = require('./vc-decorators');
+interface Config {
+	prefixes: Map<Discord.Snowflake, string>;
+	fallbackModes: Map<Discord.Snowflake, string>; //TODO nem akármilyen string!
+	fallbackChannels: Map<Discord.Snowflake, any>; //TODO nem any, a Datát még definiálni kell!
+	roles: Map<Discord.Snowflake, any>; //TODO ez sem any, hanem valamilyen Map → a role ID is Snowflake?
+}
 const parameterNeeded = action => function (param) {
 	if (!sscanf(param, '%s'))
 		commands.help.call(this, this.cmdName);
@@ -50,7 +56,7 @@ import { YouTube } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 const devChannel = () => client.channels.get('470574072565202944');
 
-let config;
+let config: Config;
 
 sql.open("./radio.sqlite");
 
@@ -140,8 +146,8 @@ async function refreshDB() {
 };
 */
 async function loadCFG() {
-	let prefixes = {};
-	let fallbackModes = {};
+	let prefixes: Map<Discord.Snowflake, string> = new Map();
+	let fallbackModes: Map<Discord.Snowflake, string> = new Map();
 	let fallbackData = {};
 	let roles = {};
 	await Promise.all([
@@ -189,8 +195,7 @@ const downloadMethods = {
 	custom: url => url,
 	radio: url => url
 };
-let queues = {};
-function getEmoji(type) {
+function getEmoji(type:string) { //TODO ez sem string, hanem valamilyen enum
 	const emojis = {
 		yt: client.emojis.get(youtubeEmoji),
 		radio: ':radio:',
@@ -198,7 +203,6 @@ function getEmoji(type) {
 	};
 	return emojis[type];
 }
-let dispatchers = [];
 function repeatCounter(nTimes: number) {
 	return () => nTimes-- > 0;
 }
@@ -345,12 +349,12 @@ class GuildPlayer {
 	}
 	fallbackMode() {
 		this.announcementChannel.send('**Fallback mód.**');
-		let currentFallback = config.fallbackModes[this.ownerChannel.guild.id] || defaultConfig.fallback;
+		let currentFallback = config.fallbackModes.get(this.ownerChannel.guild.id) || defaultConfig.fallback;
 		switch (currentFallback) {
 			case 'radio':
-				if (!config.fallbackChannels[this.ownerChannel.guild.id])
+				if (!config.fallbackChannels.get(this.ownerChannel.guild.id))
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
-				this.nowPlaying = new Playable(config.fallbackChannels[this.ownerChannel.guild.id]);
+				this.nowPlaying = new Playable(config.fallbackChannels.get(this.ownerChannel.guild.id));
 				this.fallbackPlayed = true;
 				break;
 			case 'leave':
@@ -453,19 +457,17 @@ let commands = {
 							.setTitle("❯ Találatok")
 							.setDescription(results.map(elem => `__${counter++}.__ - ${elem.title} \`(${hourMinSec(elem.minutes, elem.seconds)})\``).join('\n'));
 						message = await this.channel.send(embed);
-						const filter = (reaction, user) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
+						const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
 						const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 30000 });
-						collector.on('collect', r => {
+						collector.on('collect', (r: Discord.MessageReaction) => {
 							let index = emojis.indexOf(r.emoji.name);
 							resolve(index);
 							collector.stop();
 						});
-						collector.on('end', collected => {
-							reject('Lejárt a választási idő.');
-						});
+						collector.on('end', _ => reject('Lejárt a választási idő.'));
 						for (let emoji of emojis) {
 							let reaction = await message.react(emoji);
-							selectionPromise.then(index => reaction.remove(client.user), err => reaction.remove(client.user));
+							selectionPromise.then(_ => reaction.remove(client.user), _ => reaction.remove(client.user));
 						}
 
 					});
@@ -491,9 +493,8 @@ let commands = {
 			this.channel.send('**Hiba a keresés során.**');
 		}
 	},
-	async custom(param) {
+	async custom(param: string) {
 		let voiceChannel = this.member.voiceChannel;
-		let ownVoice = this.guild.voiceConnection;
 		let url = sscanf(param, '%s') || '';
 		forceSchedule(this.channel, voiceChannel, {
 			name: 'Custom',
@@ -501,12 +502,12 @@ let commands = {
 			type: 'custom'
 		});
 	},
-	leave(param) {
+	leave(_: string) {
 		let guildPlayer = this.guild.voiceConnection.channel.guildPlayer;
 		this.channel.send('**Kilépés**');
 		guildPlayer.leave();
 	},
-	repeat(param) {
+	repeat(param: string):void {
 		let count = sscanf(param, '%d');
 		if (count <= 0 && count != null)
 			return void this.reply('pozitív számot kell megadni.');
@@ -519,8 +520,8 @@ let commands = {
 			this.reply(`hiba - ${ex}`);
 		}
 	},
-	radios(param) {
-		function listRadios(lang) {
+	radios(_: string) {
+		function listRadios(lang: string) { //TODO ez is enum: kultkód/nyelvkód
 			let res = [];
 			for (let key in radios) {
 				if (radios[key].cult == lang)
@@ -528,7 +529,7 @@ let commands = {
 			}
 			return res.join('\n');
 		}
-		let prefix = config.prefixes[this.guild.id] || defaultConfig.prefix;
+		let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 		const embed = commonEmbed.call(this, 'radios')
 			.addField('❯ Magyar rádiók', listRadios('hun'), true)
 			.addField('❯ Külföldi rádiók', listRadios('eng'), true)
@@ -545,8 +546,8 @@ let commands = {
 			this.reply(`hiba - ${ex}`);
 		}
 	},
-	help(param) {
-		let prefix = config.prefixes[this.guild.id] || defaultConfig.prefix;
+	help(param: string) {
+		let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 		let helpCommand = sscanf(param, '%s');
 		if (!helpCommand) {
 			const embed = commonEmbed.call(this, 'help')
@@ -572,7 +573,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		}
 		this.reply('nincs ilyen nevű parancs.').catch(console.error);
 	},
-	async guilds(param) {
+	async guilds(_: string) {
 		let guildLines = client.guilds.map(g => g.name + " **=>** `" + g.id + "`" + ` (${g.memberCount})`);
 		const embed = commonEmbed.call(this, 'guilds')
 			.setTitle(`❯ ${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`);
