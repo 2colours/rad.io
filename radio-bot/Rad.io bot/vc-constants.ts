@@ -1,15 +1,15 @@
-export const defaultConfig = {
+Ôªøexport const defaultConfig = {
 	'prefix': '.',
 	'fallback': 'radio'
 };
 export const radios = {
 'kossuth': {
-	name: 'Kossuth R·diÛ',
+	name: 'Kossuth R√°di√≥',
 	url: 'http://icast.connectmedia.hu/4736/mr1.mp3',
 	cult: 'hun'
 },
 'radio1': {
-	name: 'R·diÛ 1',
+	name: 'R√°di√≥ 1',
 	url: 'http://stream2.radio1.hu/mid.mp3#.mp3',
 	cult: 'hun'
 },
@@ -19,12 +19,12 @@ export const radios = {
 	cult: 'hun'
 },
 'petofi': {
-	name: 'Petıfi R·diÛ MR2',
+	name: 'Pet≈ëfi R√°di√≥ MR2',
 	url: 'http://icast.connectmedia.hu/4738/mr2.mp3',
 	cult: 'hun'
 },
 'slagerfm': {
-	name: 'Sl·ger FM',
+	name: 'Sl√°ger FM',
 	url: 'http://92.61.114.159:7812/slagerfm128.mp3',
 	cult: 'hun'
 },
@@ -39,32 +39,32 @@ export const radios = {
 	cult: 'hun'
 },
 'bartok': {
-	name: 'BartÛk R·diÛ',
+	name: 'Bart√≥k R√°di√≥',
 	url: 'http://icast.connectmedia.hu/4741/mr3.mp3',
 	cult: 'hun'
 },
 'laza': {
-	name: 'Laza R·diÛ',
+	name: 'Laza R√°di√≥',
 	url: 'http://stream.lazaradio.com/live.mp3',
 	cult: 'hun'
 },
 'retrobp': {
-	name: 'Retro R·diÛ Budapest',
+	name: 'Retro R√°di√≥ Budapest',
 	url: 'http://stream.retroradio.hu/mid.mp3',
 	cult: 'hun'
 },
 'sanders': {
-	name: 'Sanders R·diÛ',
+	name: 'Sanders R√°di√≥',
 	url: 'http://51.255.152.247:8000/live?format=mp3',
 	cult: 'hun'
 },
 'danko': {
-	name: 'DankÛ R·diÛ',
+	name: 'Dank√≥ R√°di√≥',
 	url: 'http://icast.connectmedia.hu/4748/mr7.mp3',
 	cult: 'hun'
 },
 'radioface': {
-	name: 'R·diÛ Face',
+	name: 'R√°di√≥ Face',
 	url: 'http://91.227.139.87:8000/;stream.nsv#.mp3',
 	cult: 'hun'
 },
@@ -74,22 +74,22 @@ export const radios = {
 	cult: 'hun'
 },
 'radio1pecs': {
-	name: 'R·diÛ 1 PÈcs',
+	name: 'R√°di√≥ 1 P√©cs',
 	url: 'http://stream.radio1pecs.hu:8200/pecs.mp3',
 	cult: 'hun'
 },
 'klasszik': {
-	name: 'Klasszik R·diÛ',
+	name: 'Klasszik R√°di√≥',
 	url: 'http://online.klasszikradio.hu/stream/3/#.mp3',
 	cult: 'hun'
 },
 'sunshine': {
-	name: 'Sunshine R·diÛ',
+	name: 'Sunshine R√°di√≥',
 	url: 'http://195.56.193.129:8100/;stream.nsv#.mp3',
 	cult: 'hun'
 },
 'katolikus': {
-	name: 'Katolikus R·diÛ',
+	name: 'Katolikus R√°di√≥',
 	url: 'http://katolikusradio.hu:9000/live_low.mp3',
 	cult: 'hun'
 },
@@ -99,52 +99,52 @@ export const radios = {
 	cult: 'hun'
 },
 'gold': {
-	name: 'Gold R·diÛ',
+	name: 'Gold R√°di√≥',
 	url: 'http://37.221.209.146:6200/live.mp3',
 	cult: 'hun'
 },
 'maxiradio': {
-	name: 'MaxiR·diÛ',
+	name: 'MaxiR√°di√≥',
 	url: 'http://37.221.209.189:9560',
 	cult: 'hun'
 },
 'radio88': {
-	name: 'R·diÛ88',
+	name: 'R√°di√≥88',
 	url: 'http://stream.radio88.hu:8000/;stream.nsv#.mp3',
 	cult: 'hun'
 },
 'partyradio': {
-	name: 'All In PartyR·diÛ',
+	name: 'All In PartyR√°di√≥',
 	url: 'http://adas3.allinparty.hu:8430/hq#.mp3',
 	cult: 'hun'
 },
 'mercy': {
-	name: 'Mercy MulatÛs R·diÛ',
+	name: 'Mercy Mulat√≥s R√°di√≥',
 	url: 'http://stream.mercyradio.eu/mulatos.mp3',
 	cult: 'hun'
 },
 'tilos': {
-	name: 'Tilos R·diÛ',
+	name: 'Tilos R√°di√≥',
 	url: 'http://stream.tilos.hu/tilos',
 	cult: 'hun'
 },
 'rock': {
-	name: 'R·diÛ Rock',
+	name: 'R√°di√≥ Rock',
 	url: 'http://cloudfront44.lexanetwork.com/cdn/cloudstream4151.mp3',
 	cult: 'hun'
 },
 'aktiv': {
-	name: 'AktÌv R·diÛ Szolnok',
+	name: 'Akt√≠v R√°di√≥ Szolnok',
 	url: 'http://aktivradio.hu:8000/aktiv.mp3',
 	cult: 'hun'
 },
 'amadeus': {
-  name: 'Amadeus R·diÛ',
+  name: 'Amadeus R√°di√≥',
   url: 'http://87.229.73.156:8004/stream192',
   cult: 'hun'
 },
 'halas': {
-	name: 'Halas R·diÛ Kiskunhalas',
+	name: 'Halas R√°di√≥ Kiskunhalas',
 	url: 'http://92.61.114.195:8110/stream',
 	cult: 'hun'
 },
@@ -254,7 +254,7 @@ export const radios = {
   cult: 'eng'
 },
 'antrock': {
-  name: 'R·dio AntÈna Rock',
+  name: 'R√°dio Ant√©na Rock',
   url: 'http://stream.antenarock.sk/antena-hi.mp3',
   cult: 'eng'
 }
