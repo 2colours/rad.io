@@ -1,4 +1,5 @@
 ﻿import * as Discord from 'discord.js';
+import * as Common from './common-types';
 const { helpCommands } = require('./help-embed');
 const client = new Discord.Client();
 const token = process.env.radioToken;
@@ -14,12 +15,6 @@ const moment = require('moment');
 const embedC = 0xfcf5d2;
 const { defaultConfig, radios, youtubeEmoji } = constants;
 const { isAloneUser, pass, isAloneBot, nonFallbackNeeded, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, permissionNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } = require('./vc-decorators');
-interface Config {
-	prefixes: Map<Discord.Snowflake, string>;
-	fallbackModes: Map<Discord.Snowflake, string>; //TODO nem akármilyen string!
-	fallbackChannels: Map<Discord.Snowflake, any>; //TODO nem any, a Datát még definiálni kell!
-	roles: Map<Discord.Snowflake, any>; //TODO ez sem any, hanem valamilyen Map → a role ID is Snowflake?
-}
 const parameterNeeded = action => function (param:string) {
 	if (!sscanf(param, '%s'))
 		commands.help.call(this, this.cmdName);
@@ -56,7 +51,7 @@ import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 const devChannel = () => client.channels.get('470574072565202944');
 
-let config: Config;
+let config: Common.Config;
 
 sql.open("./radio.sqlite");
 
@@ -449,7 +444,7 @@ let commands = {
 				if (results.length == 1)
 					selectedResult = results[0];
 				else if (!this.guild.member(client.user).permissions.has('ADD_REACTIONS')) {
-					this.channel.send('** Az opciók közüli választáshoz a botnak **`ADD_REACTIONS`** jogosultságra van szüksége.\nAutomatikusan az első opció kiválasztva. **');
+					this.channel.send('** Az opciók közüli választáshoz a botnak **`ADD_REACTIONS`** jogosultságra van szüksége.\nAutomatikusan az első opció kiválasztva. **').catch(console.log);
 					selectedResult = results[0];
 				}
 				else {

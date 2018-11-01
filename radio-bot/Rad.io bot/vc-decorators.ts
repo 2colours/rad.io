@@ -11,8 +11,8 @@ let currentDecorator=await Promise.resolve(pred(this))?dec1:dec2;
 currentDecorator(action).call(this,param);
 };
 const hasPermission=async ctx=>{
-  let guildRoles = await sql.all('SELECT * FROM prefix WHERE guildID = ?',ctx.guild.id).catch(err=>[]);
-  return guildRoles.some(roleRow=>ctx.member.roles.has(roleRow.roleID) && roleRow.commands.split('|').includes(ctx.cmdName));
+  let guildRoles = await sql.all('SELECT * FROM prefix WHERE guildID = ?',ctx.guild.id).catch(console.log);
+  return guildRoles.some((roleRow:any)=>ctx.member.roles.has(roleRow.roleID) && roleRow.commands.split('|').includes(ctx.cmdName));
 }
 const hasVcPermission=ctx=>ctx.member.voiceChannel.joinable;
 const isFallback=ctx=>ctx.guild.voiceConnection.channel.guildPlayer.fallbackPlayed;
