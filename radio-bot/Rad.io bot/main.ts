@@ -848,6 +848,15 @@ client.on('guildDelete', guild => {
 	updateStatusChannels()
 });
 
+client.on("error", error => {
+	console.log(`ERRRORRR: \n${JSON.stringify(error.message)}`);
+});
+
+process.on('unhandledRejection', function(reason, p){
+    console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
+    // application specific logging here
+});
+
 function logGuildJoin(guild: Discord.Guild) {
 	const created = moment(guild.createdAt).format("MMM Do YY");
 	const embed = new Discord.RichEmbed()
