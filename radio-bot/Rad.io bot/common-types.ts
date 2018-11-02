@@ -28,4 +28,9 @@ export interface MusicData {
 	url: string;
 	type:StreamType;
 }
+export interface RadioData {
+	name:string;
+	url:string;
+	cult:string; //TODO biztos nem enum inkább?
+}
 export type EmojiLike = Discord.Emoji | string;

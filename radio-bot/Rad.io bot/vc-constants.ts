@@ -2,7 +2,7 @@
 	'prefix': '.',
 	'fallback': 'radio'
 };
-export const radios = {
+const radios = {
 'kossuth': {
 	name: 'Kossuth Rádió',
 	url: 'http://icast.connectmedia.hu/4736/mr1.mp3',
@@ -264,5 +264,7 @@ export const radios = {
   cult: 'eng'
 }
 };
-
+const r=new Map(Object.entries(radios));
+export {r as radios};
 export const youtubeEmoji = '506897247145951233';
+export const embedC = 0xfcf5d2;

@@ -4,16 +4,14 @@ const { helpCommands } = require('./help-embed');
 const client = new Discord.Client();
 const token = process.env.radioToken;
 const apiKey = process.env.youtubeApiKey;
-const yd: any = require('ytdl-core'); //Nem illik közvetlenül hívni
+import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
 const ytdl = (url:string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const sscanf = require('scanf').sscanf;
 //const fs = require('fs');
 const sql = require('sqlite');
-const constants = require('./vc-constants');
+import { defaultConfig, radios, youtubeEmoji, embedC} from './vc-constants';
 //const streamOptions = { seek: 0, volume: 1 };
-const moment = require('moment');
-const embedC = 0xfcf5d2;
-const { defaultConfig, radios, youtubeEmoji } = constants;
+import * as moment from 'moment';
 const { isAloneUser, pass, isAloneBot, nonFallbackNeeded, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } = require('./vc-decorators');
 const parameterNeeded = (action:Common.Action) => function (param:string) {
 	if (!sscanf(param, '%S'))
@@ -164,7 +162,7 @@ async function loadCFG() {
 	console.log(config);
 };
 
-const channels = Object.keys(radios);
+const channels:string[] = [...radios.keys()];
 
 client.on('ready', () => {
 	console.log(`${client.user.tag}: client online, on ${client.guilds.size} guilds, with ${client.users.size} users.`);
@@ -192,7 +190,7 @@ const aliases = {
 	'de': 'denyeveryone'
 };
 const debatedCommands = ['shuffle', 'skip', 'leave'];
-const downloadMethods:Map<Common.StreamType,any> = new Map([
+const downloadMethods = new Map<Common.StreamType,any>([
 	[Common.StreamType.yt, ytdl],
 	[Common.StreamType.custom,(url:string) => url],
 	[Common.StreamType.radio,(url:string) => url]]);
@@ -411,7 +409,7 @@ let commands = {
 		let voiceChannel = this.member.voiceChannel;
 		let channelToPlay = sscanf(param, '%s') || '';
 		let randChannel = randomElement(channels);
-		if (channelToPlay && !radios[channelToPlay]) {
+		if (channelToPlay && !radios.has(channelToPlay)) {
 			channelToPlay = randChannel;
 			this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
 		}
@@ -420,7 +418,7 @@ let commands = {
 			this.channel.send('**Csatlakozva.**');
 			voiceChannel.guildPlayer = new GuildPlayer(voiceChannel, this.channel);
 			if (channelToPlay)
-				voiceChannel.guildPlayer.schedule(Object.assign({ type: 'radio' }, radios[channelToPlay]));
+				voiceChannel.guildPlayer.schedule(Object.assign({ type: 'radio' }, radios.get(channelToPlay)));
 		}
 		catch (ex) {
 			this.channel.send('**Hiba a csatlakozás során.**');
@@ -527,9 +525,9 @@ let commands = {
 	radios(_: string) {
 		function listRadios(lang: string) { //TODO ez is enum: kultkód/nyelvkód
 			let res = [];
-			for (let key in radios) {
-				if (radios[key].cult == lang)
-					res.push(`${radios[key].name}** ID:** *${key}*`);
+			for (let [key,value] of radios) {
+				if (value.cult == lang)
+					res.push(`${value.name}** ID:** *${key}*`);
 			}
 			return res.join('\n');
 		}
@@ -667,13 +665,13 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		}
 	},
 	async fallbackradio(param: string): Promise<void> {
-		let given = sscanf(param, '%s') || '';
-		if (given in radios) {
-			var fr = Object.assign({ type: 'radio' }, radios[given]);
+		let given:string = sscanf(param, '%s') || '';
+		if (radios.has(given)) {
+			var fr:Common.MusicData = Object.assign({ type: Common.StreamType.radio }, radios.get(given));
 		}
 		else if (given.search(/https?:\/\//) == 0)
 			fr = {
-				type: 'custom',
+				type: Common.StreamType.custom,
 				name: given,
 				url: given
 			};
@@ -696,11 +694,11 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		let voiceChannel = this.member.voiceChannel;
 		let channel = sscanf(param, '%s') || '';
 		let randChannel = randomElement(channels);
-		if (!radios[channel]) {
+		if (!radios.has(channel)) {
 			channel = randChannel;
 			this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
 		}
-		forceSchedule(this.channel, voiceChannel, Object.assign({ type: 'radio' }, radios[channel]));
+		forceSchedule(this.channel, voiceChannel, Object.assign({ type: Common.StreamType.radio }, radios.get(channel)));
 	},
 	grant(param: string) {
 		permissionReused.call(this, param, (commands:string[], roleCommands:string[]) =>
@@ -895,7 +893,7 @@ function randomElement<T>(array:T[]):T {
 
 function setPStatus() {
 	let presenceEndings = [`G: ${client.guilds.size}`, `Rádiók száma: ${channels.length} `, `@${client.user.username}`, `U: ${client.users.size}`];
-	let randomRadioName = radios[randomElement(channels)].name;
+	let randomRadioName = radios.get(randomElement(channels)).name;
 	let presence = `${randomRadioName} | ${randomElement(presenceEndings)}`;
 	client.user.setPresence({ game: { name: presence, type: 'LISTENING' } });
 };
