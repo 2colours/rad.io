@@ -5,3 +5,16 @@ export interface Config {
 	fallbackChannels: Map<Discord.Snowflake, any>; //TODO nem any, a Datát még definiálni kell!
 	roles: Map<Discord.Snowflake, any>; //TODO ez sem any, hanem valamilyen Map → a role ID is Snowflake?
 }
+type Resolvable<T> = T | Promise<T>;
+export type Action = (param:string) => Resolvable<void>;
+export type Decorator = (toDecorate:Action) => Action;
+export type Predicate = (x:any) => Resolvable<boolean>;
+export interface PackedMessage extends Discord.Message {
+	cmdName:string;
+}
+export enum TableName {
+	prefix='prefix',
+	fallbackModes='fallbackModes',
+	fallbackData='fallbackData',
+	role='role'
+}
