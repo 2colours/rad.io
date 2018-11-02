@@ -123,6 +123,11 @@ export const radios = {
 	url: 'http://stream.mercyradio.eu/mulatos.mp3',
 	cult: 'hun'
 },
+'romungro': {
+	name: 'Románo Ungriko Discoso Rádiovo',
+	url: 'http://stream.mercyradio.eu/roma.mp3',
+	cult: 'hun'
+},
 'tilos': {
 	name: 'Tilos Rádió',
 	url: 'http://stream.tilos.hu/tilos',
@@ -260,4 +265,4 @@ export const radios = {
 }
 };
 
-export const youtubeEmoji = '447036877745160204';
+export const youtubeEmoji = '506897247145951233';

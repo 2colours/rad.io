@@ -1,41 +1,38 @@
 ﻿import * as Discord from 'discord.js';
+import * as Common from './common-types';
 const { helpCommands } = require('./help-embed');
 const client = new Discord.Client();
 const token = process.env.radioToken;
 const apiKey = process.env.youtubeApiKey;
 const yd: any = require('ytdl-core'); //Nem illik közvetlenül hívni
-const ytdl = url => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
+const ytdl = (url:string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const sscanf = require('scanf').sscanf;
-const fs = require('fs');
+//const fs = require('fs');
 const sql = require('sqlite');
 const constants = require('./vc-constants');
 //const streamOptions = { seek: 0, volume: 1 };
 const moment = require('moment');
 const embedC = 0xfcf5d2;
 const { defaultConfig, radios, youtubeEmoji } = constants;
-const { isAloneUser, pass, isAloneBot, nonFallbackNeeded, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, permissionNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } = require('./vc-decorators');
-interface Config {
-	prefixes: Map<Discord.Snowflake, string>;
-	fallbackModes: Map<Discord.Snowflake, string>; //TODO nem akármilyen string!
-	fallbackChannels: Map<Discord.Snowflake, any>; //TODO nem any, a Datát még definiálni kell!
-	roles: Map<Discord.Snowflake, any>; //TODO ez sem any, hanem valamilyen Map → a role ID is Snowflake?
-}
-const parameterNeeded = action => function (param) {
-	if (!sscanf(param, '%s'))
+const { isAloneUser, pass, isAloneBot, nonFallbackNeeded, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } = require('./vc-decorators');
+const parameterNeeded = (action:Common.Action) => function (param:string) {
+	if (!sscanf(param, '%S'))
 		commands.help.call(this, this.cmdName);
 	else
 		action.call(this, param);
 };
-const aggregateDecorators = decorators => action => decorators.reduceRight((act, dec) => dec(act), action);
-function decorateCommand(cmdName, decorators) {
+const aggregateDecorators = (decorators:Common.Decorator[]) => (action:Common.Action) => decorators.reduceRight((act, dec) => dec(act), action);
+function decorateCommand(cmdName:string, decorators:Common.Decorator[]) { //TODO ez se string, mindenképpen át kell dolgozni a parancsokat
 	commands[cmdName] = aggregateDecorators(decorators)(commands[cmdName]/*,cmdName*/);
-};
+}; 
 const decorators = {
 	setprefix: [adminNeeded, parameterNeeded],
 	fallbackradio: [adminNeeded, parameterNeeded],
 	fallback: [adminNeeded, parameterNeeded],
 	grant: [adminNeeded, parameterNeeded],
+	granteveryone: [adminNeeded, parameterNeeded],
 	deny: [adminNeeded, parameterNeeded],
+	denyeveryone: [adminNeeded, parameterNeeded],
 	yt: [vcUserNeeded, vcPermissionNeeded, sameOrNoBotVcNeeded, parameterNeeded],
 	custom: [vcUserNeeded, vcPermissionNeeded, sameOrNoBotVcNeeded, parameterNeeded],
 	join: [noBotVcNeeded, vcUserNeeded, vcPermissionNeeded, sameVcBanned],
@@ -56,18 +53,18 @@ import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 const devChannel = () => client.channels.get('470574072565202944');
 
-let config: Config;
+let config: Common.Config;
 
 sql.open("./radio.sqlite");
 
-function commonEmbed(cmd) {
-	let prefix = config.prefixes[this.guild.id] || defaultConfig.prefix;
+function commonEmbed(cmd:string) { //TODO ez sem akármilyen string, hanem parancsnév
+	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 	return new Discord.RichEmbed()
 		.setColor(embedC)
 		.setFooter(`${prefix}${cmd} - ${client.user.username}`, client.user.avatarURL)
 		.setTimestamp();
 };
-function hourMinSec(minutes, seconds) {
+function hourMinSec(minutes:number, seconds:any) { //a seconds bugosnak bizonyult
 	seconds = Number.isNaN(seconds) ? 0 : seconds;
 	let hours = Math.floor(minutes / 60);
 	minutes %= 60;
@@ -75,7 +72,7 @@ function hourMinSec(minutes, seconds) {
 };
 function scrollRequest(message: Discord.Message, currentPage: number, allPages: number) {
 	let res = new Promise(async (resolve, reject) => {
-		let emojis = [];
+		let emojis:string[] = [];
 		if (currentPage > 1)
 			emojis.push('◀');
 		if (currentPage < allPages)
@@ -98,7 +95,7 @@ function scrollRequest(message: Discord.Message, currentPage: number, allPages: 
 	return res;
 };
 
-async function save(rowObj, type) {
+async function saveRow(rowObj:any, type:Common.TableName) { //a rowObj nem any, igazából ezt szét kéne dobni külön függvényekbe
 	switch (type) {
 		case 'prefix':
 			await sql.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
@@ -148,14 +145,15 @@ async function refreshDB() {
 async function loadCFG() {
 	let prefixes: Map<Discord.Snowflake, string> = new Map();
 	let fallbackModes: Map<Discord.Snowflake, string> = new Map();
-	let fallbackData = {};
-	let roles = {};
-	await Promise.all([
-		sql.all('SELECT * FROM prefix').then(prefixRows => prefixRows.forEach(prefixRow => prefixes[prefixRow.guildID] = prefixRow.prefix)),
-		sql.all('SELECT * FROM fallbackModes').then(fbmRows => fbmRows.forEach(fbmRow => fallbackModes[fbmRow.guildID] = fbmRow.type)),
-		sql.all('SELECT * FROM fallbackData').then(fbdRows => fbdRows.forEach(fbdRow => fallbackData[fbdRow.guildID] = { type: fbdRow.type, name: fbdRow.name, url: fbdRow.url })),
-		sql.all('SELECT * FROM role').then(roleRows => roleRows.forEach(roleRow => roles[roleRow.guildID] = Object.assign(roles[roleRow.guildID] || {}, { [roleRow.roleID]: roleRow.commands.split('|') })))
-	]).catch(console.error);
+	let fallbackData: Map<Discord.Snowflake,Common.MusicData> = new Map();
+	let roles: Map<Discord.Snowflake,Map<Discord.Snowflake,string[]>> = new Map();
+	let selectPromises:Promise<void>[]=[
+		sql.all('SELECT * FROM prefix').then(prefixRows => prefixRows.forEach(prefixRow => prefixes.set(prefixRow.guildID,prefixRow.prefix))),
+		sql.all('SELECT * FROM fallbackModes').then(fbmRows => fbmRows.forEach(fbmRow => fallbackModes.set(fbmRow.guildID,fbmRow.type))),
+		sql.all('SELECT * FROM fallbackData').then(fbdRows => fbdRows.forEach(fbdRow => fallbackData.set(fbdRow.guildID,{ type: fbdRow.type, name: fbdRow.name, url: fbdRow.url }))),
+		sql.all('SELECT * FROM role').then(roleRows => roleRows.forEach(roleRow => roles.set(roleRow.guildID,new Map([...attach(roles,roleRow.guildID,new Map()), [roleRow.roleID, roleRow.commands.split('|')] ]))))
+	];
+	await Promise.all(selectPromises).catch(console.error);
 
 	config = {
 		prefixes: prefixes,
@@ -187,21 +185,24 @@ const aliases = {
 	'np': 'nowplaying',
 	'vol': 'volume',
 	'h': 'help',
-	'l': 'leave'
+	'l': 'leave',
+	'g': 'grant',
+	'ge': 'granteveryone',
+	'd': 'deny',
+	'de': 'denyeveryone'
 };
 const debatedCommands = ['shuffle', 'skip', 'leave'];
-const downloadMethods = {
-	yt: ytdl,
-	custom: url => url,
-	radio: url => url
-};
-function getEmoji(type:string) { //TODO ez sem string, hanem valamilyen enum
-	const emojis = {
-		yt: client.emojis.get(youtubeEmoji),
-		radio: ':radio:',
-		custom: ':radio:'
-	};
-	return emojis[type];
+const downloadMethods:Map<Common.StreamType,any> = new Map([
+	[Common.StreamType.yt, ytdl],
+	[Common.StreamType.custom,(url:string) => url],
+	[Common.StreamType.radio,(url:string) => url]]);
+function getEmoji(type:Common.StreamType):Common.EmojiLike {
+	const emojis:Map<Common.StreamType,Common.EmojiLike> = new Map<Common.StreamType,Common.EmojiLike>([
+		[Common.StreamType.yt, client.emojis.get(youtubeEmoji)],
+		[Common.StreamType.radio, ':radio:'],
+		[Common.StreamType.custom, ':radio:']
+	]);
+	return emojis.get(type);
 }
 function repeatCounter(nTimes: number) {
 	return () => nTimes-- > 0;
@@ -226,7 +227,7 @@ class Playable {
 				this.halt = () => reject('leave');
 				return;
 			}
-			const stream = downloadMethods[this.data.type](this.data.url);
+			const stream = downloadMethods.get(this.data.type)(this.data.url);
 			let dispatcher = voiceConnection.playStream(stream, { seek: 0, volume: vol });
 			dispatcher.on('end', () => resolve(false)); //nem volt forced, hanem magától
 			dispatcher.on('error', () => {
@@ -245,7 +246,7 @@ class Playable {
 	}
 }
 class VoiceHandler {
-	private timeoutId?;
+	private timeoutId?:NodeJS.Timeout;
 	constructor(private controlledPlayer: GuildPlayer) {
 	}
 	eventTriggered() {
@@ -266,12 +267,12 @@ class GuildPlayer {
 	nowPlaying: Playable;
 	ownerChannel: Discord.VoiceChannel;
 	announcementChannel: Discord.TextChannel;
-	private queue: any[];
+	private queue: Playable[];
 	fallbackPlayed: boolean;
 	private handler: VoiceHandler;
 	private volume: number;
 	private oldVolume?: number;
-	constructor(voiceChannel: Discord.VoiceChannel, textChannel: Discord.TextChannel, musicToPlay?: any) {
+	constructor(voiceChannel: Discord.VoiceChannel, textChannel: Discord.TextChannel, musicToPlay?: Common.MusicData) {
 		this.ownerChannel = voiceChannel;
 		this.announcementChannel = textChannel;
 		this.nowPlaying = new Playable(musicToPlay);
@@ -334,7 +335,7 @@ class GuildPlayer {
 		else
 			this.nowPlaying.askRepeat = repeatCounter(maxTimes);
 	}
-	schedule(musicData) {
+	schedule(musicData:Common.MusicData) {
 		this.queue.push(new Playable(musicData));
 		if (!this.nowPlaying.isDefinite() && this.queue.length == 1)
 			this.skip();
@@ -375,24 +376,24 @@ class GuildPlayer {
 		if (!this.nowPlaying)
 			throw 'destroyed';
 	}
-	getQueueData() {
+	getQueueData():Common.MusicData[] {
 		return this.queue.map(playable => playable.data);
 	}
 	getNowPlayingData() {
 		return this.nowPlaying.data;
 	}
 };
-function shuffle(array: Array<any>) {
+function shuffle(array: any[]) {
 	for (let i = array.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * i) + 1;
+		const j = Math.floor(Math.random() * (i+1));
 		[array[i], array[j]] = [array[j], array[i]];
 	}
 };
-function attach(baseDict:Map<Discord.Snowflake,any>, guildId:Discord.Snowflake, defaultValue:any) {
+function attach<T>(baseDict:Map<Discord.Snowflake,T>, guildId:Discord.Snowflake, defaultValue:T) {
 	baseDict=baseDict.get(guildId)? baseDict:baseDict.set(guildId, defaultValue);
 	return baseDict.get(guildId);
 };
-async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, playableData) {
+async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, playableData:Common.MusicData) {
 	if (!voiceChannel['guildPlayer']) {
 		await voiceChannel.join();
 		voiceChannel['guildPlayer'] = new GuildPlayer(voiceChannel, textChannel, playableData);
@@ -434,7 +435,7 @@ let commands = {
 			return void forceSchedule(this.channel, voiceChannel, {
 				name: ytVideo.title,
 				url: param,
-				type: 'yt'
+				type: Common.StreamType.yt
 			});
 		}
 		let ytString = sscanf(param, '%S') || '';
@@ -449,7 +450,7 @@ let commands = {
 				if (results.length == 1)
 					selectedResult = results[0];
 				else if (!this.guild.member(client.user).permissions.has('ADD_REACTIONS')) {
-					this.channel.send('** Az opciók közüli választáshoz a botnak **`ADD_REACTIONS`** jogosultságra van szüksége.\nAutomatikusan az első opció kiválasztva. **');
+					this.channel.send('** Az opciók közüli választáshoz a botnak **`ADD_REACTIONS`** jogosultságra van szüksége.\nAutomatikusan az első opció kiválasztva. **').catch(console.log);
 					selectedResult = results[0];
 				}
 				else {
@@ -467,7 +468,7 @@ let commands = {
 							resolve(index);
 							collector.stop();
 						});
-						collector.on('end', _ => reject('Lejárt a választási idő.'));
+						collector.on('end', (_:any) => reject('Lejárt a választási idő.'));
 						for (let emoji of emojis) {
 							let reaction = await message.react(emoji);
 							selectionPromise.then(_ => reaction.remove(client.user), _ => reaction.remove(client.user));
@@ -488,7 +489,7 @@ let commands = {
 			forceSchedule(this.channel, voiceChannel, {
 				name: selectedResult.title,
 				url: selectedResult.url,
-				type: 'yt'
+				type: Common.StreamType.yt
 			});
 		}
 		catch (e) {
@@ -502,7 +503,7 @@ let commands = {
 		forceSchedule(this.channel, voiceChannel, {
 			name: 'Custom',
 			url,
-			type: 'custom'
+			type: Common.StreamType.custom
 		});
 	},
 	leave(_: string) {
@@ -569,7 +570,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			currentAliases.sort();
 			const embed = commonEmbed.call(this, `help ${helpCommand}`)
 				.addField('❯ Részletes leírás', allCommands[helpCommand].description)
-				.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${allCommands[helpCommand].attributes ? allCommands[helpCommand].attributes.map(attribute => `<${attribute}>`).join(' ') : ''}\``)
+				.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${allCommands[helpCommand].attributes ? allCommands[helpCommand].attributes.map((attribute:string) => `<${attribute}>`).join(' ') : ''}\``)
 				.addField('❯ Használat feltételei', allCommands[helpCommand].requirements || '-')
 				.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
 			return void this.channel.send({ embed }).catch(console.error);
@@ -609,7 +610,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		let newPrefix = param.toLowerCase();
 		config.prefixes.set(this.guild.id, newPrefix);
 		try {
-			await save({ guildID: this.guild.id, prefix: newPrefix }, 'prefix');
+			await saveRow({ guildID: this.guild.id, prefix: newPrefix }, Common.TableName.prefix);
 			this.channel.send(`${newPrefix} **az új prefix.**`).catch(() => { });
 		}
 		catch (e) {
@@ -619,7 +620,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		}
 	},
 	async queue(_: string): Promise<void> {
-		let queue = this.guild.voiceConnection.channel.guildPlayer.getQueueData();
+		let queue:Common.MusicData[] = this.guild.voiceConnection.channel.guildPlayer.getQueueData();
 		if (queue.length == 0)
 			return void this.channel.send('**A sor jelenleg üres.**');
 		const queueLines = queue.map(elem => `${getEmoji(elem.type)} ${elem.name}`);
@@ -658,7 +659,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		config.fallbackModes.set(this.guild.id, mode);
 		this.channel.send(`**Új fallback: ${mode}. **`);
 		try {
-			await save({ guildID: this.guild.id, type: mode }, 'fallbackModes');
+			await saveRow({ guildID: this.guild.id, type: mode }, Common.TableName.fallbackModes);
 		}
 		catch (ex) {
 			console.error(ex);
@@ -681,7 +682,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		config.fallbackChannels.set(this.guild.id, fr);
 		this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`).catch(console.error);
 		try {
-			await save({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url }, 'fallbackData');
+			await saveRow({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url }, Common.TableName.fallbackData);
 		}
 		catch (ex) {
 			console.error(ex);
@@ -702,7 +703,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		forceSchedule(this.channel, voiceChannel, Object.assign({ type: 'radio' }, radios[channel]));
 	},
 	grant(param: string) {
-		permissionReused.call(this, param, (commands:Array<string>, roleCommands:Array<string>) =>
+		permissionReused.call(this, param, (commands:string[], roleCommands:string[]) =>
 			commands.forEach(elem => {
 				if (!roleCommands.includes(elem))
 					roleCommands.push(elem);
@@ -713,7 +714,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		commands.grant.call(this,param+' @everyone');
 	},
 	deny(param: string) {
-		permissionReused.call(this, param, (commands:Array<string>, roleCommands:Array<string>) =>
+		permissionReused.call(this, param, (commands:string[], roleCommands:string[]) =>
 			commands.forEach(elem => {
 				if (roleCommands.includes(elem))
 					roleCommands.splice(roleCommands.indexOf(elem), 1);
@@ -767,7 +768,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 
 Object.keys(decorators).forEach(cmdName => decorateCommand(cmdName, decorators[cmdName]));
 
-async function permissionReused(param: string, filler:(affectedCommands:Array<string>,configedCommands:Array<string>)=>void): Promise<void> {
+async function permissionReused(param: string, filler:(affectedCommands:string[],configedCommands:string[])=>void): Promise<void> {
 	try {
 		var [commands = '', roleName = ''] = sscanf(param, '%s %S');
 	}
@@ -777,18 +778,18 @@ async function permissionReused(param: string, filler:(affectedCommands:Array<st
 	}
 	if (!commands)
 		return void this.reply('az első paraméter üres.');
-	let commandsArray:Array<string> = commands.toLowerCase()=='all' ? debatedCommands : commands.split('|');
+	let commandsArray:string[] = commands.toLowerCase()=='all' ? debatedCommands : commands.split('|');
 	let firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void this.reply(`\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.`);
 	let role = this.guild.roles.find((elem:Discord.Role) => elem.name == roleName);
 	if (!role)
 		return void this.reply('nem létezik a megadott role.');
-	let currentRoles = attach(config.roles, this.guild.id, new Object());
+	let currentRoles = attach(config.roles, this.guild.id, new Map());
 	let roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
 	try {
-		await save({ guildID: this.guild.id, roleID: role.id, commands: commandsArray.join('|') }, 'role');
+		await saveRow({ guildID: this.guild.id, roleID: role.id, commands: commandsArray.join('|') }, Common.TableName.role);
 		this.channel.send(`**Új jogosultságok mentve.**`);
 	}
 	catch (ex) {
@@ -797,7 +798,7 @@ async function permissionReused(param: string, filler:(affectedCommands:Array<st
 	}
 }
 
-client.on("message", async (message) => {
+client.on('message', async (message) => {
 
 	if (message.guild == null) return;
 	let prefix = config.prefixes.get(message.guild.id) || defaultConfig.prefix;
@@ -810,7 +811,7 @@ client.on("message", async (message) => {
 		commandString = commandString.toLowerCase();
 		commandString = aliases[commandString] || commandString;
 		let command = commands[commandString] || Function.prototype;
-		let thisBinding = Object.assign(message, { cmdName: commandString });
+		let thisBinding:Common.PackedMessage = Object.assign(message, { cmdName: commandString });
 		await Promise.resolve(command.call(thisBinding, param || ''));
 	}
 	catch (ex) {
@@ -847,6 +848,15 @@ client.on('guildDelete', guild => {
 	updateStatusChannels()
 });
 
+client.on("error", error => {
+	console.log(`ERRRORRR: \n${JSON.stringify(error.message)}`);
+});
+
+process.on('unhandledRejection', function(reason, p){
+    console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
+    // application specific logging here
+});
+
 function logGuildJoin(guild: Discord.Guild) {
 	const created = moment(guild.createdAt).format("MMM Do YY");
 	const embed = new Discord.RichEmbed()
@@ -864,7 +874,14 @@ async function sendWelcome(guild: Discord.Guild) {
 			continue;
 		let textChannel = channel as Discord.TextChannel;
 		try {
-			await textChannel.send('---Hasznos infó---');
+			let embed=new Discord.RichEmbed()
+				.setAuthor(client.user.tag, client.user.displayAvatarURL)
+				.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
+				.addField('❯ Néhány szó a botról','A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.')
+				.addField('❯ Első lépések',`Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${debatedCommands.map(cmdName=>'`'+cmdName+'`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
+				.setColor(embedC)
+				.setTimestamp();
+			await textChannel.send('https://discord.gg/C83h4Sk',{embed});
 			break;
 		}
 		catch (ex) {
@@ -872,7 +889,7 @@ async function sendWelcome(guild: Discord.Guild) {
 	}
 }
 
-function randomElement(array:Array<any>) {
+function randomElement<T>(array:T[]):T {
 	return array[(Math.random() * array.length) | 0];
 };
 

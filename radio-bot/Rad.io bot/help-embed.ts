@@ -53,8 +53,10 @@ let helpCommands = {
     'fallback':{attributes:['leave/silence/radio'],description:'Fallback mód beállítása. A bot akkor kerül fallback módba, ha kiürül a játszási sor. A választható üzemmódok: kilépés (leave), csendes jelenlét (silence), az erre a célra beállított rádió stream lejátszása (radio, lásd még `fallbackradio` parancs).',requirements:'Adminisztrátori jogosultság szükséges.'},
     'fallbackradio':{attributes:['ID / streamURL'],description:'Rádió fallback esetén játszandó adó beállítása stream URL vagy rádió id alapján. (Lásd még: `fallback` parancs.)',requirements:'Adminisztrátori jogosultság szükséges.'},
     'setprefix':{attributes:['prefix'],description:'Bot prefixének átállítása.',requirements:'Adminisztrátori jogosultság szükséges.'},
-    'grant':{attributes:['parancs1|parancs2|...','role neve'],description:'Új parancsok elérhetővé tétele egy role számára. Alapértelmezésben a `skip`, `leave` és `shuffle` parancsok csak adminisztrátoroknak elérhetők, ezt lehet felülírni ezzel a paranccsal.',requirements:'Adminisztrátori jogosultság szükséges.'},
-    'deny':{attributes:['parancs1|parancs2|...','role neve'],description:'Parancshasználat visszavonása egy role-tól. (Lásd még: `grant` parancs.)',requirements:'Adminisztrátori jogosultság szükséges.'}
+    'grant':{attributes:['parancs1|parancs2|... / all','role neve'],description:'Új parancsok elérhetővé tétele egy role számára. Alapértelmezésben a `skip`, `leave` és `shuffle` parancsok csak adminisztrátoroknak elérhetők, ezt lehet felülírni ezzel a paranccsal.',requirements:'Adminisztrátori jogosultság szükséges.'},
+    'granteveryone':{attributes:['parancs1|parancs2|... / all'],description:'Új parancsok elérhetővé tétele mindenki (az @everyone role) számára. Alapértelmezésben a `skip`, `leave` és `shuffle` parancsok csak adminisztrátoroknak elérhetők, ezt lehet felülírni ezzel a paranccsal.',requirements:'Adminisztrátori jogosultság szükséges.'},
+    'deny':{attributes:['parancs1|parancs2|... / all','role neve'],description:'Parancshasználat visszavonása egy role-tól. (Lásd még: `grant` parancs.)',requirements:'Adminisztrátori jogosultság szükséges.'},
+    'denyeveryone':{attributes:['parancs1|parancs2|... / all'],description:'Parancshasználat visszavonása az @everyone role-tól. (Lásd még: `grant` parancs.)',requirements:'Adminisztrátori jogosultság szükséges.'}
   }
 };
 module.exports={helpCommands};
