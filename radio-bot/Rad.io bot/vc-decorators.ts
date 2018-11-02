@@ -2,10 +2,10 @@
 import * as Common from './common-types';
 sql.open("./radio.sqlite");
 export const creatorIds=['297037173541175296','419447790675165195'];
-const isAdmin=(ctx:Common.PackedMessage)=>ctx.member.permissions.has('ADMINISTRATOR');
-const isVcUser=(ctx:Common.PackedMessage)=>!!ctx.member.voiceChannel;
-const isDifferentVc=(ctx:Common.PackedMessage)=>(ctx.guild.voiceConnection && ctx.guild.voiceConnection.channel) != ctx.member.voiceChannel;
-const isVcBot=(ctx:Common.PackedMessage)=>!!ctx.guild.voiceConnection;
+export const isAdmin=(ctx:Common.PackedMessage)=>ctx.member.permissions.has('ADMINISTRATOR');
+export const isVcUser=(ctx:Common.PackedMessage)=>!!ctx.member.voiceChannel;
+export const isDifferentVc=(ctx:Common.PackedMessage)=>(ctx.guild.voiceConnection && ctx.guild.voiceConnection.channel) != ctx.member.voiceChannel;
+export const isVcBot=(ctx:Common.PackedMessage)=>!!ctx.guild.voiceConnection;
 export const choiceFilter=(pred:Common.Predicate,dec1:Common.Decorator,dec2:Common.Decorator)=>(action:Common.Action)=>async function(param:string) {
 let currentDecorator=await Promise.resolve(pred(this))?dec1:dec2;
 currentDecorator(action).call(this,param);

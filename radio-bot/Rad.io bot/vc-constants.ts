@@ -260,4 +260,4 @@ export const radios = {
 }
 };
 
-export const youtubeEmoji = '447036877745160204';
+export const youtubeEmoji = '506897247145951233';
