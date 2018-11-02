@@ -30,7 +30,9 @@ const decorators = {
 	fallbackradio: [adminNeeded, parameterNeeded],
 	fallback: [adminNeeded, parameterNeeded],
 	grant: [adminNeeded, parameterNeeded],
+	granteveryone: [adminNeeded, parameterNeeded],
 	deny: [adminNeeded, parameterNeeded],
+	denyeveryone: [adminNeeded, parameterNeeded],
 	yt: [vcUserNeeded, vcPermissionNeeded, sameOrNoBotVcNeeded, parameterNeeded],
 	custom: [vcUserNeeded, vcPermissionNeeded, sameOrNoBotVcNeeded, parameterNeeded],
 	join: [noBotVcNeeded, vcUserNeeded, vcPermissionNeeded, sameVcBanned],
@@ -183,7 +185,11 @@ const aliases = {
 	'np': 'nowplaying',
 	'vol': 'volume',
 	'h': 'help',
-	'l': 'leave'
+	'l': 'leave',
+	'g': 'grant',
+	'ge': 'granteveryone',
+	'd': 'deny',
+	'de': 'denyeveryone'
 };
 const debatedCommands = ['shuffle', 'skip', 'leave'];
 const downloadMethods:Map<Common.StreamType,any> = new Map([
