@@ -6,7 +6,7 @@ const isAdmin=(ctx:Common.PackedMessage)=>ctx.member.permissions.has('ADMINISTRA
 const isVcUser=(ctx:Common.PackedMessage)=>!!ctx.member.voiceChannel;
 const isDifferentVc=(ctx:Common.PackedMessage)=>(ctx.guild.voiceConnection && ctx.guild.voiceConnection.channel) != ctx.member.voiceChannel;
 const isVcBot=(ctx:Common.PackedMessage)=>!!ctx.guild.voiceConnection;
-const choiceFilter=(pred:Common.Predicate,dec1:Common.Decorator,dec2:Common.Decorator)=>(action:Common.Action)=>async function(param:string) {
+export const choiceFilter=(pred:Common.Predicate,dec1:Common.Decorator,dec2:Common.Decorator)=>(action:Common.Action)=>async function(param:string) {
 let currentDecorator=await Promise.resolve(pred(this))?dec1:dec2;
 currentDecorator(action).call(this,param);
 };
