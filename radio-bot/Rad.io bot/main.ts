@@ -146,7 +146,7 @@ async function loadCFG() {
 	let fallbackData: Map<Discord.Snowflake,Common.MusicData> = new Map();
 	let roles: Map<Discord.Snowflake,Map<Discord.Snowflake,string[]>> = new Map();
 	let selectPromises:Promise<void>[]=[
-		sql.all('SELECT * FROM prefix').then(prefixRows => prefixRows.forEach(prefixRow => prefixes.set(prefixRow.guildI,prefixRow.prefix))),
+		sql.all('SELECT * FROM prefix').then(prefixRows => prefixRows.forEach(prefixRow => prefixes.set(prefixRow.guildID,prefixRow.prefix))),
 		sql.all('SELECT * FROM fallbackModes').then(fbmRows => fbmRows.forEach(fbmRow => fallbackModes.set(fbmRow.guildID,fbmRow.type))),
 		sql.all('SELECT * FROM fallbackData').then(fbdRows => fbdRows.forEach(fbdRow => fallbackData.set(fbdRow.guildID,{ type: fbdRow.type, name: fbdRow.name, url: fbdRow.url }))),
 		sql.all('SELECT * FROM role').then(roleRows => roleRows.forEach(roleRow => roles.set(roleRow.guildID,new Map([...attach(roles,roleRow.guildID,new Map()), [roleRow.roleID, roleRow.commands.split('|')] ]))))
