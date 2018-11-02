@@ -16,7 +16,7 @@ const embedC = 0xfcf5d2;
 const { defaultConfig, radios, youtubeEmoji } = constants;
 const { isAloneUser, pass, isAloneBot, nonFallbackNeeded, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } = require('./vc-decorators');
 const parameterNeeded = (action:Common.Action) => function (param:string) {
-	if (!sscanf(param, '%s'))
+	if (!sscanf(param, '%S'))
 		commands.help.call(this, this.cmdName);
 	else
 		action.call(this, param);
