@@ -22,7 +22,7 @@ const parameterNeeded = (action:Common.Action) => function (param:string) {
 		action.call(this, param);
 };
 const aggregateDecorators = (decorators:Common.Decorator[]) => (action:Common.Action) => decorators.reduceRight((act, dec) => dec(act), action);
-function decorateCommand(cmdName, decorators:Common.Decorator[]) {
+function decorateCommand(cmdName:string, decorators:Common.Decorator[]) { //TODO ez se string, mindenképpen át kell dolgozni a parancsokat
 	commands[cmdName] = aggregateDecorators(decorators)(commands[cmdName]/*,cmdName*/);
 }; 
 const decorators = {
@@ -145,12 +145,13 @@ async function loadCFG() {
 	let fallbackModes: Map<Discord.Snowflake, string> = new Map();
 	let fallbackData: Map<Discord.Snowflake,any> = new Map();
 	let roles: Map<Discord.Snowflake,any> = new Map();
-	await Promise.all([
-		sql.all('SELECT * FROM prefix').then(prefixRows => prefixRows.forEach(prefixRow => prefixes.set(prefixRow.guildI,prefixRow.prefix)),
-		sql.all('SELECT * FROM fallbackModes').then(fbmRows => fbmRows.forEach(fbmRow => fallbackModes.set(fbmRow.guildID,fbmRow.type)),
-		sql.all('SELECT * FROM fallbackData').then(fbdRows => fbdRows.forEach(fbdRow => fallbackData.set(fbdRow.guildID,{ type: fbdRow.type, name: fbdRow.name, url: fbdRow.url })),
-		sql.all('SELECT * FROM role').then(roleRows => roleRows.forEach(roleRow => roles.set(roleRow.guildID,Object.assign(roles.get(roleRow.guildID) || {}, { [roleRow.roleID]: roleRow.commands.split('|') })))
-	]).catch(console.error);
+	let selectPromises:Promise<void>[]=[
+		sql.all('SELECT * FROM prefix').then(prefixRows => prefixRows.forEach(prefixRow => prefixes.set(prefixRow.guildI,prefixRow.prefix))),
+		sql.all('SELECT * FROM fallbackModes').then(fbmRows => fbmRows.forEach(fbmRow => fallbackModes.set(fbmRow.guildID,fbmRow.type))),
+		sql.all('SELECT * FROM fallbackData').then(fbdRows => fbdRows.forEach(fbdRow => fallbackData.set(fbdRow.guildID,{ type: fbdRow.type, name: fbdRow.name, url: fbdRow.url }))),
+		sql.all('SELECT * FROM role').then(roleRows => roleRows.forEach(roleRow => roles.set(roleRow.guildID,Object.assign(roles.get(roleRow.guildID) || {}, { [roleRow.roleID]: roleRow.commands.split('|') }))))
+	];
+	await Promise.all(selectPromises).catch(console.error);
 
 	config = {
 		prefixes: prefixes,
@@ -185,18 +186,17 @@ const aliases = {
 	'l': 'leave'
 };
 const debatedCommands = ['shuffle', 'skip', 'leave'];
-const downloadMethods = {
-	yt: ytdl,
-	custom: (url:string) => url,
-	radio: (url:string) => url
-};
-function getEmoji(type:string) { //TODO ez sem string, hanem valamilyen enum
-	const emojis = {
-		yt: client.emojis.get(youtubeEmoji),
-		radio: ':radio:',
-		custom: ':radio:'
-	};
-	return emojis[type];
+const downloadMethods:Map<Common.StreamType,any> = new Map([
+	[Common.StreamType.yt, ytdl],
+	[Common.StreamType.custom,(url:string) => url],
+	[Common.StreamType.radio,(url:string) => url]]);
+function getEmoji(type:Common.StreamType):Common.EmojiLike {
+	const emojis:Map<Common.StreamType,Common.EmojiLike> = new Map<Common.StreamType,Common.EmojiLike>([
+		[Common.StreamType.yt, client.emojis.get(youtubeEmoji)],
+		[Common.StreamType.radio, ':radio:'],
+		[Common.StreamType.custom, ':radio:']
+	]);
+	return emojis.get(type);
 }
 function repeatCounter(nTimes: number) {
 	return () => nTimes-- > 0;
@@ -221,7 +221,7 @@ class Playable {
 				this.halt = () => reject('leave');
 				return;
 			}
-			const stream = downloadMethods[this.data.type](this.data.url);
+			const stream = downloadMethods.get(this.data.type)(this.data.url);
 			let dispatcher = voiceConnection.playStream(stream, { seek: 0, volume: vol });
 			dispatcher.on('end', () => resolve(false)); //nem volt forced, hanem magától
 			dispatcher.on('error', () => {
@@ -240,7 +240,7 @@ class Playable {
 	}
 }
 class VoiceHandler {
-	private timeoutId?;
+	private timeoutId?:NodeJS.Timeout;
 	constructor(private controlledPlayer: GuildPlayer) {
 	}
 	eventTriggered() {
@@ -261,12 +261,12 @@ class GuildPlayer {
 	nowPlaying: Playable;
 	ownerChannel: Discord.VoiceChannel;
 	announcementChannel: Discord.TextChannel;
-	private queue: any[];
+	private queue: Playable[];
 	fallbackPlayed: boolean;
 	private handler: VoiceHandler;
 	private volume: number;
 	private oldVolume?: number;
-	constructor(voiceChannel: Discord.VoiceChannel, textChannel: Discord.TextChannel, musicToPlay?: any) {
+	constructor(voiceChannel: Discord.VoiceChannel, textChannel: Discord.TextChannel, musicToPlay?: Common.MusicData) {
 		this.ownerChannel = voiceChannel;
 		this.announcementChannel = textChannel;
 		this.nowPlaying = new Playable(musicToPlay);
@@ -329,7 +329,7 @@ class GuildPlayer {
 		else
 			this.nowPlaying.askRepeat = repeatCounter(maxTimes);
 	}
-	schedule(musicData) {
+	schedule(musicData:Common.MusicData) {
 		this.queue.push(new Playable(musicData));
 		if (!this.nowPlaying.isDefinite() && this.queue.length == 1)
 			this.skip();
@@ -370,7 +370,7 @@ class GuildPlayer {
 		if (!this.nowPlaying)
 			throw 'destroyed';
 	}
-	getQueueData() {
+	getQueueData():Common.MusicData[] {
 		return this.queue.map(playable => playable.data);
 	}
 	getNowPlayingData() {
@@ -387,7 +387,7 @@ function attach(baseDict:Map<Discord.Snowflake,any>, guildId:Discord.Snowflake, 
 	baseDict=baseDict.get(guildId)? baseDict:baseDict.set(guildId, defaultValue);
 	return baseDict.get(guildId);
 };
-async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, playableData) {
+async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, playableData:Common.MusicData) {
 	if (!voiceChannel['guildPlayer']) {
 		await voiceChannel.join();
 		voiceChannel['guildPlayer'] = new GuildPlayer(voiceChannel, textChannel, playableData);
@@ -429,7 +429,7 @@ let commands = {
 			return void forceSchedule(this.channel, voiceChannel, {
 				name: ytVideo.title,
 				url: param,
-				type: 'yt'
+				type: Common.StreamType.yt
 			});
 		}
 		let ytString = sscanf(param, '%S') || '';
@@ -462,7 +462,7 @@ let commands = {
 							resolve(index);
 							collector.stop();
 						});
-						collector.on('end', _ => reject('Lejárt a választási idő.'));
+						collector.on('end', (_:any) => reject('Lejárt a választási idő.'));
 						for (let emoji of emojis) {
 							let reaction = await message.react(emoji);
 							selectionPromise.then(_ => reaction.remove(client.user), _ => reaction.remove(client.user));
@@ -483,7 +483,7 @@ let commands = {
 			forceSchedule(this.channel, voiceChannel, {
 				name: selectedResult.title,
 				url: selectedResult.url,
-				type: 'yt'
+				type: Common.StreamType.yt
 			});
 		}
 		catch (e) {
@@ -497,7 +497,7 @@ let commands = {
 		forceSchedule(this.channel, voiceChannel, {
 			name: 'Custom',
 			url,
-			type: 'custom'
+			type: Common.StreamType.custom
 		});
 	},
 	leave(_: string) {
@@ -564,7 +564,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			currentAliases.sort();
 			const embed = commonEmbed.call(this, `help ${helpCommand}`)
 				.addField('❯ Részletes leírás', allCommands[helpCommand].description)
-				.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${allCommands[helpCommand].attributes ? allCommands[helpCommand].attributes.map(attribute => `<${attribute}>`).join(' ') : ''}\``)
+				.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${allCommands[helpCommand].attributes ? allCommands[helpCommand].attributes.map((attribute:string) => `<${attribute}>`).join(' ') : ''}\``)
 				.addField('❯ Használat feltételei', allCommands[helpCommand].requirements || '-')
 				.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
 			return void this.channel.send({ embed }).catch(console.error);
@@ -604,7 +604,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		let newPrefix = param.toLowerCase();
 		config.prefixes.set(this.guild.id, newPrefix);
 		try {
-			await saveRow({ guildID: this.guild.id, prefix: newPrefix }, 'prefix');
+			await saveRow({ guildID: this.guild.id, prefix: newPrefix }, Common.TableName.prefix);
 			this.channel.send(`${newPrefix} **az új prefix.**`).catch(() => { });
 		}
 		catch (e) {
@@ -614,7 +614,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		}
 	},
 	async queue(_: string): Promise<void> {
-		let queue = this.guild.voiceConnection.channel.guildPlayer.getQueueData();
+		let queue:Common.MusicData[] = this.guild.voiceConnection.channel.guildPlayer.getQueueData();
 		if (queue.length == 0)
 			return void this.channel.send('**A sor jelenleg üres.**');
 		const queueLines = queue.map(elem => `${getEmoji(elem.type)} ${elem.name}`);
@@ -653,7 +653,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		config.fallbackModes.set(this.guild.id, mode);
 		this.channel.send(`**Új fallback: ${mode}. **`);
 		try {
-			await saveRow({ guildID: this.guild.id, type: mode }, 'fallbackModes');
+			await saveRow({ guildID: this.guild.id, type: mode }, Common.TableName.fallbackModes);
 		}
 		catch (ex) {
 			console.error(ex);
@@ -676,7 +676,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		config.fallbackChannels.set(this.guild.id, fr);
 		this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`).catch(console.error);
 		try {
-			await saveRow({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url }, 'fallbackData');
+			await saveRow({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url }, Common.TableName.fallbackData);
 		}
 		catch (ex) {
 			console.error(ex);
@@ -783,7 +783,7 @@ async function permissionReused(param: string, filler:(affectedCommands:string[]
 	let roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
 	try {
-		await saveRow({ guildID: this.guild.id, roleID: role.id, commands: commandsArray.join('|') }, 'role');
+		await saveRow({ guildID: this.guild.id, roleID: role.id, commands: commandsArray.join('|') }, Common.TableName.role);
 		this.channel.send(`**Új jogosultságok mentve.**`);
 	}
 	catch (ex) {

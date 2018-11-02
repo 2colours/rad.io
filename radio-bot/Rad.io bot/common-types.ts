@@ -18,3 +18,14 @@ export enum TableName {
 	fallbackData='fallbackData',
 	role='role'
 }
+export enum StreamType {
+	yt='yt',
+	custom='custom',
+	radio='radio'
+}
+export interface MusicData {
+	name:string;
+	url: string;
+	type:StreamType;
+}
+export type EmojiLike = Discord.Emoji | string;
