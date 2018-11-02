@@ -17,8 +17,8 @@ export const hasPermission=async (ctx:Common.PackedMessage)=>{
 export const hasVcPermission=(ctx:Common.PackedMessage)=>ctx.member.voiceChannel.joinable;
 export const isFallback=(ctx:Common.PackedMessage)=>ctx.guild.voiceConnection.channel['guildPlayer'].fallbackPlayed;
 export const isCreator=(ctx:Common.PackedMessage)=>creatorIds.includes(ctx.author.id);
-//const isAloneUser=(ctx:Common.PackedMessage)=>!ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot && member!=ctx.member);
-//const isAloneBot=(ctx:Common.PackedMessage)=>!ctx.guild.voiceConnection.channel.members.some(member=>!member.user.bot);
+export const isAloneUser=(ctx:Common.PackedMessage)=>!ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot && member!=ctx.member);
+export const isAloneBot=(ctx:Common.PackedMessage)=>!ctx.guild.voiceConnection.channel.members.some(member=>!member.user.bot);
 export const pass=(action:Common.Action)=>action;
 export const rejectReply=(replyMessage:string)=>(_:Common.Action)=>function(_:string) {
 this.reply(replyMessage).catch(console.error);
