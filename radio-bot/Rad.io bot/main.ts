@@ -859,7 +859,14 @@ async function sendWelcome(guild: Discord.Guild) {
 			continue;
 		let textChannel = channel as Discord.TextChannel;
 		try {
-			await textChannel.send('---Hasznos infó---');
+			let embed=new Discord.RichEmbed()
+				.setAuthor(client.user.tag, client.user.displayAvatarURL)
+				.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
+				.addField('❯ Néhány szó a botról','A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.')
+				.addField('❯ Első lépések',`Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${debatedCommands.map(cmdName=>'`'+cmdName+'`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
+				.setColor(embedC)
+				.setTimestamp();
+			await textChannel.send('https://discord.gg/C83h4Sk',{embed});
 			break;
 		}
 		catch (ex) {
