@@ -383,7 +383,7 @@ function shuffle(array: any[]) {
 		[array[i], array[j]] = [array[j], array[i]];
 	}
 };
-function attach(baseDict:Map<Discord.Snowflake,any>, guildId:Discord.Snowflake, defaultValue:any) {
+function attach<T>(baseDict:Map<Discord.Snowflake,T>, guildId:Discord.Snowflake, defaultValue:T) {
 	baseDict=baseDict.get(guildId)? baseDict:baseDict.set(guildId, defaultValue);
 	return baseDict.get(guildId);
 };
@@ -779,7 +779,7 @@ async function permissionReused(param: string, filler:(affectedCommands:string[]
 	let role = this.guild.roles.find((elem:Discord.Role) => elem.name == roleName);
 	if (!role)
 		return void this.reply('nem létezik a megadott role.');
-	let currentRoles = attach(config.roles, this.guild.id, new Object());
+	let currentRoles = attach(config.roles, this.guild.id, new Map());
 	let roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
 	try {
