@@ -11,7 +11,7 @@ let currentDecorator=await Promise.resolve(pred(this))?dec1:dec2;
 currentDecorator(action).call(this,param);
 };
 export const hasPermission=async (ctx:Common.PackedMessage)=>{
-  let guildRoles = await sql.all('SELECT * FROM prefix WHERE guildID = ?',ctx.guild.id).catch(console.log);
+  let guildRoles = await sql.all('SELECT * FROM role WHERE guildID = ?',ctx.guild.id).catch(console.log);
   return guildRoles.some((roleRow:any)=>ctx.member.roles.has(roleRow.roleID) && roleRow.commands.split('|').includes(ctx.cmdName));
 }
 export const hasVcPermission=(ctx:Common.PackedMessage)=>ctx.member.voiceChannel.joinable;
