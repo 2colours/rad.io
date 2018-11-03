@@ -13,7 +13,7 @@
     "request": "^2.88.0",
     "sqlite": "^3.0.0",
     "moment": "^2.22.2",
-    "better-youtube-api": "^0.2.0",
+    "better-youtube-api": "^0.3.4",
     "node-opus": "^0.2.7"
   },
   "engines": {
