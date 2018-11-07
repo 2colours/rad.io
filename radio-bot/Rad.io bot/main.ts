@@ -12,7 +12,7 @@ const sql = require('sqlite');
 import { defaultConfig, radios, youtubeEmoji, embedC} from './vc-constants';
 //const streamOptions = { seek: 0, volume: 1 };
 import * as moment from 'moment';
-const { isAloneUser, pass, isAloneBot, nonFallbackNeeded, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } = require('./vc-decorators');
+import { isAloneUser, pass, isAloneBot, nonFallbackNeeded, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } from './vc-decorators';
 const parameterNeeded = (action:Common.Action) => function (param:string) {
 	if (!sscanf(param, '%S'))
 		commands.help.call(this, this.cmdName);
