@@ -191,14 +191,14 @@ const aliases = {
 };
 const debatedCommands = ['shuffle', 'skip', 'leave'];
 const downloadMethods = new Map<Common.StreamType,any>([
-	[Common.StreamType.yt, ytdl],
-	[Common.StreamType.custom,(url:string) => url],
-	[Common.StreamType.radio,(url:string) => url]]);
+	['yt', ytdl],
+	['custom',(url:string) => url],
+	['radio',(url:string) => url]]);
 function getEmoji(type:Common.StreamType):Common.EmojiLike {
 	const emojis:Map<Common.StreamType,Common.EmojiLike> = new Map<Common.StreamType,Common.EmojiLike>([
-		[Common.StreamType.yt, client.emojis.get(youtubeEmoji)],
-		[Common.StreamType.radio, ':radio:'],
-		[Common.StreamType.custom, ':radio:']
+		['yt', client.emojis.get(youtubeEmoji)],
+		['radio', ':radio:'],
+		['custom', ':radio:']
 	]);
 	return emojis.get(type);
 }
@@ -433,7 +433,7 @@ let commands = {
 			return void forceSchedule(this.channel, voiceChannel, {
 				name: ytVideo.title,
 				url: param,
-				type: Common.StreamType.yt
+				type: 'yt'
 			});
 		}
 		let ytString = sscanf(param, '%S') || '';
@@ -487,7 +487,7 @@ let commands = {
 			forceSchedule(this.channel, voiceChannel, {
 				name: selectedResult.title,
 				url: selectedResult.url,
-				type: Common.StreamType.yt
+				type: 'yt'
 			});
 		}
 		catch (e) {
@@ -501,7 +501,7 @@ let commands = {
 		forceSchedule(this.channel, voiceChannel, {
 			name: 'Custom',
 			url,
-			type: Common.StreamType.custom
+			type: 'custom'
 		});
 	},
 	leave(_: string) {
@@ -608,7 +608,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		let newPrefix = param.toLowerCase();
 		config.prefixes.set(this.guild.id, newPrefix);
 		try {
-			await saveRow({ guildID: this.guild.id, prefix: newPrefix }, Common.TableName.prefix);
+			await saveRow({ guildID: this.guild.id, prefix: newPrefix }, 'prefix');
 			this.channel.send(`${newPrefix} **az új prefix.**`).catch(() => { });
 		}
 		catch (e) {
@@ -657,7 +657,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		config.fallbackModes.set(this.guild.id, mode);
 		this.channel.send(`**Új fallback: ${mode}. **`);
 		try {
-			await saveRow({ guildID: this.guild.id, type: mode }, Common.TableName.fallbackModes);
+			await saveRow({ guildID: this.guild.id, type: mode }, 'fallbackModes');
 		}
 		catch (ex) {
 			console.error(ex);
@@ -667,11 +667,11 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 	async fallbackradio(param: string): Promise<void> {
 		let given:string = sscanf(param, '%s') || '';
 		if (radios.has(given)) {
-			var fr:Common.MusicData = Object.assign({ type: Common.StreamType.radio }, radios.get(given));
+			var fr: Common.MusicData = Object.assign({ type: 'radio' as Common.StreamType }, radios.get(given));
 		}
 		else if (given.search(/https?:\/\//) == 0)
 			fr = {
-				type: Common.StreamType.custom,
+				type: 'custom',
 				name: given,
 				url: given
 			};
@@ -680,7 +680,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		config.fallbackChannels.set(this.guild.id, fr);
 		this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`).catch(console.error);
 		try {
-			await saveRow({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url }, Common.TableName.fallbackData);
+			await saveRow({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url }, 'fallbackData');
 		}
 		catch (ex) {
 			console.error(ex);
@@ -698,7 +698,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			channel = randChannel;
 			this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
 		}
-		forceSchedule(this.channel, voiceChannel, Object.assign({ type: Common.StreamType.radio }, radios.get(channel)));
+		forceSchedule(this.channel, voiceChannel, Object.assign({ type: 'radio' as Common.StreamType }, radios.get(channel)));
 	},
 	grant(param: string) {
 		permissionReused.call(this, param, (commands:string[], roleCommands:string[]) =>
