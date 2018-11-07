@@ -14,7 +14,8 @@
     "sqlite": "^3.0.0",
     "moment": "^2.22.2",
     "better-youtube-api": "^0.3.4",
-    "node-opus": "^0.2.7"
+    "node-opus": "^0.2.7",
+    "concurrently": "^4.0.1"
   },
   "engines": {
     "node": "8.11.1"
