@@ -19,4 +19,5 @@ Ez megint nemigazán FAQ-kompatibilis kérdés, de a hosszabb távú vagy kevés
 #### Hogy lehet részt venni a fejlesztésben?
 Ha a bot opensource lesz, akkor de facto bárki megismerheti és hozzá tud nyúlni, legfeljebb nem kerül be a "hivatalos verzióba".
 Egyébként pedig legegyszerűbben azzal, ha bugreportokat és feature requesteket írsz, aminek egyetlen igazi előfeltétele van, hogy használd a botot. :D
+
 `2018.11.17.`
