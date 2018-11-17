@@ -100,7 +100,7 @@ const radios = {
 },
 'gold': {
 	name: 'Gold Rádió',
-	url: 'http://37.221.209.146:6200/live.mp3',
+	url: 'https://stream1.virtualisan.net:6202/live.mp3',
 	cult: 'hun'
 },
 'maxiradio': {
