@@ -1,4 +1,5 @@
 import { Emoji, Snowflake, Message } from 'discord.js';
+import {GuildPlayer} from './guild-player';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, string>; //TODO nem akármilyen string!
@@ -12,6 +13,10 @@ export type Predicate = (x:any) => Resolvable<boolean>;
 export interface PackedMessage extends Message {
 	cmdName:string;
 }
+export interface GuildPlayerHolder {
+	guildPlayer: GuildPlayer;
+}
+export interface ThisBinding extends PackedMessage, GuildPlayerHolder {}
 export type TableName = 'prefix' | 'fallbackModes' | 'fallbackData' | 'role';
 export type StreamType = 'yt' | 'custom' | 'radio';
 export interface MusicData {

@@ -266,5 +266,4 @@ const radios = {
 };
 const r=new Map(Object.entries(radios));
 export {r as radios};
-export const youtubeEmoji = '506897247145951233';
 export const embedC = 0xfcf5d2;

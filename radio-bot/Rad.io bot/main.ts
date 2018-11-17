@@ -4,16 +4,16 @@ const { helpCommands } = require('./help-embed');
 const client = new Discord.Client();
 const token = process.env.radioToken;
 const apiKey = process.env.youtubeApiKey;
-import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-const ytdl = (url:string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const sscanf = require('scanf').sscanf;
 //const fs = require('fs');
 const sql = require('sqlite');
-import { defaultConfig, radios, youtubeEmoji, embedC} from './vc-constants';
+import { defaultConfig, radios, embedC} from './vc-constants';
 //const streamOptions = { seek: 0, volume: 1 };
 import * as moment from 'moment';
 import { isAloneUser, rejectReply, pass, isAloneBot, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } from './vc-decorators';
-const isFallback=(ctx:ThisBinding)=>ctx.guildPlayer.fallbackPlayed;
+import {GuildPlayer} from './guild-player';
+import {getEmoji} from './common-resources';
+const isFallback=(ctx:Common.ThisBinding)=>ctx.guildPlayer.fallbackPlayed;
 const nonFallbackNeeded=choiceFilter(isFallback,rejectReply('**fallback-et nem lehet skippelni (leave-eld a botot vagy ütemezz be valamilyen zenét).**'),pass);
 const parameterNeeded = (action:Common.Action) => function (param:string) {
 	if (!sscanf(param, '%S'))
@@ -52,10 +52,6 @@ const decorators = {
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 const devChannel = () => client.channels.get('470574072565202944');
-interface GuildPlayerHolder {
-	guildPlayer: GuildPlayer;
-}
-interface ThisBinding extends Common.PackedMessage, GuildPlayerHolder {}
 let config: Common.Config;
 let guildPlayers:Map<Discord.Snowflake,GuildPlayer>=new Map();
 sql.open("./radio.sqlite");
@@ -195,208 +191,14 @@ const aliases = {
 	'de': 'denyeveryone'
 };
 const debatedCommands = ['shuffle', 'skip', 'leave'];
-const downloadMethods = new Map<Common.StreamType,any>([
-	['yt', ytdl],
-	['custom',(url:string) => url],
-	['radio',(url:string) => url]]);
-function getEmoji(type:Common.StreamType):Common.EmojiLike {
-	const emojis:Map<Common.StreamType,Common.EmojiLike> = new Map<Common.StreamType,Common.EmojiLike>([
-		['yt', client.emojis.get(youtubeEmoji)],
-		['radio', ':radio:'],
-		['custom', ':radio:']
-	]);
-	return emojis.get(type);
-}
-function repeatCounter(nTimes: number) {
-	return () => nTimes-- > 0;
-}
-class Playable {
-	data?: any;
-	skip: any;
-	halt: any;
-	constructor(musicData?: any) {
-		this.data = musicData;
-	}
-	isDefinite() {
-		return this.data && ['yt', 'custom'].includes(this.data.type);
-	}
-	askRepeat() {
-		return false;
-	}
-	play(voiceConnection: Discord.VoiceConnection, vol: number) {
-		return new Promise((resolve, reject) => {
-			if (!this.data) {
-				this.skip = () => resolve(true);
-				this.halt = () => reject('leave');
-				return;
-			}
-			const stream = downloadMethods.get(this.data.type)(this.data.url);
-			let dispatcher = voiceConnection.playStream(stream, { seek: 0, volume: vol });
-			dispatcher.on('end', () => resolve(false)); //nem volt forced, hanem magától
-			dispatcher.on('error', () => {
-				console.log('Futott az error handler.');
-				resolve(true); //ha hiba történt, inkább ne próbálkozzunk a loopolással - "forced"
-			});
-			this.skip = () => {
-				resolve(true);
-				dispatcher.end();
-			};
-			this.halt = () => {
-				reject('leave');
-				dispatcher.end();
-			};
-		});
-	}
-}
-class VoiceHandler {
-	private timeoutId?:NodeJS.Timeout;
-	constructor(private controlledPlayer: GuildPlayer) {
-	}
-	eventTriggered() {
-		let voiceEmpty = !this.controlledPlayer.ownerGuild.voiceConnection.channel.members.some(member => !member.user.bot);
-		if (voiceEmpty && !this.timeoutId)
-			this.timeoutId = global.setTimeout(this.controlledPlayer.leave.bind(this.controlledPlayer), 60000 * 5);
-		if (!voiceEmpty && this.timeoutId) {
-			global.clearTimeout(this.timeoutId);
-			delete this.timeoutId;
-		}
-	}
-	destroy() {
-		if (this.timeoutId)
-			global.clearTimeout(this.timeoutId);
-	}
-}
-class GuildPlayer {
-	nowPlaying: Playable;
-	announcementChannel: Discord.TextChannel;
-	private queue: Playable[];
-	fallbackPlayed: boolean;
-	public handler: VoiceHandler;
-	private volume: number;
-	private oldVolume?: number;
-	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay?: Common.MusicData) {
-		this.announcementChannel = textChannel;
-		this.nowPlaying = new Playable(musicToPlay);
-		this.fallbackPlayed = false;
-		this.queue = [];
-		this.handler = new VoiceHandler(this);
-		this.playLoop();
-		this.volume = 0.5;
-	}
-	async playLoop() {
-		try {
-			while (true) {
-				do { //Itt kéne kiírás is
-					if (this.nowPlaying.data)
-						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.nowPlaying.data.type)} \`${this.nowPlaying.data.name}\``);
-					var forcedOver = await this.nowPlaying.play(this.ownerGuild.voiceConnection, this.volume);
-					var shouldRepeat = this.nowPlaying.askRepeat();
-				} while (!forcedOver && shouldRepeat);
-				this.nowPlaying = null;
-				if (this.queue.length != 0) {
-					this.nowPlaying = this.queue.shift();
-					this.fallbackPlayed = false;
-				}
-				else if (this.fallbackPlayed) {
-					this.nowPlaying = new Playable();
-				}
-				else
-					this.fallbackMode();
-			}
-		}
-		catch (ex) {
-			//ezt direkt várjuk is, de leginkább csak akkor, ha leave-elés miatt jön
-		}
-	}
-	mute() {
-		if (this.volume == 0)
-			throw 'Már le van némítva a bot.';
-		this.oldVolume = this.volume;
-		this.setVolume(0);
-	}
-	unmute() {
-		if (this.volume != 0)
-			throw 'Nincs lenémítva a bot.';
-		this.setVolume(this.oldVolume);
-	}
-	setVolume(vol: number) {
-		if (!this.ownerGuild.voiceConnection.dispatcher)
-			throw 'Semmi nincs lejátszás alatt.';
-		this.ownerGuild.voiceConnection.dispatcher.setVolume(vol);
-		this.volume = vol;
-	}
-	skip() {
-		this.nowPlaying.skip();
-	}
-	repeat(maxTimes?: number) {
-		if (!this.nowPlaying.isDefinite())
-			throw 'Végtelen streameket nem lehet loopoltatni.';
-		if (!maxTimes)
-			this.nowPlaying.askRepeat = () => true;
-		else
-			this.nowPlaying.askRepeat = repeatCounter(maxTimes);
-	}
-	schedule(musicData:Common.MusicData) {
-		this.queue.push(new Playable(musicData));
-		if (!this.nowPlaying.isDefinite() && this.queue.length == 1)
-			this.skip();
-		else
-			this.announcementChannel.send(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
-	}
-	shuffle() {
-		if (this.queue.length >= 2)
-			shuffle(this.queue);
-		else
-			throw 'Nincs mit megkeverni.';
-	}
-	fallbackMode() {
-		this.announcementChannel.send('**Fallback mód.**');
-		let currentFallback = config.fallbackModes.get(this.ownerGuild.id) || defaultConfig.fallback;
-		switch (currentFallback) {
-			case 'radio':
-				if (!config.fallbackChannels.get(this.ownerGuild.id))
-					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
-				this.nowPlaying = new Playable(config.fallbackChannels.get(this.ownerGuild.id));
-				this.fallbackPlayed = true;
-				break;
-			case 'leave':
-				this.leave();
-			case 'silence':
-				this.nowPlaying = new Playable();
-				this.fallbackPlayed = true;
-				break;
-		}
-	}
-	leave() {
-		if (this.nowPlaying)
-			this.nowPlaying.halt();
-		this.ownerGuild.voiceConnection.disconnect(); //KÉRDÉSES!
-		this.handler.destroy();
-		delete this.ownerGuild;
-		if (!this.nowPlaying)
-			throw 'destroyed';
-	}
-	getQueueData():Common.MusicData[] {
-		return this.queue.map(playable => playable.data);
-	}
-	getNowPlayingData() {
-		return this.nowPlaying.data;
-	}
-};
-function shuffle(array: any[]) {
-	for (let i = array.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i+1));
-		[array[i], array[j]] = [array[j], array[i]];
-	}
-};
 function attach<T>(baseDict:Map<Discord.Snowflake,T>, guildId:Discord.Snowflake, defaultValue:T) {
 	baseDict=baseDict.get(guildId)? baseDict:baseDict.set(guildId, defaultValue);
 	return baseDict.get(guildId);
 };
-async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, holder:GuildPlayerHolder, playableData:Common.MusicData) {
+async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, holder:Common.GuildPlayerHolder, playableData:Common.MusicData) {
 	if (!voiceChannel.connection) {
 		await voiceChannel.join();
-		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
+		holder.guildPlayer = new GuildPlayer(config,voiceChannel.guild, textChannel, playableData);
 		return;
 	}
 	holder.guildPlayer.schedule(playableData);
@@ -418,7 +220,7 @@ let commands = {
 		try {
 			await voiceChannel.join();
 			this.channel.send('**Csatlakozva.**');
-			this.guildPlayer = new GuildPlayer(this.guild, this.channel);
+			this.guildPlayer = new GuildPlayer(config,this.guild, this.channel);
 			if (channelToPlay)
 				this.guildPlayer.schedule(Object.assign({ type: 'radio' }, radios.get(channelToPlay)));
 		}
@@ -811,7 +613,7 @@ client.on('message', async (message) => {
 		commandString = aliases[commandString] || commandString;
 		let command = commands[commandString] || Function.prototype;
 		let packedMessage:Common.PackedMessage = Object.assign(message, { cmdName: commandString });
-		let thisBinding:ThisBinding = Object.defineProperty(packedMessage,'guildPlayer',{
+		let thisBinding:Common.ThisBinding = Object.defineProperty(packedMessage,'guildPlayer',{
 			get: ()=>guildPlayers.get(packedMessage.guild.id),
 			set: value=>guildPlayers.set(packedMessage.guild.id,value)
 		});
