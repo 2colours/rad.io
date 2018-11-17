@@ -50,9 +50,11 @@ const decorators = {
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 const devChannel = () => client.channels.get('470574072565202944');
-
+interface ThisBinding extends Common.PackedMessage {
+	guildPlayer: GuildPlayer;
+}
 let config: Common.Config;
-
+let guildPlayers:Map<Discord.Snowflake,GuildPlayer>=new Map();
 sql.open("./radio.sqlite");
 
 function commonEmbed(cmd:string) { //TODO ez sem akármilyen string, hanem parancsnév
@@ -809,7 +811,11 @@ client.on('message', async (message) => {
 		commandString = commandString.toLowerCase();
 		commandString = aliases[commandString] || commandString;
 		let command = commands[commandString] || Function.prototype;
-		let thisBinding:Common.PackedMessage = Object.assign(message, { cmdName: commandString });
+		let packedMessage:Common.PackedMessage = Object.assign(message, { cmdName: commandString });
+		let thisBinding:ThisBinding = Object.defineProperty(packedMessage,'guildPlayer',{
+			get: ()=>guildPlayers.get(packedMessage.guild.id),
+			set: value=>guildPlayers.set(packedMessage.guild.id,value)
+		});
 		await Promise.resolve(command.call(thisBinding, param || ''));
 	}
 	catch (ex) {
