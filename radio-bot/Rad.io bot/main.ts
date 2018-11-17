@@ -408,7 +408,7 @@ function saveJSON(object, fileName:string) {
 */
 let commands = {
 	async join(param:string) {
-		let voiceChannel = this.member.voiceChannel;
+		let voiceChannel:Discord.VoiceChannel = this.member.voiceChannel;
 		let channelToPlay = sscanf(param, '%s') || '';
 		let randChannel = randomElement(channels);
 		if (channelToPlay && !radios.has(channelToPlay)) {
@@ -418,9 +418,9 @@ let commands = {
 		try {
 			await voiceChannel.join();
 			this.channel.send('**Csatlakozva.**');
-			voiceChannel.guildPlayer = new GuildPlayer(voiceChannel, this.channel);
+			this.guildPlayer = new GuildPlayer(this.guild, this.channel);
 			if (channelToPlay)
-				voiceChannel.guildPlayer.schedule(Object.assign({ type: 'radio' }, radios.get(channelToPlay)));
+				this.guildPlayer.schedule(Object.assign({ type: 'radio' }, radios.get(channelToPlay)));
 		}
 		catch (ex) {
 			this.channel.send('**Hiba a csatlakozás során.**');
@@ -428,7 +428,7 @@ let commands = {
 		}
 	},
 	async yt(param: string):Promise<void> {
-		let voiceChannel = this.member.voiceChannel;
+		let voiceChannel:Discord.VoiceChannel = this.member.voiceChannel;
 		param = param.trim();
 		if (param.search(/https?:\/\//) == 0) {
 			let ytVideo = await youtube.getVideoByUrl(param);
@@ -498,7 +498,7 @@ let commands = {
 		}
 	},
 	async custom(param: string) {
-		let voiceChannel = this.member.voiceChannel;
+		let voiceChannel:Discord.VoiceChannel = this.member.voiceChannel;
 		let url = sscanf(param, '%s') || '';
 		forceSchedule(this.channel, voiceChannel, this, {
 			name: 'Custom',
@@ -507,7 +507,7 @@ let commands = {
 		});
 	},
 	leave(_: string) {
-		let guildPlayer = this.guild.voiceConnection.channel.guildPlayer;
+		let guildPlayer:GuildPlayer = this.guildPlayer;
 		this.channel.send('**Kilépés**');
 		guildPlayer.leave();
 		this.guildPlayer=undefined; //guildPlayer törlése így tehető meg
@@ -516,9 +516,8 @@ let commands = {
 		let count = sscanf(param, '%d');
 		if (count <= 0 && count != null)
 			return void this.reply('pozitív számot kell megadni.');
-		let clientChannel = this.guild.voiceConnection.channel;
 		try {
-			clientChannel.guildPlayer.repeat(count);
+			this.guildPlayer.repeat(count);
 			this.channel.send('**Ismétlés felülírva.**');
 		}
 		catch (ex) {
@@ -542,9 +541,8 @@ let commands = {
 		this.channel.send({ embed }).catch(console.error);
 	},
 	async shuffle(_:string) {
-		let clientChannel = this.guild.voiceConnection.channel;
 		try {
-			clientChannel.guildPlayer.shuffle();
+			this.guildPlayer.shuffle();
 			this.channel.send('**Sor megkeverve.**');
 		}
 		catch (ex) {
@@ -621,7 +619,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		}
 	},
 	async queue(_: string): Promise<void> {
-		let queue:Common.MusicData[] = this.guild.voiceConnection.channel.guildPlayer.getQueueData();
+		let queue:Common.MusicData[] = this.guildPlayer.getQueueData();
 		if (queue.length == 0)
 			return void this.channel.send('**A sor jelenleg üres.**');
 		const queueLines = queue.map(elem => `${getEmoji(elem.type)} ${elem.name}`);
@@ -691,10 +689,10 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		}
 	},
 	skip(_:string) {
-		this.guild.voiceConnection.channel.guildPlayer.skip();
+		this.guildPlayer.skip();
 	},
 	tune(param: string) {
-		let voiceChannel = this.member.voiceChannel;
+		let voiceChannel:Discord.VoiceChannel = this.member.voiceChannel;
 		let channel = sscanf(param, '%s') || '';
 		let randChannel = randomElement(channels);
 		if (!radios.has(channel)) {
@@ -725,7 +723,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		commands.deny.call(this,param+' @everyone');
 	},
 	nowplaying(_: string): Promise<void> {
-		let nowPlayingData = this.guild.voiceConnection.channel.guildPlayer.getNowPlayingData();
+		let nowPlayingData = this.guildPlayer.getNowPlayingData();
 		if (!nowPlayingData)
 			return void this.channel.send('**CSEND**');
 		const embed = commonEmbed.call(this, 'nowplaying')
@@ -740,7 +738,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		if (vol > 10)
 			this.channel.send('**Figyelem: erősítést alkalmaztál, a hangban torzítás léphet fel.**').catch(console.error);
 		try {
-			this.guild.voiceConnection.channel.guildPlayer.setVolume(vol / 10);
+			this.guildPlayer.setVolume(vol / 10);
 			this.react('☑').catch(console.error);
 		}
 		catch (ex) {
@@ -749,7 +747,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 	},
 	mute(_: string) {
 		try {
-			this.guild.voiceConnection.channel.guildPlayer.mute();
+			this.guildPlayer.mute();
 			this.react('☑').catch(console.error);
 		}
 		catch (ex) {
@@ -758,7 +756,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 	},
 	unmute(_: string) {
 		try {
-			this.guild.voiceConnection.channel.guildPlayer.unmute();
+			this.guildPlayer.unmute();
 			this.react('☑').catch(console.error);
 		}
 		catch (ex) {
