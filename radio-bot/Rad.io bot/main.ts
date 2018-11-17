@@ -12,7 +12,9 @@ const sql = require('sqlite');
 import { defaultConfig, radios, youtubeEmoji, embedC} from './vc-constants';
 //const streamOptions = { seek: 0, volume: 1 };
 import * as moment from 'moment';
-import { isAloneUser, pass, isAloneBot, nonFallbackNeeded, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } from './vc-decorators';
+import { isAloneUser, rejectReply, pass, isAloneBot, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } from './vc-decorators';
+const isFallback=(ctx:ThisBinding)=>ctx.guildPlayer.fallbackPlayed;
+const nonFallbackNeeded=choiceFilter(isFallback,rejectReply('**fallback-et nem lehet skippelni (leave-eld a botot vagy ütemezz be valamilyen zenét).**'),pass);
 const parameterNeeded = (action:Common.Action) => function (param:string) {
 	if (!sscanf(param, '%S'))
 		commands.help.call(this, this.cmdName);
@@ -50,9 +52,10 @@ const decorators = {
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 const devChannel = () => client.channels.get('470574072565202944');
-interface ThisBinding extends Common.PackedMessage {
+interface GuildPlayerHolder {
 	guildPlayer: GuildPlayer;
 }
+interface ThisBinding extends Common.PackedMessage, GuildPlayerHolder {}
 let config: Common.Config;
 let guildPlayers:Map<Discord.Snowflake,GuildPlayer>=new Map();
 sql.open("./radio.sqlite");
@@ -250,7 +253,7 @@ class VoiceHandler {
 	constructor(private controlledPlayer: GuildPlayer) {
 	}
 	eventTriggered() {
-		let voiceEmpty = !this.controlledPlayer.ownerChannel.members.some(member => !member.user.bot);
+		let voiceEmpty = !this.controlledPlayer.ownerGuild.voiceConnection.channel.members.some(member => !member.user.bot);
 		if (voiceEmpty && !this.timeoutId)
 			this.timeoutId = global.setTimeout(this.controlledPlayer.leave.bind(this.controlledPlayer), 60000 * 5);
 		if (!voiceEmpty && this.timeoutId) {
@@ -265,15 +268,13 @@ class VoiceHandler {
 }
 class GuildPlayer {
 	nowPlaying: Playable;
-	ownerChannel: Discord.VoiceChannel;
 	announcementChannel: Discord.TextChannel;
 	private queue: Playable[];
 	fallbackPlayed: boolean;
-	private handler: VoiceHandler;
+	public handler: VoiceHandler;
 	private volume: number;
 	private oldVolume?: number;
-	constructor(voiceChannel: Discord.VoiceChannel, textChannel: Discord.TextChannel, musicToPlay?: Common.MusicData) {
-		this.ownerChannel = voiceChannel;
+	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay?: Common.MusicData) {
 		this.announcementChannel = textChannel;
 		this.nowPlaying = new Playable(musicToPlay);
 		this.fallbackPlayed = false;
@@ -288,7 +289,7 @@ class GuildPlayer {
 				do { //Itt kéne kiírás is
 					if (this.nowPlaying.data)
 						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.nowPlaying.data.type)} \`${this.nowPlaying.data.name}\``);
-					var forcedOver = await this.nowPlaying.play(this.ownerChannel.connection, this.volume);
+					var forcedOver = await this.nowPlaying.play(this.ownerGuild.voiceConnection, this.volume);
 					var shouldRepeat = this.nowPlaying.askRepeat();
 				} while (!forcedOver && shouldRepeat);
 				this.nowPlaying = null;
@@ -319,9 +320,9 @@ class GuildPlayer {
 		this.setVolume(this.oldVolume);
 	}
 	setVolume(vol: number) {
-		if (!this.ownerChannel.connection.dispatcher)
+		if (!this.ownerGuild.voiceConnection.dispatcher)
 			throw 'Semmi nincs lejátszás alatt.';
-		this.ownerChannel.connection.dispatcher.setVolume(vol);
+		this.ownerGuild.voiceConnection.dispatcher.setVolume(vol);
 		this.volume = vol;
 	}
 	skip() {
@@ -350,12 +351,12 @@ class GuildPlayer {
 	}
 	fallbackMode() {
 		this.announcementChannel.send('**Fallback mód.**');
-		let currentFallback = config.fallbackModes.get(this.ownerChannel.guild.id) || defaultConfig.fallback;
+		let currentFallback = config.fallbackModes.get(this.ownerGuild.id) || defaultConfig.fallback;
 		switch (currentFallback) {
 			case 'radio':
-				if (!config.fallbackChannels.get(this.ownerChannel.guild.id))
+				if (!config.fallbackChannels.get(this.ownerGuild.id))
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
-				this.nowPlaying = new Playable(config.fallbackChannels.get(this.ownerChannel.guild.id));
+				this.nowPlaying = new Playable(config.fallbackChannels.get(this.ownerGuild.id));
 				this.fallbackPlayed = true;
 				break;
 			case 'leave':
@@ -369,10 +370,9 @@ class GuildPlayer {
 	leave() {
 		if (this.nowPlaying)
 			this.nowPlaying.halt();
-		this.ownerChannel.leave();
+		this.ownerGuild.voiceConnection.disconnect(); //KÉRDÉSES!
 		this.handler.destroy();
-		delete this.ownerChannel['guildPlayer'];
-		delete this.ownerChannel;
+		delete this.ownerGuild;
 		if (!this.nowPlaying)
 			throw 'destroyed';
 	}
@@ -393,13 +393,13 @@ function attach<T>(baseDict:Map<Discord.Snowflake,T>, guildId:Discord.Snowflake,
 	baseDict=baseDict.get(guildId)? baseDict:baseDict.set(guildId, defaultValue);
 	return baseDict.get(guildId);
 };
-async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, playableData:Common.MusicData) {
-	if (!voiceChannel['guildPlayer']) {
+async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, holder:GuildPlayerHolder, playableData:Common.MusicData) {
+	if (!voiceChannel.connection) {
 		await voiceChannel.join();
-		voiceChannel['guildPlayer'] = new GuildPlayer(voiceChannel, textChannel, playableData);
+		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
 		return;
 	}
-	voiceChannel['guildPlayer'].schedule(playableData);
+	holder.guildPlayer.schedule(playableData);
 };
 /*
 function saveJSON(object, fileName:string) {
@@ -432,7 +432,7 @@ let commands = {
 		param = param.trim();
 		if (param.search(/https?:\/\//) == 0) {
 			let ytVideo = await youtube.getVideoByUrl(param);
-			return void forceSchedule(this.channel, voiceChannel, {
+			return void forceSchedule(this.channel, voiceChannel, this, {
 				name: ytVideo.title,
 				url: param,
 				type: 'yt'
@@ -486,7 +486,7 @@ let commands = {
 				message.edit(embed);
 				return;
 			}
-			forceSchedule(this.channel, voiceChannel, {
+			forceSchedule(this.channel, voiceChannel, this, {
 				name: selectedResult.title,
 				url: selectedResult.url,
 				type: 'yt'
@@ -500,7 +500,7 @@ let commands = {
 	async custom(param: string) {
 		let voiceChannel = this.member.voiceChannel;
 		let url = sscanf(param, '%s') || '';
-		forceSchedule(this.channel, voiceChannel, {
+		forceSchedule(this.channel, voiceChannel, this, {
 			name: 'Custom',
 			url,
 			type: 'custom'
@@ -510,6 +510,7 @@ let commands = {
 		let guildPlayer = this.guild.voiceConnection.channel.guildPlayer;
 		this.channel.send('**Kilépés**');
 		guildPlayer.leave();
+		this.guildPlayer=undefined; //guildPlayer törlése így tehető meg
 	},
 	repeat(param: string):void {
 		let count = sscanf(param, '%d');
@@ -700,7 +701,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			channel = randChannel;
 			this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
 		}
-		forceSchedule(this.channel, voiceChannel, Object.assign({ type: 'radio' as Common.StreamType }, radios.get(channel)));
+		forceSchedule(this.channel, voiceChannel, this, Object.assign({ type: 'radio' as Common.StreamType }, radios.get(channel)));
 	},
 	grant(param: string) {
 		permissionReused.call(this, param, (commands:string[], roleCommands:string[]) =>
@@ -789,7 +790,7 @@ async function permissionReused(param: string, filler:(affectedCommands:string[]
 	let roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
 	try {
-		await saveRow({ guildID: this.guild.id, roleID: role.id, commands: commandsArray.join('|') }, Common.TableName.role);
+		await saveRow({ guildID: this.guild.id, roleID: role.id, commands: commandsArray.join('|') }, 'role');
 		this.channel.send(`**Új jogosultságok mentve.**`);
 	}
 	catch (ex) {
@@ -824,19 +825,14 @@ client.on('message', async (message) => {
 });
 
 client.on('voiceStateUpdate', (oldMember, newMember) => {
-	if (oldMember.user == client.user && oldMember.voiceChannel && newMember.voiceChannel && oldMember.voiceChannel['guildPlayer']) { //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia, az utolsó vizsgálat a discord API hülye, inkonzisztens állapotai miatt kell (mintha még voice-ban lenne az elcrashelt bot)
-		let guildPlayer = oldMember.voiceChannel['guildPlayer'];
-		guildPlayer.ownerChannel = newMember.voiceChannel;
-		delete oldMember.voiceChannel['guildPlayer'];
-		newMember.voiceChannel['guildPlayer'] = guildPlayer;
+	let id=oldMember.guild.id;
+	let guildPlayer = guildPlayers.get(id);
+	if (oldMember.user == client.user && oldMember.voiceChannel && newMember.voiceChannel && guildPlayer) //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia, az utolsó vizsgálat a discord API hülye, inkonzisztens állapotai miatt kell (mintha még voice-ban lenne az elcrashelt bot)
 		guildPlayer.handler.eventTriggered();
-	}
 	if (oldMember.user.bot) //innen csak nem botokra figyelünk
 		return;
-	if (oldMember.voiceChannel && oldMember.voiceChannel['guildPlayer'])
-		oldMember.voiceChannel['guildPlayer'].handler.eventTriggered();
-	if (newMember.voiceChannel && newMember.voiceChannel['guildPlayer'])
-		newMember.voiceChannel['guildPlayer'].handler.eventTriggered();
+	if ([oldMember.voiceChannel,newMember.voiceChannel].includes(guildPlayer.ownerGuild.voiceConnection.channel))
+		guildPlayer.handler.eventTriggered();
 });
 
 client.on('guildCreate', guild => {

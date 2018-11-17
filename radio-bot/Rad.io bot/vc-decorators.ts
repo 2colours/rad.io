@@ -15,7 +15,6 @@ export const hasPermission=async (ctx:Common.PackedMessage)=>{
   return guildRoles.some((roleRow:any)=>ctx.member.roles.has(roleRow.roleID) && roleRow.commands.split('|').includes(ctx.cmdName));
 }
 export const hasVcPermission=(ctx:Common.PackedMessage)=>ctx.member.voiceChannel.joinable;
-export const isFallback=(ctx:Common.PackedMessage)=>ctx.guild.voiceConnection.channel['guildPlayer'].fallbackPlayed;
 export const isCreator=(ctx:Common.PackedMessage)=>creatorIds.includes(ctx.author.id);
 export const isAloneUser=(ctx:Common.PackedMessage)=>!ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot && member!=ctx.member);
 export const isAloneBot=(ctx:Common.PackedMessage)=>!ctx.guild.voiceConnection.channel.members.some(member=>!member.user.bot);
@@ -42,4 +41,3 @@ export const vcPermissionNeeded=(action:Common.Action)=>function(param:string) {
   else
     action.call(this,param);
 };
-export const nonFallbackNeeded=choiceFilter(isFallback,rejectReply('**fallback-et nem lehet skippelni (leave-eld a botot vagy ütemezz be valamilyen zenét).**'),pass);
