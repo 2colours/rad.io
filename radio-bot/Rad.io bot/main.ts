@@ -620,9 +620,9 @@ client.on("error", error => {
 });
 
 process.on('unhandledRejection', (reason, p) => {
-	if (reason instanceof Discord.DiscordAPIError)
-		console.log(reason.message);
-    // application specific logging here
+	if (reason instanceof Discord.DiscordAPIError && reason.message=='Missing Permissions')
+		return;
+    console.error(reason);
 });
 
 function logGuildJoin(guild: Discord.Guild) {
