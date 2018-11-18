@@ -615,9 +615,7 @@ client.on('guildDelete', guild => {
 	updateStatusChannels()
 });
 
-client.on("error", error => {
-	console.log(`ERRRORRR: \n${JSON.stringify(error.message)}`);
-});
+client.on("error", error => Promise.reject(error));
 
 process.on('unhandledRejection', (reason, p) => {
 	if (reason instanceof Discord.DiscordAPIError && reason.message=='Missing Permissions')
