@@ -1,4 +1,6 @@
 import * as Discord from 'discord.js';
+const sql=require('sqlite');
+sql.open("./radio.sqlite");
 import * as Common from './common-types';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
 import {getEmoji} from './common-resources';
@@ -72,7 +74,7 @@ export class GuildPlayer {
 	public handler: VoiceHandler;
 	private volume: number;
 	private oldVolume?: number;
-	constructor(private config:Common.Config,public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay?: Common.MusicData) {
+	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay?: Common.MusicData) {
 		this.announcementChannel = textChannel;
 		this.nowPlaying = new Playable(musicToPlay);
 		this.fallbackPlayed = false;
@@ -99,7 +101,7 @@ export class GuildPlayer {
 					this.nowPlaying = new Playable();
 				}
 				else
-					this.fallbackMode();
+					await this.fallbackMode();
 			}
 		}
 		catch (ex) {
@@ -147,14 +149,17 @@ export class GuildPlayer {
 		else
 			throw 'Nincs mit megkeverni.';
 	}
-	fallbackMode() {
+	async fallbackMode() {
 		this.announcementChannel.send('**Fallback mód.**');
-		let currentFallback = this.config.fallbackModes.get(this.ownerGuild.id) || defaultConfig.fallback;
-		switch (currentFallback) {
+		let fallbackMode:Common.FallbackType = await sql.get('SELECT type FROM fallbackModes WHERE guildID = ?',this.ownerGuild.id);
+		if (!fallbackMode)
+			fallbackMode=defaultConfig.fallback;	
+		switch (fallbackMode) {
 			case 'radio':
-				if (!this.config.fallbackChannels.get(this.ownerGuild.id))
+				let fallbackMusic:Common.MusicData = await sql.get('SELECT type, name, url FROM fallbackFata WHERE guildID = ?',this.ownerGuild.id);
+				if (!fallbackMusic)
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
-				this.nowPlaying = new Playable(this.config.fallbackChannels.get(this.ownerGuild.id));
+				this.nowPlaying = new Playable(fallbackMusic);
 				this.fallbackPlayed = true;
 				break;
 			case 'leave':

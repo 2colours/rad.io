@@ -115,7 +115,7 @@ async function saveRow(rowObj:any, type:Common.TableName) { //a rowObj nem any, 
 };
 async function loadCFG() {
 	let prefixes: Map<Discord.Snowflake, string> = new Map();
-	let fallbackModes: Map<Discord.Snowflake, string> = new Map();
+	let fallbackModes: Map<Discord.Snowflake, Common.FallbackType> = new Map();
 	let fallbackData: Map<Discord.Snowflake,Common.MusicData> = new Map();
 	let roles: Map<Discord.Snowflake,Map<Discord.Snowflake,string[]>> = new Map();
 	let selectPromises:Promise<void>[]=[
@@ -169,7 +169,7 @@ function attach<T>(baseDict:Map<Discord.Snowflake,T>, guildId:Discord.Snowflake,
 async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, holder:Common.GuildPlayerHolder, playableData:Common.MusicData) {
 	if (!voiceChannel.connection) {
 		await voiceChannel.join();
-		holder.guildPlayer = new GuildPlayer(config,voiceChannel.guild, textChannel, playableData);
+		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
 		return;
 	}
 	holder.guildPlayer.schedule(playableData);
@@ -187,7 +187,7 @@ let commands = {
 		try {
 			await voiceChannel.join();
 			this.channel.send('**Csatlakozva.**');
-			this.guildPlayer = new GuildPlayer(config,this.guild, this.channel);
+			this.guildPlayer = new GuildPlayer(this.guild, this.channel);
 			if (channelToPlay)
 				this.guildPlayer.schedule(Object.assign({ type: 'radio' }, radios.get(channelToPlay)));
 		}
@@ -617,7 +617,7 @@ client.on('guildDelete', guild => {
 
 client.on("error", error => Promise.reject(error));
 
-process.on('unhandledRejection', (reason, p) => {
+process.on('unhandledRejection', (reason, _) => {
 	if (reason instanceof Discord.DiscordAPIError && reason.message=='Missing Permissions')
 		return;
     console.error(reason);

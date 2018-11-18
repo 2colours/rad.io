@@ -1,6 +1,7 @@
-﻿export const defaultConfig = {
-	'prefix': '.',
-	'fallback': 'radio'
+﻿import {FallbackType} from './common-types';
+export const defaultConfig = {
+	prefix: '.',
+	fallback: 'radio' as FallbackType
 };
 const radios = {
 'kossuth': {
