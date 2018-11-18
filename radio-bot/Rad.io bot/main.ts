@@ -70,7 +70,7 @@ function hourMinSec(minutes:number, seconds:number) { //a seconds bugosnak bizon
 };
 function scrollRequest(message: Discord.Message, currentPage: number, allPages: number) {
 	let res = new Promise(async (resolve, reject) => {
-		let emojis:string[] = [];
+		let emojis:Common.EmojiLike[] = [];
 		if (currentPage > 1)
 			emojis.push('◀');
 		if (currentPage < allPages)
@@ -169,7 +169,6 @@ client.on('ready', () => {
 	loadCFG();
 	setPStatus();
 	updateStatusChannels();
-	//refreshDB();
 });
 const aliases = {
 	'c': 'custom',
@@ -202,11 +201,7 @@ async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Disco
 	}
 	holder.guildPlayer.schedule(playableData);
 };
-/*
-function saveJSON(object, fileName:string) {
-	fs.writeFileSync(fileName, JSON.stringify(object));
-};
-*/
+
 let commands = {
 	async join(param:string) {
 		let voiceChannel:Discord.VoiceChannel = this.member.voiceChannel;
