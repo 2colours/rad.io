@@ -63,8 +63,7 @@ function commonEmbed(cmd:string) { //TODO ez sem akármilyen string, hanem paran
 		.setFooter(`${prefix}${cmd} - ${client.user.username}`, client.user.avatarURL)
 		.setTimestamp();
 };
-function hourMinSec(minutes:number, seconds:any) { //a seconds bugosnak bizonyult
-	seconds = Number.isNaN(seconds) ? 0 : seconds;
+function hourMinSec(minutes:number, seconds:number) { //a seconds bugosnak bizonyult
 	let hours = Math.floor(minutes / 60);
 	minutes %= 60;
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
