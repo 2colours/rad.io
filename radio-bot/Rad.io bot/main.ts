@@ -113,33 +113,6 @@ async function saveRow(rowObj:any, type:Common.TableName) { //a rowObj nem any, 
 			break;
 	};
 };
-/*
-async function refreshDB() {
-	const json = JSON.parse(fs.readFileSync('vc-config.json'));
-
-	await sql.run('CREATE TABLE IF NOT EXISTS prefix (guildID TEXT, prefix TEXT)').catch(console.error);
-	await sql.run('CREATE TABLE IF NOT EXISTS fallbackModes (guildID TEXT, type TEXT)').catch(console.error);
-	await sql.run('CREATE TABLE IF NOT EXISTS fallbackData (guildID TEXT, type TEXT, name TEXT, url TEXT)').catch(console.error);
-	await sql.run('CREATE TABLE IF NOT EXISTS role (guildID TEXT, roleID TEXT, commands TEXT)').catch(console.error);
-
-	for (let guildID in json.prefixes) {
-		await sql.run('INSERT INTO prefix (guildID, prefix) VALUES (?, ?)', [guildID, json.prefixes[guildID]]);
-	}
-
-	for (let guildID in json.fallbackModes) {
-		await sql.run('INSERT INTO fallbackModes (guildID, type) VALUES (?, ?)', [guildID, json.fallbackModes[guildID]]);
-	}
-
-	for (let guildID in json.fallbackChannels) {
-		await sql.run('INSERT INTO fallbackData (guildID, type, name, url) VALUES (?, ?, ?, ?)', [guildID, json.fallbackChannels[guildID].type, json.fallbackChannels[guildID].name, json.fallbackChannels[guildID].url]);
-	}
-
-	for (let guildID in json.roles) {
-		for (let roleID in json.roles[guildID])
-			await sql.run('INSERT INTO role (guildID, roleID, commands) VALUES (?, ?, ?)', [guildID, roleID, json.roles[guildID][roleID].join('|')]);
-	}
-};
-*/
 async function loadCFG() {
 	let prefixes: Map<Discord.Snowflake, string> = new Map();
 	let fallbackModes: Map<Discord.Snowflake, string> = new Map();
@@ -151,7 +124,7 @@ async function loadCFG() {
 		sql.all('SELECT * FROM fallbackData').then(fbdRows => fbdRows.forEach(fbdRow => fallbackData.set(fbdRow.guildID,{ type: fbdRow.type, name: fbdRow.name, url: fbdRow.url }))),
 		sql.all('SELECT * FROM role').then(roleRows => roleRows.forEach(roleRow => roles.set(roleRow.guildID,new Map([...attach(roles,roleRow.guildID,new Map()), [roleRow.roleID, roleRow.commands.split('|')] ]))))
 	];
-	await Promise.all(selectPromises).catch(console.error);
+	await Promise.all(selectPromises);
 
 	config = {
 		prefixes: prefixes,
@@ -246,7 +219,7 @@ let commands = {
 				if (results.length == 1)
 					selectedResult = results[0];
 				else if (!this.guild.member(client.user).permissions.has('ADD_REACTIONS')) {
-					this.channel.send('** Az opciók közüli választáshoz a botnak **`ADD_REACTIONS`** jogosultságra van szüksége.\nAutomatikusan az első opció kiválasztva. **').catch(console.log);
+					this.channel.send('** Az opciók közüli választáshoz a botnak **`ADD_REACTIONS`** jogosultságra van szüksége.\nAutomatikusan az első opció kiválasztva. **');
 					selectedResult = results[0];
 				}
 				else {
@@ -334,7 +307,7 @@ let commands = {
 			.addField('❯ Magyar rádiók', listRadios('hun'), true)
 			.addField('❯ Külföldi rádiók', listRadios('eng'), true)
 			.addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
-		this.channel.send({ embed }).catch(console.error);
+		this.channel.send({ embed });
 	},
 	async shuffle(_:string) {
 		try {
@@ -356,7 +329,7 @@ let commands = {
 				.addField('❯ Egyéb információk', `RAD.io meghívása saját szerverre: [Ide kattintva](https://discordapp.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot)
 Meghívó a RAD.io Development szerverre: [discord.gg/C83h4Sk](https://discord.gg/C83h4Sk)
 A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorIds[0]).tag : 'Nemokosch#9980'}, ${client.users.get(creatorIds[1]) ? client.users.get(creatorIds[1]).tag : 'garton#8800'}`);
-			return void this.channel.send({ embed }).catch(console.error);
+			return void this.channel.send({ embed });
 		}
 		helpCommand = aliases[helpCommand] || helpCommand;
 		let allCommands = Object.assign({}, helpCommands.userCommands, helpCommands.adminCommands);
@@ -368,9 +341,9 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 				.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${allCommands[helpCommand].attributes ? allCommands[helpCommand].attributes.map((attribute:string) => `<${attribute}>`).join(' ') : ''}\``)
 				.addField('❯ Használat feltételei', allCommands[helpCommand].requirements || '-')
 				.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
-			return void this.channel.send({ embed }).catch(console.error);
+			return void this.channel.send({ embed });
 		}
-		this.reply('nincs ilyen nevű parancs.').catch(console.error);
+		this.reply('nincs ilyen nevű parancs.');
 	},
 	async guilds(_: string) {
 		let guildLines = client.guilds.map(g => g.name + " **=>** `" + g.id + "`" + ` (${g.memberCount})`);
@@ -384,11 +357,11 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		while (true) {
 			try {
 				currentPage = await scrollRequest.call(this, message, currentPage, maxPage);
-				message.clearReactions().catch(console.log);
+				message.clearReactions();
 			}
 			catch (ex) {
 
-				message.clearReactions().catch(console.log);
+				message.clearReactions();
 				break;
 			}
 			let currentDescription = guildLines.slice((currentPage - 1) * 10, currentPage * 10).join('\n');
@@ -406,12 +379,12 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		config.prefixes.set(this.guild.id, newPrefix);
 		try {
 			await saveRow({ guildID: this.guild.id, prefix: newPrefix }, 'prefix');
-			this.channel.send(`${newPrefix} **az új prefix.**`).catch(() => { });
+			this.channel.send(`${newPrefix} **az új prefix.**`);
 		}
 		catch (e) {
 			console.error('Elmenteni nem sikerült a configot!');
 			console.error(e);
-			this.channel.send(`${newPrefix} **a prefix, de csak leállásig...**`).catch(console.error);
+			this.channel.send(`${newPrefix} **a prefix, de csak leállásig...**`);
 		}
 	},
 	async queue(_: string): Promise<void> {
@@ -475,13 +448,13 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 		else
 			return void this.reply('érvénytelen rádióadó.');
 		config.fallbackChannels.set(this.guild.id, fr);
-		this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`).catch(console.error);
+		this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`);
 		try {
 			await saveRow({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url }, 'fallbackData');
 		}
 		catch (ex) {
 			console.error(ex);
-			this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**').catch(console.error);
+			this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
 		}
 	},
 	skip(_:string) {
@@ -530,12 +503,12 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 	volume(param: string): void {
 		let vol = sscanf(param, '%d');
 		if (vol == undefined || vol <= 0 || vol > 15)
-			return void this.reply('paraméterként szám elvárt. (1-15)').catch(console.error);
+			return void this.reply('paraméterként szám elvárt. (1-15)');
 		if (vol > 10)
-			this.channel.send('**Figyelem: erősítést alkalmaztál, a hangban torzítás léphet fel.**').catch(console.error);
+			this.channel.send('**Figyelem: erősítést alkalmaztál, a hangban torzítás léphet fel.**');
 		try {
 			this.guildPlayer.setVolume(vol / 10);
-			this.react('☑').catch(console.error);
+			this.react('☑');
 		}
 		catch (ex) {
 			this.reply(`hiba - ${ex}`);
@@ -544,7 +517,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 	mute(_: string) {
 		try {
 			this.guildPlayer.mute();
-			this.react('☑').catch(console.error);
+			this.react('☑');
 		}
 		catch (ex) {
 			this.reply(`hiba - ${ex}`);
@@ -553,7 +526,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 	unmute(_: string) {
 		try {
 			this.guildPlayer.unmute();
-			this.react('☑').catch(console.error);
+			this.react('☑');
 		}
 		catch (ex) {
 			this.reply(`hiba - ${ex}`);
@@ -589,7 +562,7 @@ async function permissionReused(param: string, filler:(affectedCommands:string[]
 	}
 	catch (ex) {
 		console.error(ex);
-		this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**').catch(console.error);
+		this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
 	}
 }
 
@@ -637,7 +610,7 @@ client.on('guildCreate', guild => {
 });
 
 client.on('guildDelete', guild => {
-	((devChannel()) as Discord.TextChannel).send(`**${client.user.tag}** left \`${guild.name}\``).catch(console.error);
+	((devChannel()) as Discord.TextChannel).send(`**${client.user.tag}** left \`${guild.name}\``);
 	setPStatus();
 	updateStatusChannels()
 });
@@ -647,7 +620,8 @@ client.on("error", error => {
 });
 
 process.on('unhandledRejection', (reason, p) => {
-    console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
+	if (reason instanceof Discord.DiscordAPIError)
+		console.log(reason.message);
     // application specific logging here
 });
 
@@ -659,7 +633,7 @@ Members: ${guild.memberCount}
 Owner: ${guild.owner ? guild.owner.user.tag : 'unable to fetch'}
 Created At: ${created}
 Icon: [Link](${guild.iconURL ? guild.iconURL : client.user.displayAvatarURL})`);
-	((devChannel()) as Discord.TextChannel).send(`**${client.user.tag}** joined \`${guild.name}\``, { embed: embed }).catch(console.error);
+	((devChannel()) as Discord.TextChannel).send(`**${client.user.tag}** joined \`${guild.name}\``, { embed: embed });
 }
 
 async function sendWelcome(guild: Discord.Guild) {
