@@ -646,7 +646,7 @@ client.on("error", error => {
 	console.log(`ERRRORRR: \n${JSON.stringify(error.message)}`);
 });
 
-process.on('unhandledRejection', function(reason, p){
+process.on('unhandledRejection', (reason, p) => {
     console.log("Possibly Unhandled Rejection at: Promise ", p, " reason: ", reason);
     // application specific logging here
 });
