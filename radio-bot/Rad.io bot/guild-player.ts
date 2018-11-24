@@ -167,7 +167,7 @@ export class GuildPlayer {
 			fallbackMode=defaultConfig.fallback;	
 		switch (fallbackMode) {
 			case 'radio':
-				let fallbackMusic:Common.MusicData = await sql.get('SELECT type, name, url FROM fallbackFata WHERE guildID = ?',this.ownerGuild.id);
+				let fallbackMusic:Common.MusicData = await sql.get('SELECT type, name, url FROM fallbackData WHERE guildID = ?',this.ownerGuild.id);
 				if (!fallbackMusic)
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
 				this.nowPlaying = new Playable(fallbackMusic);
