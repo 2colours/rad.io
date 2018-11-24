@@ -14,7 +14,7 @@ class Playable {
 	data?: any;
 	skip: any;
 	halt: any;
-	constructor(musicData?: any) {
+	constructor(musicData?: Common.MusicData) {
 		this.data = musicData;
 	}
 	isDefinite() {
@@ -74,9 +74,12 @@ export class GuildPlayer {
 	public handler: VoiceHandler;
 	private volume: number;
 	private oldVolume?: number;
-	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay?: Common.MusicData) {
+	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay: Common.MusicData[]) {
 		this.announcementChannel = textChannel;
-		this.nowPlaying = new Playable(musicToPlay);
+		let currentMusic = musicToPlay.shift();
+		this.nowPlaying = new Playable(currentMusic);
+		if (musicToPlay.length > 0)
+			this.bulkSchedule(musicToPlay);
 		this.fallbackPlayed = false;
 		this.queue = [];
 		this.handler = new VoiceHandler(this);
@@ -138,10 +141,17 @@ export class GuildPlayer {
 	}
 	schedule(musicData:Common.MusicData) {
 		this.queue.push(new Playable(musicData));
-		if (!this.nowPlaying.isDefinite() && this.queue.length == 1)
+		if (!this.nowPlaying.isDefinite() && this.queue.length == 1) //azért a length==1, mert különben nem arra lépnénk át, amit pont most raktunk be - kicsit furcsa
 			this.skip();
 		else
 			this.announcementChannel.send(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
+	}
+	bulkSchedule(musicDatas: Common.MusicData[]) {
+		let autoSkip = this.queue.length == 0;
+		for (let musicData of musicDatas) 
+			this.queue.push(new Playable(musicData));
+		if (autoSkip)
+			this.skip();
 	}
 	shuffle() {
 		if (this.queue.length >= 2)

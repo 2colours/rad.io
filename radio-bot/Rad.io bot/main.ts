@@ -1,6 +1,6 @@
 ﻿import * as Discord from 'discord.js';
 import * as Common from './common-types';
-const { helpCommands } = require('./help-embed');
+import { helpCommands } from './help-embed';
 const client = new Discord.Client();
 const token = process.env.radioToken;
 const apiKey = process.env.youtubeApiKey;
@@ -166,13 +166,16 @@ function attach<T>(baseDict:Map<Discord.Snowflake,T>, guildId:Discord.Snowflake,
 	baseDict=baseDict.get(guildId)? baseDict:baseDict.set(guildId, defaultValue);
 	return baseDict.get(guildId);
 };
-async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, holder:Common.GuildPlayerHolder, playableData:Common.MusicData) {
+async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, holder:Common.GuildPlayerHolder, playableData:Common.MusicData[]) {
 	if (!voiceChannel.connection) {
 		await voiceChannel.join();
 		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
 		return;
 	}
-	holder.guildPlayer.schedule(playableData);
+	if (playableData.length == 1)
+		holder.guildPlayer.schedule(playableData[0]);
+	else
+		holder.guildPlayer.bulkSchedule(playableData);
 };
 
 let commands = {
@@ -187,7 +190,7 @@ let commands = {
 		try {
 			await voiceChannel.join();
 			this.channel.send('**Csatlakozva.**');
-			this.guildPlayer = new GuildPlayer(this.guild, this.channel);
+			this.guildPlayer = new GuildPlayer(this.guild, this.channel, []);
 			if (channelToPlay)
 				this.guildPlayer.schedule(Object.assign({ type: 'radio' }, radios.get(channelToPlay)));
 		}
@@ -200,12 +203,24 @@ let commands = {
 		let voiceChannel:Discord.VoiceChannel = this.member.voiceChannel;
 		param = param.trim();
 		if (param.search(/https?:\/\//) == 0) {
-			let ytVideo = await youtube.getVideoByUrl(param);
-			return void forceSchedule(this.channel, voiceChannel, this, {
-				name: ytVideo.title,
-				url: param,
-				type: 'yt'
-			});
+			try {
+				let ytPlaylist = await youtube.getPlaylistByUrl(param);
+				let videos = await ytPlaylist.fetchVideos();
+				return void forceSchedule(this.channel, voiceChannel, this, videos.map(elem => Object.assign({},{
+					name: elem.title,
+					url: elem.url,
+					type: 'yt'
+				}) as Common.MusicData));
+			}
+			catch (ex) {
+				console.log(ex);
+				let ytVideo = await youtube.getVideoByUrl(param);	
+				return void forceSchedule(this.channel, voiceChannel, this, [{
+					name: ytVideo.title,
+					url: param,
+					type: 'yt'
+				}]);
+			}
 		}
 		let ytString = sscanf(param, '%S') || '';
 		try {
@@ -255,11 +270,11 @@ let commands = {
 				message.edit(embed);
 				return;
 			}
-			forceSchedule(this.channel, voiceChannel, this, {
+			forceSchedule(this.channel, voiceChannel, this, [{
 				name: selectedResult.title,
 				url: selectedResult.url,
 				type: 'yt'
-			});
+			}]);
 		}
 		catch (e) {
 			console.log(e);
@@ -269,11 +284,11 @@ let commands = {
 	async custom(param: string) {
 		let voiceChannel:Discord.VoiceChannel = this.member.voiceChannel;
 		let url = sscanf(param, '%s') || '';
-		forceSchedule(this.channel, voiceChannel, this, {
+		forceSchedule(this.channel, voiceChannel, this, [{
 			name: 'Custom',
 			url,
 			type: 'custom'
-		});
+		}]);
 	},
 	leave(_: string) {
 		let guildPlayer:GuildPlayer = this.guildPlayer;
@@ -468,7 +483,7 @@ A bot fejlesztői: ${client.users.get(creatorIds[0]) ? client.users.get(creatorI
 			channel = randChannel;
 			this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
 		}
-		forceSchedule(this.channel, voiceChannel, this, Object.assign({ type: 'radio' as Common.StreamType }, radios.get(channel)));
+		forceSchedule(this.channel, voiceChannel, this, [Object.assign({ type: 'radio' as Common.StreamType }, radios.get(channel))]);
 	},
 	grant(param: string) {
 		permissionReused.call(this, param, (commands:string[], roleCommands:string[]) =>

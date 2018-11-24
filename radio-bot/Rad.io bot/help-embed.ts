@@ -1,4 +1,4 @@
-﻿let helpCommands = {
+﻿export let helpCommands = {
   userCommands: {
     'join':{attributes:['ID (opcionális)'],description:'Bot csatlakoztatása a felhasználó voice csatornájába. Rádió id megadása esetén az adott rádió egyből indításra kerül.',requirements:'A felhasználónak voice csatornán kell lennie, a botnak pedig nem szabad.'},
     'tune':{attributes:['ID'],description:'Rádióadó ütemezése a sor végére (id szerint, lásd `radios` parancs). Ha rádió lejátszása van folyamatban, akkor az újonnan ütemezett rádió egyből behangolásra kerül.',requirements:'A botnak és a felhasználónak egyazon voice csatornán kell lennie.'},
@@ -25,4 +25,3 @@
     'denyeveryone':{attributes:['parancs1|parancs2|... / all'],description:'Parancshasználat visszavonása az @everyone role-tól. (Lásd még: `grant` parancs.)',requirements:'Adminisztrátori jogosultság szükséges.'}
   }
 };
-module.exports={helpCommands};
