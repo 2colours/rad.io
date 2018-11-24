@@ -161,7 +161,8 @@ export class GuildPlayer {
 	}
 	async fallbackMode() {
 		this.announcementChannel.send('**Fallback mód.**');
-		let fallbackMode:Common.FallbackType = await sql.get('SELECT type FROM fallbackModes WHERE guildID = ?',this.ownerGuild.id);
+		let fallbackMode: Common.FallbackType;
+		({ type: fallbackMode} = await sql.get('SELECT type FROM fallbackModes WHERE guildID = ?',this.ownerGuild.id));
 		if (!fallbackMode)
 			fallbackMode=defaultConfig.fallback;	
 		switch (fallbackMode) {

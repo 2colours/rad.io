@@ -213,7 +213,8 @@ let commands = {
 				}) as Common.MusicData));
 			}
 			catch (ex) {
-				console.log(ex);
+				if (ex != 'Not a valid playlist url')
+					return console.error(ex);
 				let ytVideo = await youtube.getVideoByUrl(param);	
 				return void forceSchedule(this.channel, voiceChannel, this, [{
 					name: ytVideo.title,
