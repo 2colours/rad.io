@@ -278,7 +278,7 @@ let commands = {
 			}]);
 		}
 		catch (e) {
-			console.log(e);
+			console.error(e);
 			this.channel.send('**Hiba a keresés során.**');
 		}
 	},

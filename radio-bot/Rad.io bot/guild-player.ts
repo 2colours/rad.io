@@ -108,7 +108,8 @@ export class GuildPlayer {
 			}
 		}
 		catch (ex) {
-			//ezt direkt várjuk is, de leginkább csak akkor, ha leave-elés miatt jön
+			if (ex != 'leave')
+				console.error(ex);
 		}
 	}
 	mute() {
