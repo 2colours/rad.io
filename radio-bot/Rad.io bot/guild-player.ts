@@ -162,14 +162,20 @@ export class GuildPlayer {
 	async fallbackMode() {
 		this.announcementChannel.send('**Fallback mód.**');
 		let fallbackMode: Common.FallbackType;
-		({ type: fallbackMode} = await sql.get('SELECT type FROM fallbackModes WHERE guildID = ?',this.ownerGuild.id));
-		if (!fallbackMode)
-			fallbackMode=defaultConfig.fallback;	
+		try {
+			({ type: fallbackMode } = await sql.get('SELECT type FROM fallbackModes WHERE guildID = ?', this.ownerGuild.id));
+		}
+		catch (ex) {
+			fallbackMode = defaultConfig.fallback;
+		}
 		switch (fallbackMode) {
 			case 'radio':
-				let fallbackMusic:Common.MusicData = await sql.get('SELECT type, name, url FROM fallbackData WHERE guildID = ?',this.ownerGuild.id);
-				if (!fallbackMusic)
+				try {
+					var fallbackMusic: Common.MusicData = await sql.get('SELECT type, name, url FROM fallbackData WHERE guildID = ?', this.ownerGuild.id);
+				}
+				catch (ex) {
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
+				}
 				this.nowPlaying = new Playable(fallbackMusic);
 				this.fallbackPlayed = true;
 				break;
