@@ -1,7 +1,7 @@
 {
   "scripts": {
     "build": "",
-    "start": "concurrently \"node keepalive.js\" \"node main.js\""
+    "start": "concurrently --kill-others \"node keepalive.js\" \"node main.js\""
   },
   "dependencies": {
     "typescript": "^3.1.3",
