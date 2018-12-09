@@ -225,7 +225,7 @@ let commands = {
 		}
 		let ytString = sscanf(param, '%S') || '';
 		try {
-			let results = await youtube.searchVideos(encodeURI(ytString), 5);
+			let results = await youtube.searchVideos(ytString, 5);
 			if (!results || results.length == 0)
 				return void this.reply('nincs találat.');
 			await Promise.all(results.map((elem:Video) => elem.fetch()));
