@@ -6,7 +6,7 @@ const token = process.env.radioToken;
 const apiKey = process.env.youtubeApiKey;
 const sscanf = require('scanf').sscanf;
 import { config, database } from './common-resources';
-//const fs = require('fs');
+import { attach } from './util';
 
 import { defaultConfig, radios, embedC, getEmoji } from './vc-constants';
 //const streamOptions = { seek: 0, volume: 1 };
@@ -139,10 +139,6 @@ const aliases = {
 	'de': 'denyeveryone'
 };
 const debatedCommands = ['shuffle', 'skip', 'leave'];
-function attach<T>(baseDict:Map<Discord.Snowflake,T>, guildId:Discord.Snowflake, defaultValue:T) {
-	baseDict=baseDict.get(guildId)? baseDict:baseDict.set(guildId, defaultValue);
-	return baseDict.get(guildId);
-};
 async function forceSchedule(textChannel:Discord.TextChannel, voiceChannel:Discord.VoiceChannel, holder:Common.GuildPlayerHolder, playableData:Common.MusicData[]) {
 	if (!voiceChannel.connection) {
 		await voiceChannel.join();

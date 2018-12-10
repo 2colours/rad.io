@@ -1,6 +1,5 @@
-﻿const sql=require('sqlite');
-import * as Common from './common-types';
-sql.open("./radio.sqlite");
+﻿import * as Common from './common-types';
+import { config } from './common-resources';
 export const creatorIds=['297037173541175296','419447790675165195'];
 export const isAdmin:Common.Predicate=ctx=>ctx.member.permissions.has('ADMINISTRATOR');
 export const isVcUser:Common.Predicate=ctx=>!!ctx.member.voiceChannel;
@@ -10,9 +9,9 @@ export const choiceFilter=(pred:Common.Predicate,dec1:Common.Decorator,dec2:Comm
 let currentDecorator=await Promise.resolve(pred(this))?dec1:dec2;
 currentDecorator(action).call(this,param);
 };
-export const hasPermission:Common.Predicate=async ctx=>{
-  let guildRoles = await sql.all('SELECT * FROM role WHERE guildID = ?',ctx.guild.id);
-  return guildRoles.some((roleRow:any)=>ctx.member.roles.has(roleRow.roleID) && roleRow.commands.split('|').includes(ctx.cmdName));
+export const hasPermission: Common.Predicate = ctx => {
+	let guildRoles = [...config.roles.get(ctx.guild.id)];
+	return guildRoles.some(roleData=>ctx.member.roles.has(roleData[0]) && roleData[1].includes(ctx.cmdName));
 }
 export const hasVcPermission:Common.Predicate=ctx=>ctx.member.voiceChannel.joinable;
 export const isCreator:Common.Predicate=ctx=>creatorIds.includes(ctx.author.id);
