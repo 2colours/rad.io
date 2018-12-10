@@ -3,7 +3,7 @@ const sql=require('sqlite');
 sql.open("./radio.sqlite");
 import * as Common from './common-types';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import {getEmoji} from './common-resources';
+import { getEmoji } from './vc-constants';
 import {defaultConfig} from './vc-constants';
 const ytdl = (url:string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const downloadMethods = new Map<Common.StreamType,any>([
