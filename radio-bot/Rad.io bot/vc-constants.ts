@@ -1,4 +1,4 @@
-﻿import {FallbackType} from './common-types';
+﻿import {FallbackType, StreamType, EmojiLike} from './common-types';
 export const defaultConfig = {
 	prefix: '.',
 	fallback: 'radio' as FallbackType
@@ -268,3 +268,12 @@ const radios = {
 const r=new Map(Object.entries(radios));
 export {r as radios};
 export const embedC = 0xfcf5d2;
+const youtubeEmoji = '<:youtube:506897247145951233>';
+export function getEmoji(type: StreamType): EmojiLike {
+	const emojis: Map<StreamType, EmojiLike> = new Map<StreamType, EmojiLike>([
+		['yt', youtubeEmoji],
+		['radio', ':radio:'],
+		['custom', ':radio:']
+	]);
+	return emojis.get(type);
+}

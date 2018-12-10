@@ -5,14 +5,14 @@ const client = new Discord.Client();
 const token = process.env.radioToken;
 const apiKey = process.env.youtubeApiKey;
 const sscanf = require('scanf').sscanf;
+import { config, database } from './common-resources';
 //const fs = require('fs');
-const sql = require('sqlite');
-import { defaultConfig, radios, embedC} from './vc-constants';
+
+import { defaultConfig, radios, embedC, getEmoji } from './vc-constants';
 //const streamOptions = { seek: 0, volume: 1 };
 import * as moment from 'moment';
 import { isAloneUser, rejectReply, pass, isAloneBot, choiceFilter, adminNeeded, vcUserNeeded, sameVcBanned, sameVcNeeded, vcBotNeeded, noBotVcNeeded, sameOrNoBotVcNeeded, adminOrPermissionNeeded, creatorNeeded, vcPermissionNeeded, creatorIds } from './vc-decorators';
 import {GuildPlayer} from './guild-player';
-import {getEmoji} from './common-resources';
 const isFallback=(ctx:Common.ThisBinding)=>ctx.guildPlayer.fallbackPlayed;
 const nonFallbackNeeded=choiceFilter(isFallback,rejectReply('**fallback-et nem lehet skippelni (leave-eld a botot vagy ütemezz be valamilyen zenét).**'),pass);
 const parameterNeeded = (action:Common.Action) => function (param:string) {
@@ -52,9 +52,8 @@ const decorators = {
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 const devChannel = () => client.channels.get('470574072565202944');
-let config: Common.Config;
 let guildPlayers:Map<Discord.Snowflake,GuildPlayer>=new Map();
-sql.open("./radio.sqlite");
+
 
 function commonEmbed(cmd:string) { //TODO ez sem akármilyen string, hanem parancsnév
 	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
@@ -96,50 +95,28 @@ function scrollRequest(message: Discord.Message, currentPage: number, allPages: 
 async function saveRow(rowObj:any, type:Common.TableName) { //a rowObj nem any, igazából ezt szét kéne dobni külön függvényekbe
 	switch (type) {
 		case 'prefix':
-			await sql.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
-			await sql.run(`INSERT INTO ${type} (guildID, prefix) VALUES (?, ?)`, [rowObj.guildID, rowObj.prefix]);
+			await database.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
+			await database.run(`INSERT INTO ${type} (guildID, prefix) VALUES (?, ?)`, [rowObj.guildID, rowObj.prefix]);
 			break;
 		case 'fallbackModes':
-			await sql.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
-			await sql.run(`INSERT INTO ${type} (guildID, type) VALUES (?, ?)`, [rowObj.guildID, rowObj.type]);
+			await database.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
+			await database.run(`INSERT INTO ${type} (guildID, type) VALUES (?, ?)`, [rowObj.guildID, rowObj.type]);
 			break;
 		case 'fallbackData':
-			await sql.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
-			await sql.run(`INSERT INTO ${type} (guildID, type, name, url) VALUES (?, ?, ?, ?)`, [rowObj.guildID, rowObj.type, rowObj.name, rowObj.url]);
+			await database.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
+			await database.run(`INSERT INTO ${type} (guildID, type, name, url) VALUES (?, ?, ?, ?)`, [rowObj.guildID, rowObj.type, rowObj.name, rowObj.url]);
 			break;
 		case 'role':
-			await sql.run(`DELETE FROM ${type} WHERE (guildID = ?) AND (roleID = ?)`, [rowObj.guildID, rowObj.roleID]);
-			await sql.run(`INSERT INTO ${type} (guildID, roleID, commands) VALUES (?, ?, ?)`, [rowObj.guildID, rowObj.roleID, rowObj.commands]);
+			await database.run(`DELETE FROM ${type} WHERE (guildID = ?) AND (roleID = ?)`, [rowObj.guildID, rowObj.roleID]);
+			await database.run(`INSERT INTO ${type} (guildID, roleID, commands) VALUES (?, ?, ?)`, [rowObj.guildID, rowObj.roleID, rowObj.commands]);
 			break;
 	};
-};
-async function loadCFG() {
-	let prefixes: Map<Discord.Snowflake, string> = new Map();
-	let fallbackModes: Map<Discord.Snowflake, Common.FallbackType> = new Map();
-	let fallbackData: Map<Discord.Snowflake,Common.MusicData> = new Map();
-	let roles: Map<Discord.Snowflake,Map<Discord.Snowflake,string[]>> = new Map();
-	let selectPromises:Promise<void>[]=[
-		sql.all('SELECT * FROM prefix').then(prefixRows => prefixRows.forEach(prefixRow => prefixes.set(prefixRow.guildID,prefixRow.prefix))),
-		sql.all('SELECT * FROM fallbackModes').then(fbmRows => fbmRows.forEach(fbmRow => fallbackModes.set(fbmRow.guildID,fbmRow.type))),
-		sql.all('SELECT * FROM fallbackData').then(fbdRows => fbdRows.forEach(fbdRow => fallbackData.set(fbdRow.guildID,{ type: fbdRow.type, name: fbdRow.name, url: fbdRow.url }))),
-		sql.all('SELECT * FROM role').then(roleRows => roleRows.forEach(roleRow => roles.set(roleRow.guildID,new Map([...attach(roles,roleRow.guildID,new Map()), [roleRow.roleID, roleRow.commands.split('|')] ]))))
-	];
-	await Promise.all(selectPromises);
-
-	config = {
-		prefixes: prefixes,
-		fallbackModes: fallbackModes,
-		fallbackChannels: fallbackData,
-		roles: roles
-	};
-	console.log(config);
 };
 
 const channels:string[] = [...radios.keys()];
 
 client.on('ready', () => {
 	console.log(`${client.user.tag}: client online, on ${client.guilds.size} guilds, with ${client.users.size} users.`);
-	loadCFG();
 	setPStatus();
 	updateStatusChannels();
 });
