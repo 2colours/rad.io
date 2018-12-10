@@ -1,10 +1,8 @@
 import * as Discord from 'discord.js';
-const sql=require('sqlite');
-sql.open("./radio.sqlite");
+import { config } from './common-resources';
 import * as Common from './common-types';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import { getEmoji } from './vc-constants';
-import {defaultConfig} from './vc-constants';
+import { defaultConfig, getEmoji } from './vc-constants';
 const ytdl = (url:string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const downloadMethods = new Map<Common.StreamType,any>([
 	['yt', ytdl],
@@ -162,21 +160,12 @@ export class GuildPlayer {
 	}
 	async fallbackMode() {
 		this.announcementChannel.send('**Fallback mód.**');
-		let fallbackMode: Common.FallbackType;
-		try {
-			({ type: fallbackMode } = await sql.get('SELECT type FROM fallbackModes WHERE guildID = ?', this.ownerGuild.id));
-		}
-		catch (ex) {
-			fallbackMode = defaultConfig.fallback;
-		}
+		let fallbackMode = config.fallbackModes.get(this.ownerGuild.id) || defaultConfig.fallback;
 		switch (fallbackMode) {
 			case 'radio':
-				try {
-					var fallbackMusic: Common.MusicData = await sql.get('SELECT type, name, url FROM fallbackData WHERE guildID = ?', this.ownerGuild.id);
-				}
-				catch (ex) {
+				let fallbackMusic = config.fallbackChannels.get(this.ownerGuild.id)
+				if (!fallbackMusic)
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
-				}
 				this.nowPlaying = new Playable(fallbackMusic);
 				this.fallbackPlayed = true;
 				break;
