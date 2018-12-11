@@ -146,7 +146,7 @@ export class GuildPlayer {
 			this.announcementChannel.send(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
 	bulkSchedule(musicDatas: Common.MusicData[]) {
-		let autoSkip = this.queue.length == 0;
+		let autoSkip = this.queue.length == 0 && this.nowPlaying.isDefinite();
 		for (let musicData of musicDatas) 
 			this.queue.push(new Playable(musicData));
 		if (autoSkip)
