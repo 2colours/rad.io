@@ -1,11 +1,10 @@
 ﻿import * as Discord from 'discord.js';
 import * as Common from './common-types';
 import { helpCommands } from './help-embed';
-const client = new Discord.Client();
 const token = process.env.radioToken;
 const apiKey = process.env.youtubeApiKey;
 const sscanf = require('scanf').sscanf;
-import { config, database } from './common-resources';
+import { config, database, client } from './common-resources';
 import { attach } from './util';
 
 import { defaultConfig, radios, embedC, getEmoji } from './vc-constants';

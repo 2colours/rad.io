@@ -1,9 +1,10 @@
 import * as Common from './common-types';
-import { Snowflake } from 'discord.js';
+import { Snowflake, Client } from 'discord.js';
 import { attach } from './util';
 const sql = require('sqlite');
 export let config: Common.Config;
 export let database: any;
+export const client = new Client();
 sql.open("./radio.sqlite")
 	.then(async (db: any) => {
 		await loadCFG(db);
