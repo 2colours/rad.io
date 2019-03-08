@@ -1,20 +1,15 @@
-﻿const sscanf = require('scanf').sscanf;
-import * as Discord from 'discord.js';
+﻿import * as Discord from 'discord.js';
 import { randomElement, hourMinSec, attach } from './util';
 import { channels, radios as radiosList, defaultConfig, embedC, getEmoji, creators } from './vc-constants';
 import { GuildPlayer } from './guild-player';
-import { helpCommands } from './help-embed';
 import { Action } from './common-types';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 import * as Common from './common-types';
 import { client, config, database } from './common-resources';
-import { commands, translateAlias } from './commands';
-const debatedCommands = new Array<string>();
-for (let entry of commands.entries())
-	if (entry[1].type == 'grantable')
-		debatedCommands.push(entry[0]);
+import { commands, translateAlias, debatedCommands } from './commands';
+import { sscanf } from 'scanf';
 async function forceSchedule(textChannel: Discord.TextChannel, voiceChannel: Discord.VoiceChannel, holder: Common.GuildPlayerHolder, playableData: Common.MusicData[]) {
 	if (!voiceChannel.connection) {
 		await voiceChannel.join();
@@ -231,10 +226,12 @@ actions.set('shuffle', async function (_) {
 actions.set('help', function (param) {
 	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 	let helpCommand = sscanf(param, '%s');
+	const userCommands = [...commands].filter(entry => ['grantable', 'unlimited'].includes(entry[1].type)).map(entry => entry[0]);
+	const adminCommands = [...commands].filter(entry => ['adminOnly'].includes(entry[1].type)).map(entry => entry[0]);
 	if (!helpCommand) {
 		const embed = commonEmbed.call(this, 'help')
-			.addField('❯ Felhasználói parancsok', Object.keys(helpCommands.userCommands).map(cmd => `\`${cmd}\``).join(' '))
-			.addField('❯ Adminisztratív parancsok', Object.keys(helpCommands.adminCommands).map(cmd => `\`${cmd}\``).join(' '))
+			.addField('❯ Felhasználói parancsok', Object.keys(userCommands).map(cmd => `\`${cmd}\``).join(' '))
+			.addField('❯ Adminisztratív parancsok', Object.keys(adminCommands).map(cmd => `\`${cmd}\``).join(' '))
 			.addField('❯ Részletes leírás', `\`${prefix}help <command>\``)
 			.addField('❯ Egyéb információk', `RAD.io meghívása saját szerverre: [Ide kattintva](https://discordapp.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot)
 Meghívó a RAD.io Development szerverre: [discord.gg/C83h4Sk](https://discord.gg/C83h4Sk)
@@ -242,15 +239,14 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 		return void this.channel.send({ embed });
 	}
 	helpCommand = translateAlias(helpCommand);
-	let allCommands = Object.assign({}, helpCommands.userCommands, helpCommands.adminCommands);
-	if (helpCommand in allCommands) {
+	if (helpCommand in commands) {
 		const currentCommand = commands.get(helpCommand);
 		let currentAliases = currentCommand.aliases;
 		currentAliases.sort();
 		const embed = commonEmbed.call(this, `help ${helpCommand}`)
 			.addField('❯ Részletes leírás', currentCommand.helpRelated.ownDescription)
 			.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${currentCommand.helpRelated.params.map((attribute: string) => `<${attribute}>`).join(' ')} \``)
-			.addField('❯ Használat feltételei', (currentCommand.helpRelated.requirements  || ['-']).join(' '))
+			.addField('❯ Használat feltételei', (currentCommand.helpRelated.requirements || ['-']).join(' '))
 			.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
 		return void this.channel.send({ embed });
 	}
@@ -313,9 +309,9 @@ actions.set('fallback', async function (param) {
 	const aliases = new Map([['r', 'radio'], ['s', 'silence'], ['l', 'leave']]);
 	let mode = sscanf(param, '%s') || '';
 	mode = aliases.get(mode) || mode;
-	if (!['radio', 'silence', 'leave'].includes(mode))
+	if (!<Common.FallbackType>mode)
 		return void this.reply("ilyen fallback mód nem létezik.");
-	config.fallbackModes.set(this.guild.id, mode);
+	config.fallbackModes.set(this.guild.id, <Common.FallbackType>mode);
 	this.channel.send(`**Új fallback: ${mode}. **`);
 	try {
 		await saveRow({ guildID: this.guild.id, type: mode }, 'fallbackModes');
@@ -424,15 +420,15 @@ actions.set('unmute', function (_) {
 });
 async function permissionReused(param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
 	try {
-		var [commands = '', roleName = ''] = sscanf(param, '%s %S');
+		var [permCommands = '', roleName = ''] = <string[]>sscanf(param, '%s %S');
 	}
 	catch (ex) {
 		//Nem nyertünk ki értelmeset
 		return void this.reply('nem megfelelő formátum.');
 	}
-	if (!commands)
+	if (!permCommands)
 		return void this.reply('az első paraméter üres.');
-	let commandsArray: string[] = commands.toLowerCase() == 'all' ? debatedCommands : commands.split('|');
+	let commandsArray: string[] = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|');
 	let firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void this.reply(`\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.`);

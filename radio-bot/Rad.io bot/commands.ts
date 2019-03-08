@@ -232,3 +232,5 @@ setupCommand({
 	type: 'unlimited',
 	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded])
 });
+
+export const debatedCommands = [...commands].filter(entry => entry[1].type == 'grantable').map(entry=>entry[0]);

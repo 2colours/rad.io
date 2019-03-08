@@ -5,12 +5,11 @@ const token = process.env.radioToken;
 import { config, client } from './common-resources';
 const sscanf = require('scanf').sscanf;
 import { defaultConfig, radios, embedC, channels } from './vc-constants';
-//const streamOptions = { seek: 0, volume: 1 };
 import * as moment from 'moment';
 import { GuildPlayer } from './guild-player';
 import { randomElement } from './util';
 import { actions } from './actions';
-import { translateAlias, commands } from './commands';
+import { translateAlias, commands, debatedCommands } from './commands';
 const help = actions.get('help');
 
 const devChannel = () => client.channels.get('470574072565202944');
@@ -21,10 +20,6 @@ client.on('ready', () => {
 	setPStatus();
 	updateStatusChannels();
 });
-const debatedCommands = ['shuffle', 'skip', 'leave'];
-
-
-//Object.keys(decorators).forEach(cmdName => decorateCommand(cmdName, decorators[cmdName]));
 
 
 client.on('message', async (message) => {
