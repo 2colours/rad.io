@@ -1,5 +1,8 @@
 import { Emoji, Snowflake, Message } from 'discord.js';
 import {GuildPlayer} from './guild-player';
+import { Filter } from './vc-decorators';
+import { aggregateDecorators } from './util';
+import { client } from './common-resources';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, FallbackType>; //TODO nem akármilyen string!
@@ -31,3 +34,48 @@ export interface RadioData {
 	cult:string; //TODO biztos nem enum inkább?
 }
 export type EmojiLike = Emoji | string;
+export interface CommandExtraData {
+	type: CommandType;
+	name: string; //Biztos? Még mindig a validálás kérdése
+	aliases: string[];
+	filters: Set<Filter>;
+	params: string[];
+	descrip: string;
+}
+interface CommandRawData extends CommandExtraData {
+	action: Action;
+}
+type CommandType = 'unlimited' | 'adminOnly' | 'grantable' | 'creatorsOnly';
+export class Command {
+	readonly decoratedAction: Action;
+	readonly aliases: string[];
+	readonly name: string;
+	readonly helpRelated: HelpInfo;
+	readonly type: CommandType;
+	constructor(baseData: CommandRawData) {
+		this.type = baseData.type;
+		this.name = baseData.name;
+		this.aliases = baseData.aliases;
+		let orderedFilters = [...baseData.filters];
+		orderedFilters.sort(Filter.compare);
+		this.decoratedAction = aggregateDecorators(orderedFilters.map(elem => elem.decorator))(baseData.action);
+		this.helpRelated = {
+			requirements: orderedFilters.map(elem => elem.description),
+			params: baseData.params,
+			ownDescription: baseData.descrip
+		};
+	}
+}
+interface HelpInfo {
+	requirements: string[];
+	params: string[];
+	ownDescription: string;
+}
+export class Creator {
+	constructor(readonly id: Snowflake, private alias: string) {
+	}
+	resolve():string {
+		const user = client.users.get(this.id);
+		return user ? user.tag : this.alias;
+	}
+}

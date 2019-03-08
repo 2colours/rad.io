@@ -12,8 +12,10 @@ class Playable {
 	data?: any;
 	skip: any;
 	halt: any;
+	started: boolean;
 	constructor(musicData?: Common.MusicData) {
 		this.data = musicData;
+		this.started = false;
 	}
 	isDefinite() {
 		return this.data && ['yt', 'custom'].includes(this.data.type);
@@ -23,6 +25,7 @@ class Playable {
 	}
 	play(voiceConnection: Discord.VoiceConnection, vol: number) {
 		return new Promise((resolve, reject) => {
+			this.started = true;
 			if (!this.data) {
 				this.skip = () => resolve(true);
 				this.halt = () => reject('leave');
@@ -74,15 +77,14 @@ export class GuildPlayer {
 	private oldVolume?: number;
 	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay: Common.MusicData[]) {
 		this.announcementChannel = textChannel;
-		let currentMusic = musicToPlay.shift();
-		this.nowPlaying = new Playable(currentMusic);
-		if (musicToPlay.length > 0)
-			this.bulkSchedule(musicToPlay);
 		this.fallbackPlayed = false;
 		this.queue = [];
 		this.handler = new VoiceHandler(this);
-		this.playLoop();
 		this.volume = 0.5;
+		this.nowPlaying = new Playable();
+		if (musicToPlay.length > 0)
+			this.bulkSchedule(musicToPlay);
+		this.playLoop();
 	}
 	async playLoop() {
 		try {
@@ -128,7 +130,11 @@ export class GuildPlayer {
 		this.volume = vol;
 	}
 	skip() {
-		this.nowPlaying.skip();
+		if (this.nowPlaying.started)
+			this.nowPlaying.skip();
+		else {
+			this.nowPlaying = this.queue.shift() || new Playable();
+		}
 	}
 	repeat(maxTimes?: number) {
 		if (!this.nowPlaying.isDefinite())
@@ -146,7 +152,7 @@ export class GuildPlayer {
 			this.announcementChannel.send(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
 	bulkSchedule(musicDatas: Common.MusicData[]) {
-		let autoSkip = this.queue.length == 0 && this.nowPlaying.isDefinite();
+		let autoSkip = !this.nowPlaying.isDefinite() && this.queue.length == 0;
 		for (let musicData of musicDatas) 
 			this.queue.push(new Playable(musicData));
 		if (autoSkip)
