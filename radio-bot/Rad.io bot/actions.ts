@@ -1,5 +1,5 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach } from './internal';
+import { randomElement, hourMinSec, attach, Config } from './internal';
 import { channels, radios as radiosList, defaultConfig, embedC, getEmoji, creators } from './internal';
 import { GuildPlayer } from './internal';
 import { Action } from './internal';
@@ -234,8 +234,8 @@ actions.set('help', function (param) {
 	const adminCommands = [...commands].filter(entry => ['adminOnly'].includes(entry[1].type)).map(entry => entry[0]);
 	if (!helpCommand) {
 		const embed = commonEmbed.call(this, 'help')
-			.addField('❯ Felhasználói parancsok', Object.keys(userCommands).map(cmd => `\`${cmd}\``).join(' '))
-			.addField('❯ Adminisztratív parancsok', Object.keys(adminCommands).map(cmd => `\`${cmd}\``).join(' '))
+			.addField('❯ Felhasználói parancsok', userCommands.map(cmd => `\`${cmd}\``).join(' '))
+			.addField('❯ Adminisztratív parancsok', adminCommands.map(cmd => `\`${cmd}\``).join(' '))
 			.addField('❯ Részletes leírás', `\`${prefix}help <command>\``)
 			.addField('❯ Egyéb információk', `RAD.io meghívása saját szerverre: [Ide kattintva](https://discordapp.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot)
 Meghívó a RAD.io Development szerverre: [discord.gg/C83h4Sk](https://discord.gg/C83h4Sk)

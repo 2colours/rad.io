@@ -1,7 +1,5 @@
-﻿import { aggregateDecorators, Config, configPromise, Predicate, Action, Decorator, ThisBinding } from './internal';
-import { creators } from './internal';
+﻿import { aggregateDecorators, Config, configPromise, Predicate, Action, Decorator, ThisBinding, creators, actions } from './internal';
 import { sscanf } from 'scanf';
-import { actions } from './internal'
 const isAdmin:Predicate=ctx=>ctx.member.permissions.has('ADMINISTRATOR');
 const isVcUser:Predicate=ctx=>!!ctx.member.voiceChannel;
 const isDifferentVc:Predicate=ctx=>(ctx.guild.voiceConnection && ctx.guild.voiceConnection.channel) != ctx.member.voiceChannel;
