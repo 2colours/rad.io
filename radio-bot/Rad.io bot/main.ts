@@ -34,7 +34,7 @@ client.on('message', async (message) => {
 		let { command: commandString, param } = <any>sscanf(content.substring(prefix.length), '%s %S', 'command', 'param');
 		commandString = commandString.toLowerCase();
 		commandString = translateAlias(commandString);
-		let commandFunction = commands.get(commandString).decoratedAction || Function.prototype;
+		let { decoratedAction: commandFunction = Function.prototype } = commands.get(commandString) || {};
 		let packedMessage: PackedMessage = Object.assign(message, { cmdName: commandString });
 		let thisBinding: ThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
 			get: () => guildPlayers.get(packedMessage.guild.id),

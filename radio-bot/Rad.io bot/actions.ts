@@ -1,5 +1,5 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, TableName, StreamType, FallbackType, MusicData, GuildPlayerHolder } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, TableName, StreamType, FallbackType, MusicData, GuildPlayerHolder, EmojiLike } from './internal';
 import { channels, radios as radiosList, defaultConfig, embedC, getEmoji, creators } from './internal';
 import { Action } from './internal';
 const apiKey = process.env.youtubeApiKey;
