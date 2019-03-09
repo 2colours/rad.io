@@ -1,20 +1,14 @@
-import * as Common from './common-types';
 import { Snowflake, Client } from 'discord.js';
-import { attach } from './util';
+import { attach, FallbackType, MusicData, Config } from './internal';
 const sql = require('sqlite');
-export let config: Common.Config;
-export let database: any;
 export const client = new Client();
-sql.open("./radio.sqlite")
-	.then(async (db: any) => {
-		await loadCFG(db);
-		database = db;
-	});
+export const dbPromise: Promise<any> = sql.open("./radio.sqlite");
+export const configPromise: Promise<Config> = dbPromise.then((db: any) => loadCFG(db));
 
-async function loadCFG(db:any) {
+async function loadCFG(db:any):Promise<Config> {
 	let prefixes: Map<Snowflake, string> = new Map();
-	let fallbackModes: Map<Snowflake, Common.FallbackType> = new Map();
-	let fallbackData: Map<Snowflake, Common.MusicData> = new Map();
+	let fallbackModes: Map<Snowflake, FallbackType> = new Map();
+	let fallbackData: Map<Snowflake, MusicData> = new Map();
 	let roles: Map<Snowflake, Map<Snowflake, string[]>> = new Map();
 	let selectPromises: Promise<void>[] = [
 		db.all('SELECT * FROM prefix').then(prefixRows => prefixRows.forEach(prefixRow => prefixes.set(prefixRow.guildID, prefixRow.prefix))),
@@ -24,11 +18,11 @@ async function loadCFG(db:any) {
 	];
 	await Promise.all(selectPromises);
 
-	config = {
+	const config = {
 		prefixes: prefixes,
 		fallbackModes: fallbackModes,
 		fallbackChannels: fallbackData,
 		roles: roles
 	};
-	console.log(config);
+	return config; 
 };

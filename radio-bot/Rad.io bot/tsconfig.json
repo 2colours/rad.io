@@ -1,5 +1,7 @@
 {
 	"compilerOptions": {
+        "baseUrl": ".",
+        "paths": { "*": ["types/*"] },
 		"declaration": true,
 		"emitDecoratorMetadata": false,
 		"experimentalDecorators": false,

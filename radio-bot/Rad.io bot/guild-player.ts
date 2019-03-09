@@ -1,8 +1,8 @@
 import * as Discord from 'discord.js';
-import { config } from './common-resources';
-import * as Common from './common-types';
+import { config } from './internal';
+import * as Common from './internal';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import { defaultConfig, getEmoji } from './vc-constants';
+import { defaultConfig, getEmoji } from './internal';
 const ytdl = (url:string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const downloadMethods = new Map<Common.StreamType,any>([
 	['yt', ytdl],

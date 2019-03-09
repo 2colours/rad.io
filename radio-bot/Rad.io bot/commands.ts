@@ -1,6 +1,6 @@
-﻿import { actions } from './actions';
-import { Command,  CommandExtraData } from './common-types';
-import { Filter } from './vc-decorators';
+﻿import { actions } from './internal';
+import { Command, CommandExtraData } from './internal';
+import { Filter } from './internal';
 
 const aliases: Map<string, string> = new Map();
 export const commands: Map<string, Command> = new Map();

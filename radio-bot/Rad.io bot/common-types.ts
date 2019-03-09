@@ -1,8 +1,8 @@
 import { Emoji, Snowflake, Message } from 'discord.js';
-import {GuildPlayer} from './guild-player';
-import { Filter } from './vc-decorators';
-import { aggregateDecorators } from './util';
-import { client } from './common-resources';
+import { GuildPlayer } from './internal';
+import { Filter } from './internal';
+import { aggregateDecorators } from './internal';
+import { client } from './internal';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, FallbackType>; //TODO nem akármilyen string!

@@ -1,9 +1,9 @@
-﻿import * as Common from './common-types';
-import { config } from './common-resources';
-import { aggregateDecorators } from './util';
-import { creators } from './vc-constants';
+﻿import * as Common from './internal';
+import { config } from './internal';
+import { aggregateDecorators } from './internal';
+import { creators } from './internal';
 import { sscanf } from 'scanf';
-import { actions } from './actions';
+import { actions } from './internal'
 const isAdmin:Common.Predicate=ctx=>ctx.member.permissions.has('ADMINISTRATOR');
 const isVcUser:Common.Predicate=ctx=>!!ctx.member.voiceChannel;
 const isDifferentVc:Common.Predicate=ctx=>(ctx.guild.voiceConnection && ctx.guild.voiceConnection.channel) != ctx.member.voiceChannel;

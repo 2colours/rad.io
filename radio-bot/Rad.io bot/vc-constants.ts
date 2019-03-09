@@ -1,4 +1,4 @@
-﻿import { FallbackType, StreamType, EmojiLike, Creator } from './common-types';
+﻿import { FallbackType, StreamType, EmojiLike, Creator } from './internal';
 export const defaultConfig = {
 	prefix: '.',
 	fallback: 'radio' as FallbackType

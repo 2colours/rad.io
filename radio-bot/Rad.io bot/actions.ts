@@ -1,14 +1,14 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach } from './util';
-import { channels, radios as radiosList, defaultConfig, embedC, getEmoji, creators } from './vc-constants';
-import { GuildPlayer } from './guild-player';
-import { Action } from './common-types';
+import { randomElement, hourMinSec, attach } from './internal';
+import { channels, radios as radiosList, defaultConfig, embedC, getEmoji, creators } from './internal';
+import { GuildPlayer } from './internal';
+import { Action } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
-import * as Common from './common-types';
-import { client, config, database } from './common-resources';
-import { commands, translateAlias, debatedCommands } from './commands';
+import * as Common from './internal';
+import { client, config, database } from './internal';
+import { commands, translateAlias, debatedCommands } from './internal';
 import { sscanf } from 'scanf';
 async function forceSchedule(textChannel: Discord.TextChannel, voiceChannel: Discord.VoiceChannel, holder: Common.GuildPlayerHolder, playableData: Common.MusicData[]) {
 	if (!voiceChannel.connection) {

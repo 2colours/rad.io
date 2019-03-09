@@ -1,15 +1,15 @@
 ﻿import * as Discord from 'discord.js';
-import * as Common from './common-types';
+import * as Common from './internal';
 const token = process.env.radioToken;
 
-import { config, client } from './common-resources';
-const sscanf = require('scanf').sscanf;
-import { defaultConfig, radios, embedC, channels } from './vc-constants';
+import { configPromise, client } from './internal';
+import { sscanf } from 'scanf';
+import { defaultConfig, radios, embedC, channels } from './internal';
 import * as moment from 'moment';
-import { GuildPlayer } from './guild-player';
-import { randomElement } from './util';
-import { actions } from './actions';
-import { translateAlias, commands, debatedCommands } from './commands';
+import { GuildPlayer } from './internal';
+import { randomElement } from './internal';
+import { actions } from './internal';
+import { translateAlias, commands, debatedCommands } from './internal';
 const help = actions.get('help');
 
 const devChannel = () => client.channels.get('470574072565202944');
@@ -23,7 +23,7 @@ client.on('ready', () => {
 
 
 client.on('message', async (message) => {
-
+	const config = await configPromise;
 	if (message.guild == null) return;
 	let prefix = config.prefixes.get(message.guild.id) || defaultConfig.prefix;
 	if (message.mentions.users.has(client.user.id))
@@ -31,7 +31,7 @@ client.on('message', async (message) => {
 	let content = message.content;
 	if (!content.toLowerCase().startsWith(prefix)) return;
 	try {
-		let { command: commandString, param } = sscanf(content.substring(prefix.length), '%s %S', 'command', 'param');
+		let { command: commandString, param } = <any>sscanf(content.substring(prefix.length), '%s %S', 'command', 'param');
 		commandString = commandString.toLowerCase();
 		commandString = translateAlias(commandString);
 		let commandFunction = commands.get(commandString).decoratedAction || Function.prototype;
