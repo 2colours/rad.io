@@ -243,7 +243,7 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 		return void this.channel.send({ embed });
 	}
 	helpCommand = translateAlias(helpCommand);
-	if (helpCommand in commands) {
+	if (commands.has(helpCommand)) {
 		const currentCommand = commands.get(helpCommand);
 		let currentAliases = currentCommand.aliases;
 		currentAliases.sort();

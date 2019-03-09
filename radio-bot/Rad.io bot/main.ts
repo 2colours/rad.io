@@ -5,10 +5,7 @@ import { configPromise, client, PackedMessage, ThisBinding, Config } from './int
 import { sscanf } from 'scanf';
 import { defaultConfig, radios, embedC, channels } from './internal';
 import * as moment from 'moment';
-import { GuildPlayer } from './internal';
-import { randomElement } from './internal';
-import { actions } from './internal';
-import { translateAlias, commands, debatedCommands } from './internal';
+import { translateAlias, commands, debatedCommands, randomElement, GuildPlayer, actions } from './internal';
 const help = actions.get('help');
 
 const devChannel = () => client.channels.get('470574072565202944');
