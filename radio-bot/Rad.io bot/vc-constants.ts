@@ -289,3 +289,4 @@ export function getEmoji(type: StreamType): EmojiLike {
 	return emojis.get(type);
 }
 export const creators = [new Creator('297037173541175296', 'Nemokosch#9980'), new Creator('419447790675165195', 'garton#8800')];
+export const devServerInvite = 'https://discord.gg/C83h4Sk';

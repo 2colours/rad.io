@@ -1,7 +1,7 @@
 ﻿import * as Discord from 'discord.js';
 const token = process.env.radioToken;
 
-import { configPromise, client, PackedMessage, ThisBinding, Config, actions, GuildPlayer, defaultConfig, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands } from './internal';
+import { configPromise, client, PackedMessage, ThisBinding, Config, actions, GuildPlayer, defaultConfig, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite } from './internal';
 import { sscanf } from 'scanf';
 import * as moment from 'moment';
 const help = actions.get('help');
@@ -98,7 +98,7 @@ async function sendWelcome(guild: Discord.Guild) {
 				.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${debatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
 				.setColor(embedC)
 				.setTimestamp();
-			await textChannel.send('https://discord.gg/C83h4Sk', { embed });
+			await textChannel.send(devServerInvite, { embed });
 			break;
 		}
 		catch (ex) {
@@ -121,4 +121,4 @@ function updateStatusChannels() {
 	usersChan.setName(`RAD.io (${client.users.size}) felhasználóval`);
 };
 setInterval(setPStatus, 60000 * 5);
-client.login(token);
+configPromise.then(_ => client.login(token));
