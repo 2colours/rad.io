@@ -21,9 +21,10 @@ client.on('ready', () => {
 	updateStatusChannels();
 });
 
+let config: Config;
+configPromise.then(cfg => config = cfg);
 
 client.on('message', async (message) => {
-	const config = await configPromise;
 	if (message.guild == null) return;
 	let prefix = config.prefixes.get(message.guild.id) || defaultConfig.prefix;
 	if (message.mentions.users.has(client.user.id))

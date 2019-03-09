@@ -7,9 +7,13 @@ const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 import * as Common from './internal';
-import { client, config, database } from './internal';
+import { client, configPromise, dbPromise } from './internal';
 import { commands, translateAlias, debatedCommands } from './internal';
 import { sscanf } from 'scanf';
+let database: any;
+let config: Config;
+configPromise.then(cfg => config = cfg);
+dbPromise.then(db => database = db);
 async function forceSchedule(textChannel: Discord.TextChannel, voiceChannel: Discord.VoiceChannel, holder: Common.GuildPlayerHolder, playableData: Common.MusicData[]) {
 	if (!voiceChannel.connection) {
 		await voiceChannel.join();
