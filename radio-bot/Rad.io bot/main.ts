@@ -1,8 +1,7 @@
 ﻿import * as Discord from 'discord.js';
-import * as Common from './internal';
 const token = process.env.radioToken;
 
-import { configPromise, client } from './internal';
+import { configPromise, client, PackedMessage, ThisBinding, Config } from './internal';
 import { sscanf } from 'scanf';
 import { defaultConfig, radios, embedC, channels } from './internal';
 import * as moment from 'moment';
@@ -36,8 +35,8 @@ client.on('message', async (message) => {
 		commandString = commandString.toLowerCase();
 		commandString = translateAlias(commandString);
 		let commandFunction = commands.get(commandString).decoratedAction || Function.prototype;
-		let packedMessage: Common.PackedMessage = Object.assign(message, { cmdName: commandString });
-		let thisBinding: Common.ThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
+		let packedMessage: PackedMessage = Object.assign(message, { cmdName: commandString });
+		let thisBinding: ThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
 			get: () => guildPlayers.get(packedMessage.guild.id),
 			set: value => guildPlayers.set(packedMessage.guild.id, value)
 		});
