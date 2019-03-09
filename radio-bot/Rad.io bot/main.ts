@@ -1,11 +1,9 @@
 ﻿import * as Discord from 'discord.js';
 const token = process.env.radioToken;
 
-import { configPromise, client, PackedMessage, ThisBinding, Config } from './internal';
+import { configPromise, client, PackedMessage, ThisBinding, Config, actions, GuildPlayer, defaultConfig, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands } from './internal';
 import { sscanf } from 'scanf';
-import { defaultConfig, radios, embedC, channels } from './internal';
 import * as moment from 'moment';
-import { translateAlias, commands, debatedCommands, randomElement, GuildPlayer, actions } from './internal';
 const help = actions.get('help');
 
 const devChannel = () => client.channels.get('470574072565202944');
@@ -114,16 +112,7 @@ function setPStatus() {
 	let presence = `${randomRadioName} | ${randomElement(presenceEndings)}`;
 	client.user.setPresence({ game: { name: presence, type: 'LISTENING' } });
 };
-/*
-function unescapeHtml(safe) {
-	return safe
-		.replace(/&amp;/g, "&")
-		.replace(/&lt;/g, "<")
-		.replace(/&gt;/g, ">")
-		.replace(/&quot;/g, "\"")
-		.replace(/&#0*39;/g, "'");
-};
-*/
+
 function updateStatusChannels() {
 	if (client.user.id != '430326522146979861') return;
 	let guildsChan: Discord.VoiceChannel = client.channels.get('470522240551616523') as Discord.VoiceChannel;
