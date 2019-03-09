@@ -1,12 +1,8 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, TableName, StreamType, FallbackType, MusicData, GuildPlayerHolder, EmojiLike } from './internal';
-import { channels, radios as radiosList, defaultConfig, embedC, getEmoji, creators } from './internal';
-import { Action } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, TableName, StreamType, FallbackType, MusicData, GuildPlayerHolder, EmojiLike, configPromise, dbPromise, defaultConfig, embedC, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
-import { client, configPromise, dbPromise } from './internal';
-import { commands, translateAlias, debatedCommands } from './internal';
 import { sscanf } from 'scanf';
 let database: any;
 let config: Config;

@@ -1,11 +1,10 @@
 import * as Discord from 'discord.js';
-import * as Common from './internal';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import { defaultConfig, getEmoji, Config, configPromise } from './internal';
+import { defaultConfig, getEmoji, Config, configPromise, MusicData, StreamType } from './internal';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 let config: Config;
 configPromise.then(cfg => config = cfg);
-const downloadMethods = new Map<Common.StreamType,any>([
+const downloadMethods = new Map<StreamType,any>([
 	['yt', ytdl],
 	['custom',(url:string) => url],
 	['radio',(url:string) => url]]);
@@ -14,7 +13,7 @@ class Playable {
 	skip: any;
 	halt: any;
 	started: boolean;
-	constructor(musicData?: Common.MusicData) {
+	constructor(musicData?: MusicData) {
 		this.data = musicData;
 		this.started = false;
 	}
@@ -76,7 +75,7 @@ export class GuildPlayer {
 	public handler: VoiceHandler;
 	private volume: number;
 	private oldVolume?: number;
-	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay: Common.MusicData[]) {
+	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay: MusicData[]) {
 		this.announcementChannel = textChannel;
 		this.fallbackPlayed = false;
 		this.queue = [];
@@ -145,14 +144,14 @@ export class GuildPlayer {
 		else
 			this.nowPlaying.askRepeat = repeatCounter(maxTimes);
 	}
-	schedule(musicData:Common.MusicData) {
+	schedule(musicData:MusicData) {
 		this.queue.push(new Playable(musicData));
 		if (!this.nowPlaying.isDefinite() && this.queue.length == 1) //azért a length==1, mert különben nem arra lépnénk át, amit pont most raktunk be - kicsit furcsa
 			this.skip();
 		else
 			this.announcementChannel.send(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
-	bulkSchedule(musicDatas: Common.MusicData[]) {
+	bulkSchedule(musicDatas: MusicData[]) {
 		let autoSkip = !this.nowPlaying.isDefinite() && this.queue.length == 0;
 		for (let musicData of musicDatas) 
 			this.queue.push(new Playable(musicData));
@@ -193,7 +192,7 @@ export class GuildPlayer {
 		if (!this.nowPlaying)
 			throw 'destroyed';
 	}
-	getQueueData():Common.MusicData[] {
+	getQueueData():MusicData[] {
 		return this.queue.map(playable => playable.data);
 	}
 	getNowPlayingData() {
