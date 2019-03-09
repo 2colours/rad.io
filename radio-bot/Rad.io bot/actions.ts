@@ -1,12 +1,10 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach, Config } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, TableName, StreamType, FallbackType, MusicData, GuildPlayerHolder } from './internal';
 import { channels, radios as radiosList, defaultConfig, embedC, getEmoji, creators } from './internal';
-import { GuildPlayer } from './internal';
 import { Action } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
-import * as Common from './internal';
 import { client, configPromise, dbPromise } from './internal';
 import { commands, translateAlias, debatedCommands } from './internal';
 import { sscanf } from 'scanf';
@@ -14,7 +12,7 @@ let database: any;
 let config: Config;
 configPromise.then(cfg => config = cfg);
 dbPromise.then(db => database = db);
-async function forceSchedule(textChannel: Discord.TextChannel, voiceChannel: Discord.VoiceChannel, holder: Common.GuildPlayerHolder, playableData: Common.MusicData[]) {
+async function forceSchedule(textChannel: Discord.TextChannel, voiceChannel: Discord.VoiceChannel, holder: GuildPlayerHolder, playableData: MusicData[]) {
 	if (!voiceChannel.connection) {
 		await voiceChannel.join();
 		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
@@ -34,7 +32,7 @@ function commonEmbed(cmd: string) { //TODO ez sem akármilyen string, hanem para
 };
 function scrollRequest(message: Discord.Message, currentPage: number, allPages: number) {
 	let res = new Promise(async (resolve, reject) => {
-		let emojis: Common.EmojiLike[] = [];
+		let emojis: EmojiLike[] = [];
 		if (currentPage > 1)
 			emojis.push('◀');
 		if (currentPage < allPages)
@@ -103,7 +101,7 @@ actions.set('yt', async function (param) {
 				name: elem.title,
 				url: elem.url,
 				type: 'yt'
-			}) as Common.MusicData));
+			}) as MusicData));
 		}
 		catch (ex) {
 			if (ex != 'Not a valid playlist url')
@@ -231,7 +229,9 @@ actions.set('help', function (param) {
 	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 	let helpCommand = sscanf(param, '%s');
 	const userCommands = [...commands].filter(entry => ['grantable', 'unlimited'].includes(entry[1].type)).map(entry => entry[0]);
+	userCommands.sort();
 	const adminCommands = [...commands].filter(entry => ['adminOnly'].includes(entry[1].type)).map(entry => entry[0]);
+	adminCommands.sort();
 	if (!helpCommand) {
 		const embed = commonEmbed.call(this, 'help')
 			.addField('❯ Felhasználói parancsok', userCommands.map(cmd => `\`${cmd}\``).join(' '))
@@ -283,7 +283,7 @@ actions.set('voicecount', function (_) {
 	this.channel.send(`${client.voiceConnections.array().length} voice connection(s) right now.`);
 });
 actions.set('queue', async function (_) {
-	let queue: Common.MusicData[] = this.guildPlayer.getQueueData();
+	let queue: MusicData[] = this.guildPlayer.getQueueData();
 	if (queue.length == 0)
 		return void this.channel.send('**A sor jelenleg üres.**');
 	const queueLines = queue.map(elem => `${getEmoji(elem.type)} ${elem.name}`);
@@ -313,9 +313,9 @@ actions.set('fallback', async function (param) {
 	const aliases = new Map([['r', 'radio'], ['s', 'silence'], ['l', 'leave']]);
 	let mode = sscanf(param, '%s') || '';
 	mode = aliases.get(mode) || mode;
-	if (!<Common.FallbackType>mode)
+	if (!<FallbackType>mode)
 		return void this.reply("ilyen fallback mód nem létezik.");
-	config.fallbackModes.set(this.guild.id, <Common.FallbackType>mode);
+	config.fallbackModes.set(this.guild.id, <FallbackType>mode);
 	this.channel.send(`**Új fallback: ${mode}. **`);
 	try {
 		await saveRow({ guildID: this.guild.id, type: mode }, 'fallbackModes');
@@ -328,7 +328,7 @@ actions.set('fallback', async function (param) {
 actions.set('fallbackradio', async function (param) {
 	let given: string = sscanf(param, '%s') || '';
 	if (radiosList.has(given)) {
-		var fr: Common.MusicData = Object.assign({ type: 'radio' as Common.StreamType }, radiosList.get(given));
+		var fr: MusicData = Object.assign({ type: 'radio' as StreamType }, radiosList.get(given));
 	}
 	else if (given.search(/https?:\/\//) == 0)
 		fr = {
@@ -359,7 +359,7 @@ actions.set('tune', function (param) {
 		channel = randChannel;
 		this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
 	}
-	forceSchedule(this.channel, voiceChannel, this, [Object.assign({ type: 'radio' as Common.StreamType }, radiosList.get(channel))]);
+	forceSchedule(this.channel, voiceChannel, this, [Object.assign({ type: 'radio' as StreamType }, radiosList.get(channel))]);
 });
 actions.set('grant', function (param) {
 	permissionReused.call(this, param, (commands: string[], roleCommands: string[]) =>
@@ -451,7 +451,7 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 		this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
 	}
 }
-async function saveRow(rowObj: any, type: Common.TableName) { //a rowObj nem any, igazából ezt szét kéne dobni külön függvényekbe
+async function saveRow(rowObj: any, type: TableName) { //a rowObj nem any, igazából ezt szét kéne dobni külön függvényekbe
 	switch (type) {
 		case 'prefix':
 			await database.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
