@@ -1,9 +1,10 @@
 import * as Discord from 'discord.js';
-import { config } from './internal';
 import * as Common from './internal';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import { defaultConfig, getEmoji } from './internal';
-const ytdl = (url:string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
+import { defaultConfig, getEmoji, Config, configPromise } from './internal';
+const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
+let config: Config;
+configPromise.then(cfg => config = cfg);
 const downloadMethods = new Map<Common.StreamType,any>([
 	['yt', ytdl],
 	['custom',(url:string) => url],
