@@ -11,7 +11,7 @@ currentDecorator(action).call(this,param);
 let config: Config;
 configPromise.then(cfg => config = cfg);
 const hasPermission: Predicate = ctx => {
-	let guildRoles = [...config.roles.get(ctx.guild.id)];
+	let guildRoles = [...(config.roles.get(ctx.guild.id) || new Map())];
 	return guildRoles.some(roleData=>ctx.member.roles.has(roleData[0]) && roleData[1].includes(ctx.cmdName));
 }
 const hasVcPermission: Predicate = ctx => ctx.member.voiceChannel.joinable;
