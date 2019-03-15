@@ -32,7 +32,8 @@ class Playable {
 				return;
 			}
 			const stream = downloadMethods.get(this.data.type)(this.data.url);
-			let dispatcher = voiceConnection.playStream(stream, { seek: 0, volume: vol });
+			let dispatcher = voiceConnection.playStream(stream, { seek: 0 });
+			dispatcher.setVolume(vol);
 			dispatcher.on('end', () => resolve(false)); //nem volt forced, hanem magától
 			dispatcher.on('error', () => {
 				console.log('Futott az error handler.');
