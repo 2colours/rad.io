@@ -218,8 +218,8 @@ setupCommand({
 	aliases: ['vol'],
 	params: ['hangerő (1-15)'],
 	descrip: 'A bot hangerejének állítása. A beállítás a bot kilépéséig érvényes, a kezdőérték 5, ahol a 10 jelenti a teljes hangerőt, a 10 fölötti értékek arányos erősítést.',
-	type: 'unlimited',
-	filters: new Set([Filter.parameterNeeded, Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+	type: 'grantable',
+	filters: new Set([Filter.parameterNeeded, Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
 });
 
 setupCommand({
@@ -227,8 +227,8 @@ setupCommand({
 	aliases: [],
 	params: [],
 	descrip: 'A bot némítása - a megelőző hangerő visszaállítható (lásd `unmute` parancs).',
-	type: 'unlimited',
-	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+	type: 'grantable',
+	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
 });
 
 setupCommand({
@@ -236,8 +236,8 @@ setupCommand({
 	aliases: [],
 	params: [],
 	descrip: 'A bot hangerejének visszaállítása a némítás előtti értékre.',
-	type: 'unlimited',
-	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+	type: 'grantable',
+	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
 });
 
 export const debatedCommands = [...commands].filter(entry => entry[1].type == 'grantable').map(entry=>entry[0]);
