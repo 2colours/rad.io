@@ -66,7 +66,7 @@ setupCommand({
 	params: ['max (opcionális)'],
 	descrip: 'Az épp szóló szám ismétlése. Ha nincs megadva, hogy hányszor, akkor a szám korlátlan alkalommal ismétlődhet.',
 	type: 'unlimited',
-	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded])
+	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
 });
 
 setupCommand({
@@ -84,7 +84,16 @@ setupCommand({
 	params: [],
 	descrip: 'Várakozási sor megkeverése.',
 	type: 'grantable',
-	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded])
+	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.naturalErrorNoNeeded])
+});
+
+setupCommand({
+	name: 'clear',
+	aliases: [],
+	params: [],
+	descrip: 'Várakozási sor törlése.',
+	type: 'grantable',
+	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.naturalErrorNoNeeded])
 });
 
 setupCommand({
@@ -210,7 +219,7 @@ setupCommand({
 	params: ['hangerő (1-15)'],
 	descrip: 'A bot hangerejének állítása. A beállítás a bot kilépéséig érvényes, a kezdőérték 5, ahol a 10 jelenti a teljes hangerőt, a 10 fölötti értékek arányos erősítést.',
 	type: 'unlimited',
-	filters: new Set([Filter.parameterNeeded, Filter.vcBotNeeded, Filter.sameVcNeeded])
+	filters: new Set([Filter.parameterNeeded, Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
 });
 
 setupCommand({
@@ -219,7 +228,7 @@ setupCommand({
 	params: [],
 	descrip: 'A bot némítása - a megelőző hangerő visszaállítható (lásd `unmute` parancs).',
 	type: 'unlimited',
-	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded])
+	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
 });
 
 setupCommand({
@@ -228,7 +237,7 @@ setupCommand({
 	params: [],
 	descrip: 'A bot hangerejének visszaállítása a némítás előtti értékre.',
 	type: 'unlimited',
-	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded])
+	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
 });
 
 export const debatedCommands = [...commands].filter(entry => entry[1].type == 'grantable').map(entry=>entry[0]);

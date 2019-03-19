@@ -188,13 +188,8 @@ actions.set('repeat', function (param) {
 	let count = sscanf(param, '%d');
 	if (count <= 0 && count != null)
 		return void this.reply('pozitív számot kell megadni.');
-	try {
-		this.guildPlayer.repeat(count);
-		this.channel.send('**Ismétlés felülírva.**');
-	}
-	catch (ex) {
-		this.reply(`hiba - ${ex}`);
-	}
+	this.guildPlayer.repeat(count);
+	this.channel.send('**Ismétlés felülírva.**');
 });
 actions.set('radios', function (_) {
 	function listRadios(lang: string) { //TODO ez is enum: kultkód/nyelvkód
@@ -213,13 +208,12 @@ actions.set('radios', function (_) {
 	this.channel.send({ embed });
 });
 actions.set('shuffle', async function (_) {
-	try {
-		this.guildPlayer.shuffle();
-		this.channel.send('**Sor megkeverve.**');
-	}
-	catch (ex) {
-		this.reply(`hiba - ${ex}`);
-	}
+	this.guildPlayer.shuffle();
+	this.channel.send('**Sor megkeverve.**');
+});
+actions.set('clear', function (_) {
+	this.guildPlayer.clear();
+	this.channel.send('**Sor törölve.**');
 });
 actions.set('help', function (param) {
 	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
@@ -392,31 +386,16 @@ actions.set('volume', function (param) {
 		return void this.reply('paraméterként szám elvárt. (1-15)');
 	if (vol > 10)
 		this.channel.send('**Figyelem: erősítést alkalmaztál, a hangban torzítás léphet fel.**');
-	try {
-		this.guildPlayer.setVolume(vol / 10);
-		this.react('☑');
-	}
-	catch (ex) {
-		this.reply(`hiba - ${ex}`);
-	}
+	this.guildPlayer.setVolume(vol / 10);
+	this.react('☑');
 });
 actions.set('mute', function (_) {
-	try {
-		this.guildPlayer.mute();
-		this.react('☑');
-	}
-	catch (ex) {
-		this.reply(`hiba - ${ex}`);
-	}
+	this.guildPlayer.mute();
+	this.react('☑');
 });
 actions.set('unmute', function (_) {
-	try {
-		this.guildPlayer.unmute();
-		this.react('☑');
-	}
-	catch (ex) {
-		this.reply(`hiba - ${ex}`);
-	}
+	this.guildPlayer.unmute();
+	this.react('☑');
 });
 async function permissionReused(param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
 	try {

@@ -165,6 +165,11 @@ export class GuildPlayer {
 		else
 			throw 'Nincs mit megkeverni.';
 	}
+	clear() {
+		if (this.queue.length == 0)
+			throw 'Már üres volt a sor.';
+		this.queue = [];
+	}
 	async fallbackMode() {
 		this.announcementChannel.send('**Fallback mód.**');
 		let fallbackMode = config.fallbackModes.get(this.ownerGuild.id) || defaultConfig.fallback;

@@ -41,7 +41,7 @@ const vcPermissionNeeded:Decorator=action=>function(param) {
   else
     action.call(this,param);
 };
-const parameterNeeded = (action: Action) => function (param: string) {
+const parameterNeeded: Decorator = action => function (param) {
 	if (!sscanf(param, '%S'))
 		actions.get('help').call(this, this.cmdName);
 	else
@@ -51,6 +51,16 @@ const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermi
 const isFallback = (ctx: ThisBinding) => ctx.guildPlayer.fallbackPlayed;
 const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('**fallback-et nem lehet skippelni (leave-eld a botot vagy ütemezz be valamilyen zenét).**'), pass);
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([vcUserNeeded, sameVcNeeded, choiceFilter(isAloneUser, pass, adminOrPermissionNeeded)]));
+const naturalErrors: Decorator = action => function (param) {
+	try {
+		action.call(this, param);
+	}
+	catch (ex) {
+		if (typeof ex == 'string')
+			return void this.reply(`**hiba - ${ex}**`);
+		console.error(ex);
+	}
+};
 
 export class Filter {
 	private static counter = 0;
@@ -66,6 +76,7 @@ export class Filter {
 	static readonly leaveCriteria = new Filter(leaveCriteria, '');
 	static readonly nonFallbackNeeded = new Filter(nonFallbackNeeded, '');
 	static readonly parameterNeeded = new Filter(parameterNeeded, '');
+	static readonly naturalErrorNoNeeded = new Filter(naturalErrors, '');
 	private constructor(readonly decorator: Decorator, readonly description: string) {
 		this.priority = ++Filter.counter;
 	}
