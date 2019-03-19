@@ -49,7 +49,7 @@ const parameterNeeded: Decorator = action => function (param) {
 };
 const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
 const isFallback = (ctx: ThisBinding) => ctx.guildPlayer.fallbackPlayed;
-const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('**fallback-et nem lehet skippelni (leave-eld a botot vagy ütemezz be valamilyen zenét).**'), pass);
+const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('**ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).**'), pass);
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([vcUserNeeded, sameVcNeeded, choiceFilter(isAloneUser, pass, adminOrPermissionNeeded)]));
 const naturalErrors: Decorator = action => function (param) {
 	try {
