@@ -45,7 +45,9 @@ client.on('message', async (message) => {
 client.on('voiceStateUpdate', (oldMember, newMember) => {
 	let id = oldMember.guild.id;
 	let guildPlayer = guildPlayers.get(id);
-	if (oldMember.user == client.user && oldMember.voiceChannel && newMember.voiceChannel && guildPlayer) //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia, az utolsó vizsgálat a discord API hülye, inkonzisztens állapotai miatt kell (mintha még voice-ban lenne az elcrashelt bot)
+	if (!guildPlayer)
+		return;
+	if (oldMember.user == client.user && oldMember.voiceChannel && newMember.voiceChannel) //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia
 		guildPlayer.handler.eventTriggered();
 	if (oldMember.user.bot) //innen csak nem botokra figyelünk
 		return;
