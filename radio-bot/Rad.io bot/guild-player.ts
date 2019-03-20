@@ -170,6 +170,12 @@ export class GuildPlayer {
 			throw 'Már üres volt a sor.';
 		this.queue = [];
 	}
+	topLast() {
+		if (this.queue.length < 2)
+			throw 'Nincs mit a sor elejére rakni.';
+		let elementToMove = this.queue.pop();
+		this.queue.unshift(elementToMove);
+	}
 	async fallbackMode() {
 		this.announcementChannel.send('**Fallback mód.**');
 		let fallbackMode = config.fallbackModes.get(this.ownerGuild.id) || defaultConfig.fallback;

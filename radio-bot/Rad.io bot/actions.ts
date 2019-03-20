@@ -215,6 +215,10 @@ actions.set('clear', function (_) {
 	this.guildPlayer.clear();
 	this.channel.send('**Sor törölve.**');
 });
+actions.set('toplast', function (_) {
+	this.guildPlayer.topLast();
+	this.react('☑');
+});
 actions.set('help', function (param) {
 	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 	let helpCommand = sscanf(param, '%s');

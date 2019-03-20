@@ -87,11 +87,21 @@ setupCommand({
 	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.naturalErrorNoNeeded])
 });
 
+
 setupCommand({
 	name: 'clear',
 	aliases: [],
 	params: [],
 	descrip: 'Várakozási sor törlése.',
+	type: 'grantable',
+	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.naturalErrorNoNeeded])
+});
+
+setupCommand({
+	name: 'toplast',
+	aliases: ['top'],
+	params: [],
+	descrip: 'A sor utolsó elemének a sor elejére helyezése.',
 	type: 'grantable',
 	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.naturalErrorNoNeeded])
 });
