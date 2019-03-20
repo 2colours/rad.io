@@ -90,7 +90,7 @@ setupCommand({
 
 setupCommand({
 	name: 'clear',
-	aliases: [],
+	aliases: ['cl'],
 	params: [],
 	descrip: 'Várakozási sor törlése.',
 	type: 'grantable',
