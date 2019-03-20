@@ -125,6 +125,15 @@ setupCommand({
 });
 
 setupCommand({
+	name: 'leaveguild',
+	aliases: ['lg'],
+	params: ['ID'],
+	descrip: 'A bot kiléptetése a megadott ID-jű szerverről.',
+	type: 'creatorsOnly',
+	filters: new Set([Filter.creatorNeeded])
+});
+
+setupCommand({
 	name: 'voicecount',
 	aliases: ['vc'],
 	params: [],

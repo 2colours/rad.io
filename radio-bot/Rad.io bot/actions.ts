@@ -273,6 +273,11 @@ actions.set('guilds', async function (_) {
 		await message.edit({ embed: completeEmbed });
 	}
 });
+actions.set('leaveguild', async function (param) {
+	let id = sscanf(param, '%s');
+	let guildToLeave = await client.guilds.get(id).leave();
+	this.channel.send(`**Szerver elhagyva:** ${guildToLeave.name}`);
+});
 actions.set('voicecount', function (_) {
 	this.channel.send(`${client.voiceConnections.array().length} voice connection(s) right now.`);
 });
