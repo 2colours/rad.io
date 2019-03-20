@@ -273,6 +273,11 @@ const radios = {
 		name: 'Radio România Actualități',
 		url: 'http://stream2.srr.ro:8000/;stream/1?1551626541463.mp3',
 		cult: 'eng'
+	},
+	'hitserbia': {
+		name: 'Hit Music FM',
+		url: 'http://streaming11.tdiradio.com:8000/hit',
+		cult: 'eng',
 	}
 };
 const r = new Map(Object.entries(radios));
