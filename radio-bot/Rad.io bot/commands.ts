@@ -125,6 +125,15 @@ setupCommand({
 });
 
 setupCommand({
+	name: 'connections',
+	aliases: [],
+	params: [],
+	descrip: 'A bot által éppen használt voice csatornák listázása.',
+	type: 'creatorsOnly',
+	filters: new Set([Filter.creatorNeeded])
+});
+
+setupCommand({
 	name: 'leaveguild',
 	aliases: ['lg'],
 	params: ['ID'],
