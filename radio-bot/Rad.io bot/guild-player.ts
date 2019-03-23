@@ -70,7 +70,7 @@ class VoiceHandler {
 }
 export class GuildPlayer {
 	nowPlaying: Playable;
-	announcementChannel: Discord.TextChannel;
+	private announcementChannel: Discord.TextChannel;
 	private queue: Playable[];
 	fallbackPlayed: boolean;
 	public handler: VoiceHandler;
