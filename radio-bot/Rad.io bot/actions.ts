@@ -51,14 +51,14 @@ function scrollRequest(message: Discord.Message, currentPage: number, allPages: 
 	});
 	return res;
 };
-async function useScrollableEmbed(baseEmbed: Discord.RichEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
+async function useScrollableEmbed(textChannel: Discord.TextChannel, baseEmbed: Discord.RichEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
 	let currentPage = 1;
 	const maxPage = Math.ceil(linesForDescription.length / elementsPerPage);
 	let currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
 	let completeEmbed = baseEmbed
 		.setTitle(titleResolver(currentPage, maxPage))
 		.setDescription(currentDescription);
-	let message = await this.channel.send({ embed: completeEmbed });
+	let message = await textChannel.send({ embed: completeEmbed });
 	while (true) {
 		try {
 			currentPage = await scrollRequest.call(this, message, currentPage, maxPage);
@@ -277,13 +277,13 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 actions.set('guilds', async function (_) {
 	const guildLines = client.guilds.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
 	const embed: Discord.RichEmbed = commonEmbed.call(this, 'guilds');
-	await useScrollableEmbed(embed, _ => `❯ ${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines);
+	await useScrollableEmbed(this.channel, embed, _ => `❯ ${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines);
 });
 actions.set('connections', async function (_) {
 	const embed: Discord.RichEmbed = commonEmbed.call(this, 'connections');
-	const connectionLines = client.voiceConnections.map(vc => `${vc.channel.guild} # ${vc.channel} (${vc.channel.members.size})`);
-	const usersAffected = client.voiceConnections.map(vc => vc.channel.members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr);
-	await useScrollableEmbed(embed, _ => `❯ ${client.user.username} on ${client.voiceConnections.size} voice channels with ${usersAffected} users.`, connectionLines);
+	const connectionLines = client.voiceConnections.map(vc => `${vc.channel.guild} ${vc.channel} (${vc.channel.members.filter(member => !member.user.bot).size})`);
+	const usersAffected = client.voiceConnections.map(vc => vc.channel.members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
+	await useScrollableEmbed(this.channel, embed, _ => `❯ ${client.user.username} on ${client.voiceConnections.size} voice channels with ${usersAffected} users.`, connectionLines);
 });
 actions.set('leaveguild', async function (param) {
 	let id = sscanf(param, '%s');
@@ -299,7 +299,7 @@ actions.set('queue', async function (_) {
 		return void this.channel.send('**A sor jelenleg üres.**');
 	const embed = commonEmbed.call(this, 'queue');
 	const queueLines = queue.map(elem => `${getEmoji(elem.type)} ${elem.name}`);
-	await useScrollableEmbed(embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}`, queueLines);
+	await useScrollableEmbed(this.channel, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}`, queueLines);
 });
 actions.set('fallback', async function (param) {
 	const aliases = new Map([['r', 'radio'], ['s', 'silence'], ['l', 'leave']]);
