@@ -93,6 +93,7 @@ actions.set('yt', async function (param) {
 		try {
 			let ytPlaylist = await youtube.getPlaylistByUrl(param);
 			let videos = await ytPlaylist.fetchVideos();
+			this.channel.send(`**${videos.length} elem került a sorba.**`);
 			return void forceSchedule(this.channel, voiceChannel, this, videos.map(elem => Object.assign({}, {
 				name: elem.title,
 				url: elem.url,
