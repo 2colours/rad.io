@@ -1,45 +1,87 @@
-﻿const sql=require('sqlite');
-import * as Common from './common-types';
-sql.open("./radio.sqlite");
-export const creatorIds=['297037173541175296','419447790675165195'];
-export const isAdmin=(ctx:Common.PackedMessage)=>ctx.member.permissions.has('ADMINISTRATOR');
-export const isVcUser=(ctx:Common.PackedMessage)=>!!ctx.member.voiceChannel;
-export const isDifferentVc=(ctx:Common.PackedMessage)=>(ctx.guild.voiceConnection && ctx.guild.voiceConnection.channel) != ctx.member.voiceChannel;
-export const isVcBot=(ctx:Common.PackedMessage)=>!!ctx.guild.voiceConnection;
-export const choiceFilter=(pred:Common.Predicate,dec1:Common.Decorator,dec2:Common.Decorator)=>(action:Common.Action)=>async function(param:string) {
+﻿import { aggregateDecorators, Config, configPromise, Predicate, Action, Decorator, ThisBinding, creators, actions } from './internal';
+import { sscanf } from 'scanf';
+const isAdmin:Predicate=ctx=>ctx.member.permissions.has('ADMINISTRATOR');
+const isVcUser:Predicate=ctx=>!!ctx.member.voiceChannel;
+const isDifferentVc:Predicate=ctx=>(ctx.guild.voiceConnection && ctx.guild.voiceConnection.channel) != ctx.member.voiceChannel;
+const isVcBot:Predicate=ctx=>!!ctx.guild.voiceConnection;
+const choiceFilter=(pred:Predicate,dec1:Decorator,dec2:Decorator)=>(action:Action)=>async function(param:string) {
 let currentDecorator=await Promise.resolve(pred(this))?dec1:dec2;
 currentDecorator(action).call(this,param);
 };
-export const hasPermission=async (ctx:Common.PackedMessage)=>{
-  let guildRoles = await sql.all('SELECT * FROM prefix WHERE guildID = ?',ctx.guild.id).catch(console.log);
-  return guildRoles.some((roleRow:any)=>ctx.member.roles.has(roleRow.roleID) && roleRow.commands.split('|').includes(ctx.cmdName));
+let config: Config;
+configPromise.then(cfg => config = cfg);
+const hasPermission: Predicate = ctx => {
+	let guildRoles = [...(config.roles.get(ctx.guild.id) || new Map())];
+	return guildRoles.some(roleData=>ctx.member.roles.has(roleData[0]) && roleData[1].includes(ctx.cmdName));
 }
-export const hasVcPermission=(ctx:Common.PackedMessage)=>ctx.member.voiceChannel.joinable;
-export const isFallback=(ctx:Common.PackedMessage)=>ctx.guild.voiceConnection.channel['guildPlayer'].fallbackPlayed;
-export const isCreator=(ctx:Common.PackedMessage)=>creatorIds.includes(ctx.author.id);
-export const isAloneUser=(ctx:Common.PackedMessage)=>!ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot && member!=ctx.member);
-export const isAloneBot=(ctx:Common.PackedMessage)=>!ctx.guild.voiceConnection.channel.members.some(member=>!member.user.bot);
-export const pass=(action:Common.Action)=>action;
-export const rejectReply=(replyMessage:string)=>(_:Common.Action)=>function(_:string) {
-this.reply(replyMessage).catch(console.error);
+const hasVcPermission: Predicate = ctx => ctx.member.voiceChannel.joinable;
+const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.author.id);
+const isAloneUser:Predicate=ctx=>!ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot && member!=ctx.member);
+const isAloneBot:Predicate=ctx=>!ctx.guild.voiceConnection.channel.members.some(member=>!member.user.bot);
+const pass:Decorator=action=>action;
+const rejectReply=(replyMessage:string)=>(_:Action)=>function(_:string) {
+this.reply(replyMessage);
 };
-export const nop=(_:Common.Action)=>function(_:string){};
-export const any=(...preds:Common.Predicate[])=>(ctx:Common.PackedMessage)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
-export const not=(pred:Common.Predicate)=>(ctx:Common.PackedMessage)=>!pred(ctx);
-export const adminNeeded=choiceFilter(isAdmin,pass,rejectReply('ezt a parancsot csak adminisztrátorok használhatják.'));
-export const vcUserNeeded=choiceFilter(isVcUser,pass,rejectReply('nem vagy voice csatornán.'));
-export const sameVcBanned=choiceFilter(any(not(isVcUser),isDifferentVc),pass,rejectReply('már közös csatornán vagyunk.'));
-export const sameVcNeeded=choiceFilter(not(isDifferentVc),pass,rejectReply('nem vagyunk közös voice csatornán.')); //átengedi azt, ha egyik sincs vojszban!
-export const vcBotNeeded=choiceFilter(isVcBot,pass,rejectReply('nem vagyok voice csatornán.'));
-export const noBotVcNeeded=choiceFilter(isVcBot,rejectReply('már voice csatornán vagyok'),pass);
-export const sameOrNoBotVcNeeded=choiceFilter(any(not(isVcBot),not(isDifferentVc)),pass,rejectReply('már másik voice csatornán vagyok.'));
-export const permissionNeeded=choiceFilter(hasPermission,pass,rejectReply('nincs jogod a parancs használatához.'));
-export const adminOrPermissionNeeded=choiceFilter(isAdmin,pass,permissionNeeded);
-export const creatorNeeded=choiceFilter(isCreator,pass,nop);
-export const vcPermissionNeeded=(action:Common.Action)=>function(param:string) {
+const nop:Decorator=_=>_=>{};
+const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
+const not=(pred:Predicate)=>(ctx:ThisBinding)=>!pred(ctx);
+const adminNeeded:Decorator=choiceFilter(isAdmin,pass,rejectReply('ezt a parancsot csak adminisztrátorok használhatják.'));
+const vcUserNeeded:Decorator=choiceFilter(isVcUser,pass,rejectReply('nem vagy voice csatornán.'));
+//const sameVcBanned:Decorator=choiceFilter(any(not(isVcUser),isDifferentVc),pass,rejectReply('már közös csatornán vagyunk.'));
+const sameVcNeeded:Decorator=choiceFilter(not(isDifferentVc),pass,rejectReply('nem vagyunk közös voice csatornán.')); //átengedi azt, ha egyik sincs vojszban!
+const vcBotNeeded:Decorator=choiceFilter(isVcBot,pass,rejectReply('nem vagyok voice csatornán.'));
+const noBotVcNeeded:Decorator=choiceFilter(isVcBot,rejectReply('már voice csatornán vagyok'),pass);
+const sameOrNoBotVcNeeded:Decorator=choiceFilter(any(not(isVcBot),not(isDifferentVc)),pass,rejectReply('már másik voice csatornán vagyok.'));
+const permissionNeeded:Decorator=choiceFilter(hasPermission,pass,rejectReply('nincs jogod a parancs használatához.'));
+const adminOrPermissionNeeded:Decorator=choiceFilter(isAdmin,pass,permissionNeeded);
+const creatorNeeded:Decorator=choiceFilter(isCreator,pass,nop);
+const vcPermissionNeeded:Decorator=action=>function(param) {
   if(!hasVcPermission(this))
     this.channel.send(`**Nincs jogom csatlakozni a** \`${this.member.voiceChannel.name}\` **csatornához!**`).catch(console.error);
   else
     action.call(this,param);
 };
-export const nonFallbackNeeded=choiceFilter(isFallback,rejectReply('**fallback-et nem lehet skippelni (leave-eld a botot vagy ütemezz be valamilyen zenét).**'),pass);
+const parameterNeeded: Decorator = action => function (param) {
+	if (!sscanf(param, '%S'))
+		actions.get('help').call(this, this.cmdName);
+	else
+		action.call(this, param);
+};
+const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
+const isFallback = (ctx: ThisBinding) => ctx.guildPlayer.fallbackPlayed;
+const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('**ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).**'), pass);
+const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([vcUserNeeded, sameVcNeeded, choiceFilter(isAloneUser, pass, adminOrPermissionNeeded)]));
+const naturalErrors: Decorator = action => function (param) {
+	try {
+		action.call(this, param);
+	}
+	catch (ex) {
+		if (typeof ex == 'string')
+			return void this.reply(`**hiba - ${ex}**`);
+		console.error(ex);
+	}
+};
+
+export class Filter {
+	private static counter = 0;
+	static readonly creatorNeeded = new Filter(creatorNeeded,'A parancs csak a bot fejlesztői számára hozzáférhető.');
+	static readonly adminNeeded = new Filter(adminNeeded, 'Adminisztrátori jogosultság szükséges.');
+	static readonly noBotVcNeeded = new Filter(noBotVcNeeded, 'A bot nem lehet voice csatornában.');
+	static readonly dedicationNeeded = new Filter(dedicationNeeded, 'A parancs használatához jogosultságra van szükség (lásd `grant` és `deny` parancsok), kivéve, ha a bot a parancsot kiadó felhasználóval kettesben van.');
+	static readonly sameVcNeeded = new Filter(sameVcNeeded,'A botnak és a felhasználónak közös voice csatornán kell lennie.');
+	static readonly sameOrNoBotVcNeeded = new Filter(sameOrNoBotVcNeeded, 'A bot nem lehet a felhasználótól eltérő voice csatornán.');
+	static readonly vcUserNeeded = new Filter(vcUserNeeded, 'A felhasználónak voice csatornán kell lennie.');
+	static readonly vcBotNeeded = new Filter(vcBotNeeded, 'A botnak voice csatornában kell lennie.');
+	static readonly vcPermissionNeeded = new Filter(vcPermissionNeeded, '');
+	static readonly leaveCriteria = new Filter(leaveCriteria, '');
+	static readonly nonFallbackNeeded = new Filter(nonFallbackNeeded, '');
+	static readonly parameterNeeded = new Filter(parameterNeeded, '');
+	static readonly naturalErrorNoNeeded = new Filter(naturalErrors, '');
+	private constructor(readonly decorator: Decorator, readonly description: string) {
+		this.priority = ++Filter.counter;
+	}
+	private priority: number;
+	static compare(a: Filter, b: Filter): number {
+		return a.priority - b.priority;
+	}
+}

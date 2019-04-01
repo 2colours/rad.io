@@ -1,21 +1,22 @@
 {
-	"compilerOptions": {
-		"declaration": true,
-		"emitDecoratorMetadata": false,
-		"experimentalDecorators": false,
-		"module": "commonjs",
-		"moduleResolution": "node",
-		"noFallthroughCasesInSwitch": false,
-		"noImplicitAny": true,
-		"noImplicitReturns": false,
-		"removeComments": false,
-		"sourceMap": false,
-		"strictNullChecks": false,
-		"target": "es2017",
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"forceConsistentCasingInFileNames": true
-	},
+  "compilerOptions": {
+
+    "declaration": true,
+    "emitDecoratorMetadata": false,
+    "experimentalDecorators": false,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": false,
+    "removeComments": false,
+    "sourceMap": false,
+    "strictNullChecks": false,
+    "target": "es2017",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true
+  },
 	"compileOnSave": true,
 	"exclude": ["**/*.spec.ts","node_modules"]
 }
