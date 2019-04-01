@@ -11,7 +11,7 @@
     "ytdl-core": "^0.29.0",
     "request-promise-native": "^1.0.7",
     "request": "^2.88.0",
-    "sqlite": "^3.0.2",
+    "sqlite": "^3.0.3",
     "moment": "^2.24.0",
     "better-youtube-api": "^0.3.7",
     "node-opus": "^0.3.1",

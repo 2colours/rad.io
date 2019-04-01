@@ -59,7 +59,7 @@ async function useScrollableEmbed(textChannel: Discord.TextChannel, baseEmbed: D
 	let completeEmbed = baseEmbed
 		.setTitle(titleResolver(currentPage, maxPage))
 		.setDescription(currentDescription);
-	let message = await textChannel.send({ embed: completeEmbed });
+	let message = await textChannel.send({ embed: completeEmbed }) as Discord.Message;
 	while (true) {
 		try {
 			currentPage = await scrollRequest.call(this, message, currentPage, maxPage);
@@ -401,7 +401,7 @@ actions.set('unmute', function (_) {
 	this.react('☑');
 });
 actions.set('announce', function (param) {
-	let [guildInfo, message = ''] = sscanf(param, '%s %S');
+	let [guildInfo, message = ''] = <string[]>sscanf(param, '%s %S');
 	let guildToAnnounce = guildInfo == 'all' ? client.guilds.array() : guildInfo == 'conn' ? client.voiceConnections.map(conn => conn.channel.guild) : [client.guilds.get(guildInfo)];
 	guildToAnnounce.forEach(guild => sendGuild(guild, message));
 });

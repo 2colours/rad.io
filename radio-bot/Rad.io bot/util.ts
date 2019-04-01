@@ -18,17 +18,7 @@ export async function sendGuild(guild: Guild, content: StringResolvable, options
 		if (!(channel instanceof TextChannel))
 			continue;
 		try {
-			for (let channel of guild.channels.values()) {
-				if (!(channel instanceof TextChannel))
-					continue;
-				try {
-					await channel.send(content,options);
-					break;
-				}
-				catch (ex) {
-				}
-			}
-			await channel.send();
+			await channel.send(content, options);
 			break;
 		}
 		catch (ex) {
