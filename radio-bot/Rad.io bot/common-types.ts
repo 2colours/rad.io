@@ -20,7 +20,7 @@ export interface AuthorHolder {
 	author: User;
 }
 export interface TextChannelHolder {
-	textChannel: TextChannel;
+	channel: TextChannel;
 }
 export interface ThisBinding extends PackedMessage, GuildPlayerHolder {}
 export type FallbackType = 'leave' | 'radio' | 'silence';

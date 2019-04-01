@@ -60,7 +60,7 @@ async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, baseEmb
 	let completeEmbed = baseEmbed
 		.setTitle(titleResolver(currentPage, maxPage))
 		.setDescription(currentDescription);
-	let message = await ctx.textChannel.send({ embed: completeEmbed }) as Discord.Message;
+	let message = await ctx.channel.send({ embed: completeEmbed }) as Discord.Message;
 	while (true) {
 		try {
 			currentPage = await scrollRequest(ctx, message, currentPage, maxPage);
