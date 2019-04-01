@@ -4,6 +4,7 @@ const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
+import { sendGuild } from './util';
 let database: any;
 let config: Config;
 configPromise.then(cfg => config = cfg);
@@ -398,6 +399,11 @@ actions.set('mute', function (_) {
 actions.set('unmute', function (_) {
 	this.guildPlayer.unmute();
 	this.react('☑');
+});
+actions.set('announce', function (param) {
+	let [guildInfo, message = ''] = sscanf(param, '%s %S');
+	let guildToAnnounce = guildInfo == 'all' ? client.guilds.array() : guildInfo == 'conn' ? client.voiceConnections.map(conn => conn.channel.guild) : [client.guilds.get(guildInfo)];
+	guildToAnnounce.forEach(guild => sendGuild(guild, message));
 });
 async function permissionReused(param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
 	try {

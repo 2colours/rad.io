@@ -69,6 +69,11 @@ const radios = {
 		url: 'http://stream.radio1pecs.hu:8200/pecs.mp3',
 		cult: 'hun'
 	},
+	'pecsfm': {
+		name: 'Pécs FM',
+		url: 'http://pecs.fm:8000/1017.mp3',
+		cult: 'hun'
+	},
 	'klasszik': {
 		name: 'Klasszik Rádió',
 		url: 'http://online.klasszikradio.hu/stream/3/#.mp3',

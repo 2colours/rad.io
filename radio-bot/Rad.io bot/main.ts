@@ -1,7 +1,7 @@
 ﻿import * as Discord from 'discord.js';
 const token = process.env.radioToken;
 
-import { configPromise, client, PackedMessage, ThisBinding, Config, actions, GuildPlayer, defaultConfig, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite } from './internal';
+import { configPromise, client, PackedMessage, ThisBinding, Config, actions, GuildPlayer, defaultConfig, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild } from './internal';
 import { sscanf } from 'scanf';
 import * as moment from 'moment';
 const help = actions.get('help');
@@ -88,24 +88,14 @@ Icon: [Link](${guild.iconURL ? guild.iconURL : client.user.displayAvatarURL})`);
 }
 
 async function sendWelcome(guild: Discord.Guild) {
-	for (let channel of guild.channels.values()) {
-		if (!(channel instanceof Discord.TextChannel))
-			continue;
-		let textChannel = channel as Discord.TextChannel;
-		try {
-			let embed = new Discord.RichEmbed()
-				.setAuthor(client.user.tag, client.user.displayAvatarURL)
-				.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
-				.addField('❯ Néhány szó a botról', 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.')
-				.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${debatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
-				.setColor(embedC)
-				.setTimestamp();
-			await textChannel.send(devServerInvite, { embed });
-			break;
-		}
-		catch (ex) {
-		}
-	}
+	let embed = new Discord.RichEmbed()
+		.setAuthor(client.user.tag, client.user.displayAvatarURL)
+		.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
+		.addField('❯ Néhány szó a botról', 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.')
+		.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${debatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
+		.setColor(embedC)
+		.setTimestamp();
+	sendGuild(guild, devServerInvite,{ embed });
 }
 
 function setPStatus() {

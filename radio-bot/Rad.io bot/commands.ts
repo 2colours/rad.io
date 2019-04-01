@@ -134,6 +134,15 @@ setupCommand({
 });
 
 setupCommand({
+	name: 'announce',
+	aliases: ['a'],
+	params: ['ID/all/conn','üzenet'],
+	descrip: 'A paraméterben megadott szerverekre üzenet küldése. all=összes szerver, conn=a botot éppen használó szerverek',
+	type: 'creatorsOnly',
+	filters: new Set([Filter.creatorNeeded, Filter.parameterNeeded])
+});
+
+setupCommand({
 	name: 'leaveguild',
 	aliases: ['lg'],
 	params: ['ID'],

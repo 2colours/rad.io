@@ -1,4 +1,4 @@
-import { Snowflake } from 'discord.js';
+import { Snowflake, Guild, TextChannel, StringResolvable, RichEmbed, Attachment, MessageOptions } from 'discord.js';
 import { Decorator } from './internal';
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
 	baseDict = baseDict.get(guildId) ? baseDict : baseDict.set(guildId, defaultValue);
@@ -13,3 +13,25 @@ export function hourMinSec(minutes: number, seconds: number) { //a seconds bugos
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
 export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
+export async function sendGuild(guild: Guild, content: StringResolvable, options?: RichEmbed | MessageOptions | Attachment) {
+	for (let channel of guild.channels.values()) {
+		if (!(channel instanceof TextChannel))
+			continue;
+		try {
+			for (let channel of guild.channels.values()) {
+				if (!(channel instanceof TextChannel))
+					continue;
+				try {
+					await channel.send(content,options);
+					break;
+				}
+				catch (ex) {
+				}
+			}
+			await channel.send();
+			break;
+		}
+		catch (ex) {
+		}
+	}
+}
