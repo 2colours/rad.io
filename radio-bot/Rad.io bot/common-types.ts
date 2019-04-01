@@ -1,4 +1,4 @@
-import { Emoji, Snowflake, Message } from 'discord.js';
+import { Emoji, Snowflake, Message, User, TextChannel } from 'discord.js';
 import { GuildPlayer, Filter, aggregateDecorators, client } from './internal';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
@@ -15,6 +15,12 @@ export interface PackedMessage extends Message {
 }
 export interface GuildPlayerHolder {
 	guildPlayer: GuildPlayer;
+}
+export interface AuthorHolder {
+	author: User;
+}
+export interface TextChannelHolder {
+	textChannel: TextChannel;
 }
 export interface ThisBinding extends PackedMessage, GuildPlayerHolder {}
 export type FallbackType = 'leave' | 'radio' | 'silence';

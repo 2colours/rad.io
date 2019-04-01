@@ -5,6 +5,7 @@ import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
 import { sendGuild } from './util';
+import { AuthorHolder, TextChannelHolder } from './common-types';
 let database: any;
 let config: Config;
 configPromise.then(cfg => config = cfg);
@@ -28,14 +29,14 @@ function commonEmbed(cmd: string) { //TODO ez sem akármilyen string, hanem para
 		.setFooter(`${prefix}${cmd} - ${client.user.username}`, client.user.avatarURL)
 		.setTimestamp();
 };
-function scrollRequest(message: Discord.Message, currentPage: number, allPages: number) {
-	let res = new Promise(async (resolve, reject) => {
+function scrollRequest(context: AuthorHolder, message: Discord.Message, currentPage: number, allPages: number) {
+	let res = new Promise<number>(async (resolve, reject) => {
 		let emojis: EmojiLike[] = [];
 		if (currentPage > 1)
 			emojis.push('◀');
 		if (currentPage < allPages)
 			emojis.push('▶');
-		const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
+		const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == context.author.id;
 		const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 10000 });
 		collector.on('collect', r => {
 			resolve(r.emoji.name == '◀' ? currentPage - 1 : currentPage + 1);
@@ -52,17 +53,17 @@ function scrollRequest(message: Discord.Message, currentPage: number, allPages: 
 	});
 	return res;
 };
-async function useScrollableEmbed(textChannel: Discord.TextChannel, baseEmbed: Discord.RichEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
+async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, baseEmbed: Discord.RichEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
 	let currentPage = 1;
 	const maxPage = Math.ceil(linesForDescription.length / elementsPerPage);
 	let currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
 	let completeEmbed = baseEmbed
 		.setTitle(titleResolver(currentPage, maxPage))
 		.setDescription(currentDescription);
-	let message = await textChannel.send({ embed: completeEmbed }) as Discord.Message;
+	let message = await ctx.textChannel.send({ embed: completeEmbed }) as Discord.Message;
 	while (true) {
 		try {
-			currentPage = await scrollRequest.call(this, message, currentPage, maxPage);
+			currentPage = await scrollRequest(ctx, message, currentPage, maxPage);
 		}
 		catch (ex) {
 			break;
@@ -278,13 +279,13 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 actions.set('guilds', async function (_) {
 	const guildLines = client.guilds.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
 	const embed: Discord.RichEmbed = commonEmbed.call(this, 'guilds');
-	await useScrollableEmbed(this.channel, embed, _ => `❯ ${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines);
+	await useScrollableEmbed(this, embed, _ => `❯ ${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines);
 });
 actions.set('connections', async function (_) {
 	const embed: Discord.RichEmbed = commonEmbed.call(this, 'connections');
 	const connectionLines = client.voiceConnections.map(vc => `${vc.channel.guild} ${vc.channel} (${vc.channel.members.filter(member => !member.user.bot).size})`);
 	const usersAffected = client.voiceConnections.map(vc => vc.channel.members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
-	await useScrollableEmbed(this.channel, embed, _ => `❯ ${client.user.username} on ${client.voiceConnections.size} voice channels with ${usersAffected} users.`, connectionLines);
+	await useScrollableEmbed(this, embed, _ => `❯ ${client.user.username} on ${client.voiceConnections.size} voice channels with ${usersAffected} users.`, connectionLines);
 });
 actions.set('leaveguild', async function (param) {
 	let id = sscanf(param, '%s');
@@ -300,7 +301,7 @@ actions.set('queue', async function (_) {
 		return void this.channel.send('**A sor jelenleg üres.**');
 	const embed = commonEmbed.call(this, 'queue');
 	const queueLines = queue.map(elem => `${getEmoji(elem.type)} ${elem.name}`);
-	await useScrollableEmbed(this.channel, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}`, queueLines);
+	await useScrollableEmbed(this, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}`, queueLines);
 });
 actions.set('fallback', async function (param) {
 	const aliases = new Map([['r', 'radio'], ['s', 'silence'], ['l', 'leave']]);
