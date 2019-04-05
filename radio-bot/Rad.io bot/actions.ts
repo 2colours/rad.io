@@ -289,7 +289,7 @@ actions.set('guilds', async function (_) {
 });
 actions.set('connections', async function (_) {
 	const embed: Discord.RichEmbed = commonEmbed.call(this, 'connections');
-	const connectionLines = client.voiceConnections.map(vc => `${vc.channel.guild} ${vc.channel} (${vc.channel.members.filter(member => !member.user.bot).size})`);
+	const connectionLines = client.voiceConnections.map(vc => `${vc.channel.guild.name} (${vc.channel.guild.id}) - ${vc.channel.name} (${vc.channel.members.filter(member => !member.user.bot).size})`);
 	const usersAffected = client.voiceConnections.map(vc => vc.channel.members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
 	await useScrollableEmbed(this, embed, _ => `❯ ${client.user.username} on ${client.voiceConnections.size} voice channels with ${usersAffected} users.`, connectionLines);
 });
