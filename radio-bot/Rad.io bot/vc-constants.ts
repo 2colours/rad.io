@@ -194,11 +194,6 @@ const radios = {
 		url: 'http://uk7.internet-radio.com:8226/;stream',
 		cult: 'eng'
 	},
-	'1fm': {
-		name: '1FM - 60s/70s/80s/90s/00s! (Easy)',
-		url: 'http://uk2.internet-radio.com:8358/;stream',
-		cult: 'eng'
-	},
 	'realdance': {
 		name: 'Real Dance Radio (Easy)',
 		url: 'http://uk6.internet-radio.com:8192/;stream',
