@@ -227,15 +227,16 @@ actions.set('radios', async function (_) {
 		return res.join('\n');
 	}
 	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
-	const baseEmbed: Discord.RichEmbed = commonEmbed.call(this, 'radios');
+	const baseEmbed: Discord.RichEmbed = commonEmbed.call(this, 'radios').addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
 	await this.channel.send({
 		embed: baseEmbed
-			.addField('❯ Magyar rádiók', listRadios('hun'))
+			.setTitle('❯ Magyar rádiók')
+			.setDescription(listRadios('hun'))
 	});
 	this.channel.send({
 		embed: baseEmbed
-			.addField('❯ Külföldi rádiók', listRadios('eng'))
-			.addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``)
+			.setTitle('❯ Külföldi rádiók')
+			.setDescription(listRadios('eng'))
 	});
 });
 actions.set('shuffle', async function (_) {
