@@ -149,6 +149,11 @@ const radios = {
 		url: 'http://87.229.73.156:8004/stream192',
 		cult: 'hun'
 	},
+	'radiom': {
+		name: 'Rádió M',
+		url: 'http://hosting2.42netmedia.com:10060/;stream.mp3',
+		cult: 'hun'
+	},
 	'halas': {
 		name: 'Halas Rádió Kiskunhalas',
 		url: 'http://92.61.114.195:8110/stream',
@@ -187,16 +192,6 @@ const radios = {
 	'boxuk': {
 		name: 'Box UK Radio (80\'s music)',
 		url: 'http://uk7.internet-radio.com:8226/;stream',
-		cult: 'eng'
-	},
-	'1fm': {
-		name: '1FM - 60s/70s/80s/90s/00s! (Easy)',
-		url: 'http://uk2.internet-radio.com:8358/;stream',
-		cult: 'eng'
-	},
-	'realdance': {
-		name: 'Real Dance Radio (Easy)',
-		url: 'http://uk6.internet-radio.com:8192/;stream',
 		cult: 'eng'
 	},
 	'virginom': {
