@@ -149,6 +149,11 @@ const radios = {
 		url: 'http://87.229.73.156:8004/stream192',
 		cult: 'hun'
 	},
+	'radiom': {
+		name: 'Rádió M',
+		url: 'http://hosting2.42netmedia.com:10060/;stream.mp3',
+		cult: 'hun'
+	},
 	'halas': {
 		name: 'Halas Rádió Kiskunhalas',
 		url: 'http://92.61.114.195:8110/stream',
