@@ -194,11 +194,6 @@ const radios = {
 		url: 'http://uk7.internet-radio.com:8226/;stream',
 		cult: 'eng'
 	},
-	'realdance': {
-		name: 'Real Dance Radio (Easy)',
-		url: 'http://uk6.internet-radio.com:8192/;stream',
-		cult: 'eng'
-	},
 	'virginom': {
 		name: 'VIRGIN RADIO OMAN (Pop)',
 		url: 'http://uk5.internet-radio.com:8115/;stream',
