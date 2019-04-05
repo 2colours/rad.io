@@ -217,7 +217,7 @@ actions.set('repeat', function (param) {
 	this.guildPlayer.repeat(count);
 	this.channel.send('**Ismétlés felülírva.**');
 });
-actions.set('radios', function (_) {
+actions.set('radios', async function (_) {
 	function listRadios(lang: string) { //TODO ez is enum: kultkód/nyelvkód
 		let res = [];
 		for (let [key, value] of radiosList) {
@@ -227,11 +227,16 @@ actions.set('radios', function (_) {
 		return res.join('\n');
 	}
 	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
-	const embed = commonEmbed.call(this, 'radios')
-		.addField('❯ Magyar rádiók', listRadios('hun'), true)
-		.addField('❯ Külföldi rádiók', listRadios('eng'), true)
-		.addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
-	this.channel.send({ embed });
+	const baseEmbed: Discord.RichEmbed = commonEmbed.call(this, 'radios');
+	await this.channel.send({
+		embed: baseEmbed
+			.addField('❯ Magyar rádiók', listRadios('hun'))
+	});
+	this.channel.send({
+		embed: baseEmbed
+			.addField('❯ Külföldi rádiók', listRadios('eng'))
+			.addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``)
+	});
 });
 actions.set('shuffle', async function (_) {
 	this.guildPlayer.shuffle();
