@@ -422,7 +422,7 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 	}
 	if (!permCommands)
 		return void this.reply('az első paraméter üres.');
-	let commandsArray: string[] = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|');
+	let commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|');
 	let firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void this.reply(`\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.`);
@@ -430,6 +430,7 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 	if (!role)
 		return void this.reply('nem létezik a megadott role.');
 	let currentRoles = attach(config.roles, this.guild.id, new Map());
+	console.log(`current roles: ${currentRoles}`);
 	let roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
 	try {
