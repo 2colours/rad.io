@@ -430,7 +430,6 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 	if (!role)
 		return void this.reply('nem létezik a megadott role.');
 	let currentRoles = attach(config.roles, this.guild.id, new Map());
-	console.log(`current roles: ${currentRoles}`);
 	let roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
 	try {
