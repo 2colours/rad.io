@@ -16,8 +16,8 @@ const hasPermission: Predicate = ctx => {
 }
 const hasVcPermission: Predicate = ctx => ctx.member.voiceChannel.joinable;
 const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.author.id);
-const isAloneUser:Predicate=ctx=>!ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot && member!=ctx.member);
-const isAloneBot:Predicate=ctx=>!ctx.guild.voiceConnection.channel.members.some(member=>!member.user.bot);
+const isAloneUser: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot && member != ctx.member);
+const isAloneBot: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
 const rejectReply=(replyMessage:string)=>(_:Action)=>function(_:string) {
 this.reply(replyMessage);
@@ -50,7 +50,7 @@ const parameterNeeded: Decorator = action => function (param) {
 const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
 const isFallback = (ctx: ThisBinding) => ctx.guildPlayer.fallbackPlayed;
 const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('**ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).**'), pass);
-const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([vcUserNeeded, sameVcNeeded, choiceFilter(isAloneUser, pass, adminOrPermissionNeeded)]));
+const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));
 const naturalErrors: Decorator = action => function (param) {
 	try {
 		action.call(this, param);
