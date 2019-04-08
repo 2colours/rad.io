@@ -175,7 +175,7 @@ setupCommand({
 	params: ['leave/silence/radio'],
 	descrip: 'Fallback mód beállítása. A bot akkor kerül fallback módba, ha kiürül a játszási sor. A választható üzemmódok: kilépés (leave), csendes jelenlét (silence), az erre a célra beállított rádió stream lejátszása (radio, lásd még `fallbackradio` parancs).',
 	type: 'adminOnly',
-	filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
+	filters: new Set([Filter.dedicationNeeded, Filter.parameterNeeded])
 });
 
 setupCommand({
@@ -184,7 +184,7 @@ setupCommand({
 	params: ['ID / streamURL'],
 	descrip: 'Rádió fallback esetén játszandó adó beállítása stream URL vagy rádió id alapján. (Lásd még: `fallback` parancs.)',
 	type: 'adminOnly',
-	filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
+	filters: new Set([Filter.dedicationNeeded, Filter.parameterNeeded])
 });
 
 setupCommand({
