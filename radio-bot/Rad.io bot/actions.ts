@@ -433,7 +433,7 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 	let roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
 	try {
-		await saveRow({ guildID: this.guild.id, roleID: role.id, commands: commandsArray.join('|') }, 'role');
+		await saveRow({ guildID: this.guild.id, roleID: role.id, commands: roleCommands.join('|') }, 'role');
 		this.channel.send(`**Új jogosultságok mentve.**`);
 	}
 	catch (ex) {
