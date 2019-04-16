@@ -1,11 +1,11 @@
 import { Snowflake, Client } from 'discord.js';
 import { attach, FallbackType, MusicData, Config } from './internal';
-const sql = require('sqlite');
+import * as sql from 'sqlite';
 export const client = new Client();
-export const dbPromise: Promise<any> = sql.open("./radio.sqlite");
-export const configPromise: Promise<Config> = dbPromise.then((db: any) => loadCFG(db));
+export const dbPromise = sql.open("./radio.sqlite");
+export const configPromise: Promise<Config> = dbPromise.then(db => loadCFG(db));
 
-async function loadCFG(db:any):Promise<Config> {
+async function loadCFG(db: sql.Database): Promise<Config> {
 	let prefixes: Map<Snowflake, string> = new Map();
 	let fallbackModes: Map<Snowflake, FallbackType> = new Map();
 	let fallbackData: Map<Snowflake, MusicData> = new Map();
