@@ -84,7 +84,7 @@ setupCommand({
 	params: [],
 	descrip: 'Várakozási sor megkeverése.',
 	type: 'grantable',
-	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.naturalErrorNoNeeded])
+	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
 });
 
 
@@ -94,7 +94,7 @@ setupCommand({
 	params: [],
 	descrip: 'Várakozási sor törlése.',
 	type: 'grantable',
-	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.naturalErrorNoNeeded])
+	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
 });
 
 setupCommand({
@@ -103,7 +103,7 @@ setupCommand({
 	params: [],
 	descrip: 'A sor utolsó elemének a sor elejére helyezése.',
 	type: 'grantable',
-	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.naturalErrorNoNeeded])
+	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
 });
 
 setupCommand({
@@ -193,7 +193,7 @@ setupCommand({
 	params: [],
 	descrip: 'Az aktuálisan játszott stream átugrása. Ha ez a sor utolsó száma volt, fallback üzemmódba kerülünk.',
 	type: 'grantable',
-	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded])
+	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.nonSilenceNeded])
 });
 
 setupCommand({
