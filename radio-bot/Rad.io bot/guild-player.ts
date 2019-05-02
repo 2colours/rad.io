@@ -9,7 +9,7 @@ const downloadMethods = new Map<StreamType,any>([
 	['custom',(url:string) => url],
 	['radio',(url:string) => url]]);
 class Playable {
-	data?: any;
+	readonly data?: any;
 	skip: any;
 	halt: any;
 	started: boolean;
