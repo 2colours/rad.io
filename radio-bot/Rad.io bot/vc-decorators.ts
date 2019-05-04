@@ -53,6 +53,8 @@ const isSilence: Predicate = ctx => !ctx.guildPlayer.nowPlaying.data;
 const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('**ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).**'), pass);
 const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('**ez a parancs nem használható, amikor semmi nem szól (leave-eld a botot vagy ütemezz be valamilyen zenét).**'), pass);
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));
+const isPlayingFallbackSet: Predicate = ctx => config.fallbackModes.get(ctx.guild.id) == 'radio';
+const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('**ez a parancs nem használható a jelenlegi fallback beállítással.**'));
 const naturalErrors: Decorator = action => function (param) {
 	try {
 		action.call(this, param);
@@ -68,6 +70,7 @@ export class Filter {
 	private static counter = 0;
 	static readonly creatorNeeded = new Filter(creatorNeeded,'A parancs csak a bot fejlesztői számára hozzáférhető.');
 	static readonly adminNeeded = new Filter(adminNeeded, 'Adminisztrátori jogosultság szükséges.');
+	static readonly playingFallbackNeeded = new Filter(playingFallbackNeeded, 'A botnak zenét játszó fallback beállításon kell lennie.');
 	static readonly noBotVcNeeded = new Filter(noBotVcNeeded, 'A bot nem lehet voice csatornában.');
 	static readonly dedicationNeeded = new Filter(dedicationNeeded, 'A parancs használatához jogosultságra van szükség (lásd `grant` és `deny` parancsok), kivéve, ha a bot a parancsot kiadó felhasználóval kettesben van.');
 	static readonly sameVcNeeded = new Filter(sameVcNeeded,'A botnak és a felhasználónak közös voice csatornán kell lennie.');

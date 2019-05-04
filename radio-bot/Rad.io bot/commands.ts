@@ -26,11 +26,20 @@ setupCommand({
 
 setupCommand({
 	name: 'join',
-	aliases: [],
+	aliases: ['j'],
 	params: ['ID (opcionális)'],
 	descrip: 'Bot csatlakoztatása a felhasználó voice csatornájába. Rádió id megadása esetén az adott rádió egyből indításra kerül.',
 	type: 'unlimited',
 	filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.vcPermissionNeeded])
+});
+
+setupCommand({
+	name: 'joinfallback',
+	aliases: ['joinf', 'jf'],
+	params: [],
+	descrip: 'Bot csatlakoztatása egyből fallback állapotban.',
+	type: 'unlimited',
+	filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.vcPermissionNeeded, Filter.playingFallbackNeeded])
 });
 
 setupCommand({

@@ -92,25 +92,34 @@ actions.set('setprefix', async function (param) {
 	}
 });
 actions.set('join', async function (param) {
-	let voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	let channelToPlay = sscanf(param, '%s') || '';
 	let randChannel = randomElement(channels);
 	if (channelToPlay && !radiosList.has(channelToPlay)) {
 		channelToPlay = randChannel;
 		this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
 	}
+	joinAndStartup.call(this, (gp: GuildPlayer) => {
+		if (channelToPlay)
+			gp.schedule(Object.assign({ type: 'radio' as StreamType }, radiosList.get(channelToPlay)));
+	});
+});
+actions.set('joinfallback', function (_) {
+	joinAndStartup.call(this, (gp: GuildPlayer) => gp.skip());
+});
+
+async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
+	let voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	try {
 		await voiceChannel.join();
 		this.channel.send('**Csatlakozva.**');
 		this.guildPlayer = new GuildPlayer(this.guild, this.channel, []);
-		if (channelToPlay)
-			this.guildPlayer.schedule(Object.assign({ type: 'radio' }, radiosList.get(channelToPlay)));
+		startup(this.guildPlayer);
 	}
 	catch (ex) {
 		this.channel.send('**Hiba a csatlakozás során.**');
 		console.error(ex);
 	}
-});
+}
 actions.set('yt', async function (param) {
 	let voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	param = param.trim();
