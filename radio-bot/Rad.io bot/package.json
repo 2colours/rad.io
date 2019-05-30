@@ -7,7 +7,7 @@
     "@types/node": "^10.12.15",
     "better-youtube-api": "^0.3.7",
     "concurrently": "^4.1.0",
-    "discord.js": "^11.5.1",
+    "discord.js": "^11.5.0",
     "moment": "^2.24.0",
     "node-opus": "^0.3.2",
     "pastebin-ts": "^1.0.0",
