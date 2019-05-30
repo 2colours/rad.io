@@ -9,8 +9,7 @@ export interface Config {
 type Resolvable<T> = T | Promise<T>;
 export type Action = (param:string) => Resolvable<void>;
 export type Decorator = (toDecorate:Action) => Action;
-export type Predicate = (x: ThisBinding) => Resolvable<boolean>;
-export type ScrollableEmbedTitleResolver = (currentPage: number, maxPage: number) => string;
+export type Predicate = (x:ThisBinding) => Resolvable<boolean>;
 export interface PackedMessage extends Message {
 	cmdName:string;
 }
