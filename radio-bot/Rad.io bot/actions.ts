@@ -1,5 +1,5 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
@@ -225,9 +225,7 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 actions.set('guilds', async function (_) {
 	const guildLines = client.guilds.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
 	const embed: Discord.RichEmbed = commonEmbed.call(this, 'guilds');
-	//await useScrollableEmbed(this, embed, _ => `❯ ${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines);
-	createPastebin(`${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines.join('\n'))
-		.then(link => this.channel.send(link));
+	await useScrollableEmbed(this, embed, _ => `❯ ${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines);
 });
 actions.set('connections', async function (_) {
 	const embed: Discord.RichEmbed = commonEmbed.call(this, 'connections');
