@@ -1,13 +1,11 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, TableName, StreamType, FallbackType, MusicData, configPromise, dbPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
-let database: any;
 let config: Config;
 configPromise.then(cfg => config = cfg);
-dbPromise.then(db => database = db);
 export const actions: Map<string, Action> = new Map();
 actions.set('setprefix', async function (param) {
 	if (!param)
@@ -15,7 +13,7 @@ actions.set('setprefix', async function (param) {
 	let newPrefix = param.toLowerCase();
 	config.prefixes.set(this.guild.id, newPrefix);
 	try {
-		await saveRow({ guildID: this.guild.id, prefix: newPrefix }, 'prefix');
+		await saveRow.prefix({ guildID: this.guild.id, prefix: newPrefix });
 		this.channel.send(`${newPrefix} **az új prefix.**`);
 	}
 	catch (e) {
@@ -260,7 +258,7 @@ actions.set('fallback', async function (param) {
 	config.fallbackModes.set(this.guild.id, <FallbackType>mode);
 	this.channel.send(`**Új fallback: ${mode}. **`);
 	try {
-		await saveRow({ guildID: this.guild.id, type: mode }, 'fallbackModes');
+		await saveRow.fallbackModes({ guildID: this.guild.id, type: <FallbackType>mode });
 	}
 	catch (ex) {
 		console.error(ex);
@@ -283,7 +281,7 @@ actions.set('fallbackradio', async function (param) {
 	config.fallbackChannels.set(this.guild.id, fr);
 	this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`);
 	try {
-		await saveRow({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url }, 'fallbackData');
+		await saveRow.fallbackData({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url });
 	}
 	catch (ex) {
 		console.error(ex);
@@ -368,38 +366,18 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 	let firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void this.reply(`\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.`);
-	let role = this.guild.roles.find((elem: Discord.Role) => elem.name == roleName);
+	let role: Discord.Role = this.guild.roles.find((elem: Discord.Role) => elem.name == roleName);
 	if (!role)
 		return void this.reply('nem létezik a megadott role.');
 	let currentRoles = attach(config.roles, this.guild.id, new Map());
 	let roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
 	try {
-		await saveRow({ guildID: this.guild.id, roleID: role.id, commands: roleCommands.join('|') }, 'role');
+		await saveRow.role({ guildID: this.guild.id, roleID: role.id, commands: roleCommands.join('|') });
 		this.channel.send(`**Új jogosultságok mentve.**`);
 	}
 	catch (ex) {
 		console.error(ex);
 		this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
-	}
-}
-async function saveRow(rowObj: any, type: TableName) { //a rowObj nem any, igazából ezt szét kéne dobni külön függvényekbe
-	switch (type) {
-		case 'prefix':
-			await database.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
-			await database.run(`INSERT INTO ${type} (guildID, prefix) VALUES (?, ?)`, [rowObj.guildID, rowObj.prefix]);
-			break;
-		case 'fallbackModes':
-			await database.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
-			await database.run(`INSERT INTO ${type} (guildID, type) VALUES (?, ?)`, [rowObj.guildID, rowObj.type]);
-			break;
-		case 'fallbackData':
-			await database.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
-			await database.run(`INSERT INTO ${type} (guildID, type, name, url) VALUES (?, ?, ?, ?)`, [rowObj.guildID, rowObj.type, rowObj.name, rowObj.url]);
-			break;
-		case 'role':
-			await database.run(`DELETE FROM ${type} WHERE (guildID = ?) AND (roleID = ?)`, [rowObj.guildID, rowObj.roleID]);
-			await database.run(`INSERT INTO ${type} (guildID, roleID, commands) VALUES (?, ?, ?)`, [rowObj.guildID, rowObj.roleID, rowObj.commands]);
-			break;
 	}
 }

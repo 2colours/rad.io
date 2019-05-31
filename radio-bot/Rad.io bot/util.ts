@@ -1,7 +1,10 @@
 ﻿import { Snowflake, Guild, TextChannel, StringResolvable, RichEmbed, Attachment, MessageOptions, Message, MessageReaction, User, VoiceChannel } from 'discord.js';
-import { Decorator, AuthorHolder, TextChannelHolder, client, defaultConfig, embedC, EmojiLike, GuildPlayerHolder, MusicData, GuildPlayer, Config, configPromise, ScrollableEmbedTitleResolver } from './internal';
+import { Decorator, AuthorHolder, TextChannelHolder, client, defaultConfig, embedC, EmojiLike, GuildPlayerHolder, MusicData, GuildPlayer, Config, configPromise, ScrollableEmbedTitleResolver, dbPromise, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData } from './internal';
+import { Database } from 'sqlite';
 let config: Config;
 configPromise.then(cfg => config = cfg);
+let database: Database;
+dbPromise.then(db => database = db);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
 	baseDict = baseDict.get(guildId) ? baseDict : baseDict.set(guildId, defaultValue);
 	return baseDict.get(guildId);
@@ -91,3 +94,21 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 		await message.edit({ embed: completeEmbed });
 	}
 }
+export const saveRow = {
+	async prefix(rowObj: PrefixTableData) {
+		await database.run(`DELETE FROM prefix WHERE guildID = ?`, rowObj.guildID);
+		await database.run(`INSERT INTO prefix (guildID, prefix) VALUES (?, ?)`, [rowObj.guildID, rowObj.prefix]);
+	},
+	async fallbackModes(rowObj: FallbackModesTableData) {
+		await database.run(`DELETE FROM fallbackModes WHERE guildID = ?`, rowObj.guildID);
+		await database.run(`INSERT INTO fallbackModes (guildID, type) VALUES (?, ?)`, [rowObj.guildID, rowObj.type]);
+	},
+	async fallbackData(rowObj: FallbackDataTableData) {
+		await database.run(`DELETE FROM fallbackData WHERE guildID = ?`, rowObj.guildID);
+		await database.run(`INSERT INTO fallbackData (guildID, type, name, url) VALUES (?, ?, ?, ?)`, [rowObj.guildID, rowObj.type, rowObj.name, rowObj.url]);
+	},
+	async role(rowObj: RoleTableData) {
+		await database.run(`DELETE FROM role WHERE (guildID = ?) AND (roleID = ?)`, [rowObj.guildID, rowObj.roleID]);
+		await database.run(`INSERT INTO role (guildID, roleID, commands) VALUES (?, ?, ?)`, [rowObj.guildID, rowObj.roleID, rowObj.commands]);
+	}
+};

@@ -25,7 +25,25 @@ export interface TextChannelHolder {
 }
 export interface ThisBinding extends PackedMessage, GuildPlayerHolder {}
 export type FallbackType = 'leave' | 'radio' | 'silence';
-export type TableName = 'prefix' | 'fallbackModes' | 'fallbackData' | 'role';
+export interface PrefixTableData {
+	guildID: Snowflake;
+	prefix: string;
+}
+export interface FallbackModesTableData {
+	guildID: Snowflake;
+	type: FallbackType;
+}
+export interface FallbackDataTableData {
+	guildID: Snowflake;
+	type: StreamType;
+	name: string;
+	url: string;
+}
+export interface RoleTableData {
+	guildID: Snowflake;
+	roleID: Snowflake;
+	commands: string;
+}
 export type StreamType = 'yt' | 'custom' | 'radio';
 export interface MusicData {
 	name:string;
