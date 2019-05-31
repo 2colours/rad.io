@@ -1,6 +1,8 @@
 ﻿import { Snowflake, Guild, TextChannel, StringResolvable, RichEmbed, Attachment, MessageOptions, Message, MessageReaction, User, VoiceChannel } from 'discord.js';
 import { Decorator, AuthorHolder, TextChannelHolder, client, defaultConfig, embedC, EmojiLike, GuildPlayerHolder, MusicData, GuildPlayer, Config, configPromise, ScrollableEmbedTitleResolver, dbPromise, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData } from './internal';
 import { Database } from 'sqlite';
+import { PastebinAPI } from 'pastebin-ts/dist/api';
+const pastebin = new PastebinAPI(process.env.pastebin);
 let config: Config;
 configPromise.then(cfg => config = cfg);
 let database: Database;
@@ -118,3 +120,10 @@ export const saveRow = {
 		await database.run(`INSERT INTO role (guildID, roleID, commands) VALUES (?, ?, ?)`, [rowObj.guildID, rowObj.roleID, rowObj.commands]);
 	}
 };
+
+export async function createPastebin(title: string, content: string): Promise<string> {
+	let paste = await pastebin.createPaste({ text: content, title });
+	console.log(paste);
+	return '';
+	//	return ();
+}
