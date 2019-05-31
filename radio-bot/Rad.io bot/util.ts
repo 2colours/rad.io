@@ -13,13 +13,13 @@ export function randomElement<T>(array: T[]): T {
 	return array[(Math.random() * array.length) | 0];
 };
 export function hourMinSec(minutes: number, seconds: number) { //a seconds bugosnak bizonyult - már javítva?
-	let hours = Math.floor(minutes / 60);
+	const hours = Math.floor(minutes / 60);
 	minutes %= 60;
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
 export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
 export async function sendGuild(guild: Guild, content: StringResolvable, options?: RichEmbed | MessageOptions | Attachment) {
-	for (let channel of guild.channels.values()) {
+	for (const channel of guild.channels.values()) {
 		if (!(channel instanceof TextChannel))
 			continue;
 		try {
@@ -42,15 +42,15 @@ export async function forceSchedule(textChannel: TextChannel, voiceChannel: Voic
 		holder.guildPlayer.bulkSchedule(playableData);
 };
 export function commonEmbed(cmd: string) { //TODO ez sem akármilyen string, hanem parancsnév
-	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
+	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 	return new RichEmbed()
 		.setColor(embedC)
 		.setFooter(`${prefix}${cmd} - ${client.user.username}`, client.user.avatarURL)
 		.setTimestamp();
 };
 function scrollRequest(context: AuthorHolder, message: Message, currentPage: number, allPages: number) {
-	let res = new Promise<number>(async (resolve, reject) => {
-		let emojis: EmojiLike[] = [];
+	const res = new Promise<number>(async (resolve, reject) => {
+		const emojis: EmojiLike[] = [];
 		if (currentPage > 1)
 			emojis.push('◀');
 		if (currentPage < allPages)
@@ -64,8 +64,8 @@ function scrollRequest(context: AuthorHolder, message: Message, currentPage: num
 		collector.on('end', _ => {
 			reject(' lejárt az idő.');
 		});
-		for (let emoji of emojis) {
-			let reaction = await message.react(emoji);
+		for (const emoji of emojis) {
+			const reaction = await message.react(emoji);
 			res
 				.then(_ => reaction.remove(client.user), _ => reaction.remove(client.user));
 		}
@@ -75,11 +75,11 @@ function scrollRequest(context: AuthorHolder, message: Message, currentPage: num
 export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, baseEmbed: RichEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
 	let currentPage = 1;
 	const maxPage = Math.ceil(linesForDescription.length / elementsPerPage);
-	let currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
+	const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
 	let completeEmbed = baseEmbed
 		.setTitle(titleResolver(currentPage, maxPage))
 		.setDescription(currentDescription);
-	let message = await ctx.channel.send({ embed: completeEmbed }) as Message;
+	const message = await ctx.channel.send({ embed: completeEmbed }) as Message;
 	while (true) {
 		try {
 			currentPage = await scrollRequest(ctx, message, currentPage, maxPage);
@@ -87,7 +87,7 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 		catch (ex) {
 			break;
 		}
-		let currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
+		const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
 		completeEmbed = baseEmbed
 			.setTitle(`Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}`)
 			.setDescription(currentDescription);
