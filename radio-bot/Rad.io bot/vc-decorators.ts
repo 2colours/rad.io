@@ -4,14 +4,14 @@ const isAdmin:Predicate=ctx=>ctx.member.permissions.has('ADMINISTRATOR');
 const isVcUser:Predicate=ctx=>!!ctx.member.voiceChannel;
 const isDifferentVc:Predicate=ctx=>(ctx.guild.voiceConnection && ctx.guild.voiceConnection.channel) != ctx.member.voiceChannel;
 const isVcBot:Predicate=ctx=>!!ctx.guild.voiceConnection;
-const choiceFilter=(pred:Predicate,dec1:Decorator,dec2:Decorator)=>(action:Action)=>async function(param:string) {
-let currentDecorator=await Promise.resolve(pred(this))?dec1:dec2;
+const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (param: string) {
+	const currentDecorator = await Promise.resolve(pred(this)) ? dec1 : dec2;
 currentDecorator(action).call(this,param);
 };
 let config: Config;
 configPromise.then(cfg => config = cfg);
 const hasPermission: Predicate = ctx => {
-	let guildRoles = [...(config.roles.get(ctx.guild.id) || new Map())];
+	const guildRoles = [...(config.roles.get(ctx.guild.id) || new Map())];
 	return guildRoles.some(roleData=>ctx.member.roles.has(roleData[0]) && roleData[1].includes(ctx.cmdName));
 }
 const hasVcPermission: Predicate = ctx => ctx.member.voiceChannel.joinable;
