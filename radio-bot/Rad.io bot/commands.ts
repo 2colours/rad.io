@@ -7,8 +7,8 @@ export function translateAlias(cmdOrAlias: string): string {
 	return aliases.get(cmdOrAlias) || cmdOrAlias;
 }
 function setupCommand(commandData: CommandExtraData): void {
-	let cmdName = commandData.name;
-	for (let alias of commandData.aliases)
+	const cmdName = commandData.name;
+	for (const alias of commandData.aliases)
 		aliases.set(alias, cmdName);
 	commands.set(cmdName, new Command(Object.assign({
 		action: actions.get(cmdName)
