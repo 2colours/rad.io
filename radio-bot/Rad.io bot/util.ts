@@ -12,6 +12,12 @@ export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defau
 export function randomElement<T>(array: T[]): T {
 	return array[(Math.random() * array.length) | 0];
 };
+export function shuffle(array: any[]) {
+	for (let i = array.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[array[i], array[j]] = [array[j], array[i]];
+	}
+}
 export function hourMinSec(minutes: number, seconds: number) { //a seconds bugosnak bizonyult - már javítva?
 	const hours = Math.floor(minutes / 60);
 	minutes %= 60;
