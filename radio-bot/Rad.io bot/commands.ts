@@ -135,7 +135,7 @@ setupCommand({
 
 setupCommand({
 	name: 'connections',
-	aliases: [],
+	aliases: ['conn'],
 	params: [],
 	descrip: 'A bot által éppen használt voice csatornák listázása.',
 	type: 'creatorsOnly',

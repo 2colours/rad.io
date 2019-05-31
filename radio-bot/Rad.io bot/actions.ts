@@ -224,16 +224,14 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 });
 actions.set('guilds', async function (_) {
 	const guildLines = client.guilds.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
-	//const embed: Discord.RichEmbed = commonEmbed.call(this, 'guilds');
-	//await useScrollableEmbed(this, embed, _ => `❯ ${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines);
 	createPastebin(`${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines.join('\n'))
 		.then(link => this.channel.send(link));
 });
 actions.set('connections', async function (_) {
-	const embed: Discord.RichEmbed = commonEmbed.call(this, 'connections');
 	const connectionLines = client.voiceConnections.map(vc => `${vc.channel.guild.name} (${vc.channel.guild.id}) - ${vc.channel.name} (${vc.channel.members.filter(member => !member.user.bot).size})`);
 	const usersAffected = client.voiceConnections.map(vc => vc.channel.members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
-	await useScrollableEmbed(this, embed, _ => `❯ ${client.user.username} on ${client.voiceConnections.size} voice channels with ${usersAffected} users.`, connectionLines);
+	createPastebin(`${client.user.username} on ${client.voiceConnections.size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
+		.then(link => this.channel.send(link));
 });
 actions.set('leaveguild', async function (param) {
 	const id = sscanf(param, '%s');
