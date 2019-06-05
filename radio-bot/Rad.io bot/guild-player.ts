@@ -1,6 +1,6 @@
 import * as Discord from 'discord.js';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import { defaultConfig, getEmoji, Config, configPromise, MusicData, StreamType } from './internal';
+import { defaultConfig, getEmoji, Config, configPromise, MusicData, StreamType, shuffle } from './internal';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 let config: Config;
 configPromise.then(cfg => config = cfg);
@@ -32,7 +32,7 @@ class Playable {
 				return;
 			}
 			const stream = downloadMethods.get(this.data.type)(this.data.url);
-			let dispatcher = voiceConnection.playStream(stream, { seek: 0 });
+			const dispatcher = voiceConnection.playStream(stream, { seek: 0 });
 			dispatcher.setVolume(vol);
 			dispatcher.on('end', () => resolve(false)); //nem volt forced, hanem magától
 			dispatcher.on('error', () => {
@@ -55,7 +55,7 @@ class VoiceHandler {
 	constructor(private controlledPlayer: GuildPlayer) {
 	}
 	eventTriggered() {
-		let voiceEmpty = !this.controlledPlayer.ownerGuild.voiceConnection.channel.members.some(member => !member.user.bot);
+		const voiceEmpty = !this.controlledPlayer.ownerGuild.voiceConnection.channel.members.some(member => !member.user.bot);
 		if (voiceEmpty && !this.timeoutId)
 			this.timeoutId = global.setTimeout(this.controlledPlayer.leave.bind(this.controlledPlayer), 60000 * 5);
 		if (!voiceEmpty && this.timeoutId) {
@@ -153,8 +153,8 @@ export class GuildPlayer {
 			this.announcementChannel.send(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
 	bulkSchedule(musicDatas: MusicData[]) {
-		let autoSkip = !this.nowPlaying.isDefinite() && this.queue.length == 0;
-		for (let musicData of musicDatas) 
+		const autoSkip = !this.nowPlaying.isDefinite() && this.queue.length == 0;
+		for (const musicData of musicDatas) 
 			this.queue.push(new Playable(musicData));
 		if (autoSkip)
 			this.skip();
@@ -173,15 +173,15 @@ export class GuildPlayer {
 	topLast() {
 		if (this.queue.length < 2)
 			throw 'Nincs mit a sor elejére rakni.';
-		let elementToMove = this.queue.pop();
+		const elementToMove = this.queue.pop();
 		this.queue.unshift(elementToMove);
 	}
 	async fallbackMode() {
 		this.announcementChannel.send('**Fallback mód.**');
-		let fallbackMode = config.fallbackModes.get(this.ownerGuild.id) || defaultConfig.fallback;
+		const fallbackMode = config.fallbackModes.get(this.ownerGuild.id) || defaultConfig.fallback;
 		switch (fallbackMode) {
 			case 'radio':
-				let fallbackMusic = config.fallbackChannels.get(this.ownerGuild.id)
+				const fallbackMusic = config.fallbackChannels.get(this.ownerGuild.id)
 				if (!fallbackMusic)
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
 				this.nowPlaying = new Playable(fallbackMusic);
@@ -213,10 +213,4 @@ export class GuildPlayer {
 }
 function repeatCounter(nTimes: number) {
 	return () => nTimes-- > 0;
-}
-function shuffle(array: any[]) {
-	for (let i = array.length - 1; i > 0; i--) {
-		const j = Math.floor(Math.random() * (i+1));
-		[array[i], array[j]] = [array[j], array[i]];
-	}
 }

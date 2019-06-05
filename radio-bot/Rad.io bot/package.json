@@ -4,18 +4,19 @@
     "start": "concurrently --kill-others \"node keepalive.js\" \"node main.js\""
   },
   "dependencies": {
-    "typescript": "^3.2.2",
     "@types/node": "^10.12.15",
-    "scanf": "^1.0.2",
-    "discord.js": "^11.4.2",
-    "ytdl-core": "^0.29.0",
-    "request-promise-native": "^1.0.7",
-    "request": "^2.88.0",
-    "sqlite": "^3.0.3",
-    "moment": "^2.24.0",
     "better-youtube-api": "^0.3.7",
-    "node-opus": "^0.3.1",
-    "concurrently": "^4.1.0"
+    "concurrently": "^4.1.0",
+    "discord.js": "^11.5.1",
+    "moment": "^2.24.0",
+    "node-opus": "^0.3.2",
+    "pastebin-js": "^1.0.2",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.7",
+    "scanf": "^1.0.2",
+    "sqlite": "^3.0.3",
+    "typescript": "^3.4.4",
+    "ytdl-core": "^0.29.2"
   },
   "engines": {
     "node": "8.11.1"

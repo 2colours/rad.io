@@ -7,8 +7,8 @@ export function translateAlias(cmdOrAlias: string): string {
 	return aliases.get(cmdOrAlias) || cmdOrAlias;
 }
 function setupCommand(commandData: CommandExtraData): void {
-	let cmdName = commandData.name;
-	for (let alias of commandData.aliases)
+	const cmdName = commandData.name;
+	for (const alias of commandData.aliases)
 		aliases.set(alias, cmdName);
 	commands.set(cmdName, new Command(Object.assign({
 		action: actions.get(cmdName)
@@ -26,11 +26,20 @@ setupCommand({
 
 setupCommand({
 	name: 'join',
-	aliases: [],
+	aliases: ['j'],
 	params: ['ID (opcionális)'],
 	descrip: 'Bot csatlakoztatása a felhasználó voice csatornájába. Rádió id megadása esetén az adott rádió egyből indításra kerül.',
 	type: 'unlimited',
 	filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.vcPermissionNeeded])
+});
+
+setupCommand({
+	name: 'joinfallback',
+	aliases: ['joinf', 'jf'],
+	params: [],
+	descrip: 'Bot csatlakoztatása egyből fallback állapotban.',
+	type: 'unlimited',
+	filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.vcPermissionNeeded, Filter.playingFallbackNeeded])
 });
 
 setupCommand({
@@ -126,7 +135,7 @@ setupCommand({
 
 setupCommand({
 	name: 'connections',
-	aliases: [],
+	aliases: ['conn'],
 	params: [],
 	descrip: 'A bot által éppen használt voice csatornák listázása.',
 	type: 'creatorsOnly',

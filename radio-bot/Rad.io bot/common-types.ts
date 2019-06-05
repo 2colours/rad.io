@@ -9,7 +9,8 @@ export interface Config {
 type Resolvable<T> = T | Promise<T>;
 export type Action = (param:string) => Resolvable<void>;
 export type Decorator = (toDecorate:Action) => Action;
-export type Predicate = (x:ThisBinding) => Resolvable<boolean>;
+export type Predicate = (x: ThisBinding) => Resolvable<boolean>;
+export type ScrollableEmbedTitleResolver = (currentPage: number, maxPage: number) => string;
 export interface PackedMessage extends Message {
 	cmdName:string;
 }
@@ -24,7 +25,25 @@ export interface TextChannelHolder {
 }
 export interface ThisBinding extends PackedMessage, GuildPlayerHolder {}
 export type FallbackType = 'leave' | 'radio' | 'silence';
-export type TableName = 'prefix' | 'fallbackModes' | 'fallbackData' | 'role';
+export interface PrefixTableData {
+	guildID: Snowflake;
+	prefix: string;
+}
+export interface FallbackModesTableData {
+	guildID: Snowflake;
+	type: FallbackType;
+}
+export interface FallbackDataTableData {
+	guildID: Snowflake;
+	type: StreamType;
+	name: string;
+	url: string;
+}
+export interface RoleTableData {
+	guildID: Snowflake;
+	roleID: Snowflake;
+	commands: string;
+}
 export type StreamType = 'yt' | 'custom' | 'radio';
 export interface MusicData {
 	name:string;

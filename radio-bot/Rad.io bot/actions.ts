@@ -1,88 +1,19 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, TableName, StreamType, FallbackType, MusicData, GuildPlayerHolder, EmojiLike, configPromise, dbPromise, defaultConfig, embedC, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
-import { sendGuild } from './util';
-import { AuthorHolder, TextChannelHolder } from './common-types';
-let database: any;
 let config: Config;
 configPromise.then(cfg => config = cfg);
-dbPromise.then(db => database = db);
-type ScrollableEmbedTitleResolver = (currentPage: number, maxPage: number) => string;
-async function forceSchedule(textChannel: Discord.TextChannel, voiceChannel: Discord.VoiceChannel, holder: GuildPlayerHolder, playableData: MusicData[]) {
-	if (!voiceChannel.connection) {
-		await voiceChannel.join();
-		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
-		return;
-	}
-	if (playableData.length == 1)
-		holder.guildPlayer.schedule(playableData[0]);
-	else
-		holder.guildPlayer.bulkSchedule(playableData);
-};
-function commonEmbed(cmd: string) { //TODO ez sem akármilyen string, hanem parancsnév
-	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
-	return new Discord.RichEmbed()
-		.setColor(embedC)
-		.setFooter(`${prefix}${cmd} - ${client.user.username}`, client.user.avatarURL)
-		.setTimestamp();
-};
-function scrollRequest(context: AuthorHolder, message: Discord.Message, currentPage: number, allPages: number) {
-	let res = new Promise<number>(async (resolve, reject) => {
-		let emojis: EmojiLike[] = [];
-		if (currentPage > 1)
-			emojis.push('◀');
-		if (currentPage < allPages)
-			emojis.push('▶');
-		const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == context.author.id;
-		const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 10000 });
-		collector.on('collect', r => {
-			resolve(r.emoji.name == '◀' ? currentPage - 1 : currentPage + 1);
-			collector.stop();
-		});
-		collector.on('end', _ => {
-			reject(' lejárt az idő.');
-		});
-		for (let emoji of emojis) {
-			let reaction = await message.react(emoji);
-			res
-				.then(_ => reaction.remove(client.user), _ => reaction.remove(client.user));
-		}
-	});
-	return res;
-};
-async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, baseEmbed: Discord.RichEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
-	let currentPage = 1;
-	const maxPage = Math.ceil(linesForDescription.length / elementsPerPage);
-	let currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
-	let completeEmbed = baseEmbed
-		.setTitle(titleResolver(currentPage, maxPage))
-		.setDescription(currentDescription);
-	let message = await ctx.channel.send({ embed: completeEmbed }) as Discord.Message;
-	while (true) {
-		try {
-			currentPage = await scrollRequest(ctx, message, currentPage, maxPage);
-		}
-		catch (ex) {
-			break;
-		}
-		let currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
-		completeEmbed = baseEmbed
-			.setTitle(`Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}`)
-			.setDescription(currentDescription);
-		await message.edit({ embed: completeEmbed });
-	}
-}
 export const actions: Map<string, Action> = new Map();
 actions.set('setprefix', async function (param) {
 	if (!param)
 		return void this.reply('ez nem lehet prefix!');
-	let newPrefix = param.toLowerCase();
+	const newPrefix = param.toLowerCase();
 	config.prefixes.set(this.guild.id, newPrefix);
 	try {
-		await saveRow({ guildID: this.guild.id, prefix: newPrefix }, 'prefix');
+		await saveRow.prefix({ guildID: this.guild.id, prefix: newPrefix });
 		this.channel.send(`${newPrefix} **az új prefix.**`);
 	}
 	catch (e) {
@@ -92,32 +23,41 @@ actions.set('setprefix', async function (param) {
 	}
 });
 actions.set('join', async function (param) {
-	let voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	let channelToPlay = sscanf(param, '%s') || '';
-	let randChannel = randomElement(channels);
+	const randChannel = randomElement(channels);
 	if (channelToPlay && !radiosList.has(channelToPlay)) {
 		channelToPlay = randChannel;
 		this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
 	}
+	joinAndStartup.call(this, (gp: GuildPlayer) => {
+		if (channelToPlay)
+			gp.schedule(Object.assign({ type: 'radio' as StreamType }, radiosList.get(channelToPlay)));
+	});
+});
+actions.set('joinfallback', function (_) {
+	joinAndStartup.call(this, (gp: GuildPlayer) => gp.skip());
+});
+
+async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
+	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	try {
 		await voiceChannel.join();
 		this.channel.send('**Csatlakozva.**');
 		this.guildPlayer = new GuildPlayer(this.guild, this.channel, []);
-		if (channelToPlay)
-			this.guildPlayer.schedule(Object.assign({ type: 'radio' }, radiosList.get(channelToPlay)));
+		startup(this.guildPlayer);
 	}
 	catch (ex) {
 		this.channel.send('**Hiba a csatlakozás során.**');
 		console.error(ex);
 	}
-});
+}
 actions.set('yt', async function (param) {
-	let voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
+	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	param = param.trim();
 	if (param.search(/https?:\/\//) == 0) {
 		try {
-			let ytPlaylist = await youtube.getPlaylistByUrl(param);
-			let videos = await ytPlaylist.fetchVideos();
+			const ytPlaylist = await youtube.getPlaylistByUrl(param);
+			const videos = await ytPlaylist.fetchVideos();
 			this.channel.send(`**${videos.length} elem került a sorba.**`);
 			return void forceSchedule(this.channel, voiceChannel, this, videos.map(elem => Object.assign({}, {
 				name: elem.title,
@@ -128,7 +68,7 @@ actions.set('yt', async function (param) {
 		catch (ex) {
 			if (ex != 'Not a valid playlist url')
 				return console.error(ex);
-			let ytVideo = await youtube.getVideoByUrl(param);
+			const ytVideo = await youtube.getVideoByUrl(param);
 			return void forceSchedule(this.channel, voiceChannel, this, [{
 				name: ytVideo.title,
 				url: param,
@@ -136,9 +76,9 @@ actions.set('yt', async function (param) {
 			}]);
 		}
 	};
-	let ytString = sscanf(param, '%S') || '';
+	const ytString = sscanf(param, '%S') || '';
 	try {
-		let results = await youtube.searchVideos(ytString, 5);
+		const results = await youtube.searchVideos(ytString, 5);
 		if (!results || results.length == 0)
 			return void this.reply('nincs találat.');
 		await Promise.all(results.map((elem: Video) => elem.fetch()));
@@ -153,7 +93,7 @@ actions.set('yt', async function (param) {
 			}
 			else {
 				const emojis = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣'].slice(0, results.length);
-				let selectionPromise: Promise<number> = new Promise(async (resolve, reject) => {
+				const selectionPromise: Promise<number> = new Promise(async (resolve, reject) => {
 					let counter = 1;
 					embed = commonEmbed.call(this, 'yt')
 						.setTitle("❯ Találatok")
@@ -162,18 +102,18 @@ actions.set('yt', async function (param) {
 					const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
 					const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 30000 });
 					collector.on('collect', (r: Discord.MessageReaction) => {
-						let index = emojis.indexOf(r.emoji.name);
+						const index = emojis.indexOf(r.emoji.name);
 						resolve(index);
 						collector.stop();
 					});
 					collector.on('end', (_: any) => reject('Lejárt a választási idő.'));
-					for (let emoji of emojis) {
-						let reaction = await message.react(emoji);
+					for (const emoji of emojis) {
+						const reaction = await message.react(emoji);
 						selectionPromise.then(_ => reaction.remove(client.user), _ => reaction.remove(client.user));
 					}
 
 				});
-				let which = await selectionPromise;
+				const which = await selectionPromise;
 				selectedResult = results[which];
 			}
 		}
@@ -196,8 +136,8 @@ actions.set('yt', async function (param) {
 	}
 });
 actions.set('custom', async function (param) {
-	let voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
-	let url = sscanf(param, '%s') || '';
+	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
+	const url = sscanf(param, '%s') || '';
 	forceSchedule(this.channel, voiceChannel, this, [{
 		name: 'Custom',
 		url,
@@ -205,13 +145,13 @@ actions.set('custom', async function (param) {
 	}]);
 });
 actions.set('leave', function (_) {
-	let guildPlayer: GuildPlayer = this.guildPlayer;
+	const guildPlayer: GuildPlayer = this.guildPlayer;
 	this.channel.send('**Kilépés**');
 	guildPlayer.leave();
 	this.guildPlayer = undefined; //guildPlayer törlése így tehető meg
 });
 actions.set('repeat', function (param) {
-	let count = sscanf(param, '%d');
+	const count = sscanf(param, '%d');
 	if (count <= 0 && count != null)
 		return void this.reply('pozitív számot kell megadni.');
 	this.guildPlayer.repeat(count);
@@ -219,14 +159,14 @@ actions.set('repeat', function (param) {
 });
 actions.set('radios', async function (_) {
 	function listRadios(lang: string) { //TODO ez is enum: kultkód/nyelvkód
-		let res = [];
-		for (let [key, value] of radiosList) {
+		const res = [];
+		for (const [key, value] of radiosList) {
 			if (value.cult == lang)
 				res.push(`${value.name}** ID:** *${key}*`);
 		}
 		return res.join('\n');
 	}
-	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
+	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 	const baseEmbed: Discord.RichEmbed = commonEmbed.call(this, 'radios').addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
 	await this.channel.send({
 		embed: baseEmbed
@@ -252,7 +192,7 @@ actions.set('toplast', function (_) {
 	this.react('☑');
 });
 actions.set('help', function (param) {
-	let prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
+	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 	let helpCommand = sscanf(param, '%s');
 	const userCommands = [...commands].filter(entry => ['grantable', 'unlimited'].includes(entry[1].type)).map(entry => entry[0]);
 	userCommands.sort();
@@ -262,7 +202,7 @@ actions.set('help', function (param) {
 		const embed = commonEmbed.call(this, 'help')
 			.addField('❯ Felhasználói parancsok', userCommands.map(cmd => `\`${cmd}\``).join(' '))
 			.addField('❯ Adminisztratív parancsok', adminCommands.map(cmd => `\`${cmd}\``).join(' '))
-			.addField('❯ Részletes leírás', `\`${prefix}help <command>\``)
+			.addField('❯ Részconstes leírás', `\`${prefix}help <command>\``)
 			.addField('❯ Egyéb információk', `RAD.io meghívása saját szerverre: [Ide kattintva](https://discordapp.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot)
 Meghívó a RAD.io Development szerverre: [discord.gg/C83h4Sk](https://discord.gg/C83h4Sk)
 A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
@@ -271,10 +211,10 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 	helpCommand = translateAlias(helpCommand);
 	if (commands.has(helpCommand)) {
 		const currentCommand = commands.get(helpCommand);
-		let currentAliases = currentCommand.aliases;
+		const currentAliases = currentCommand.aliases;
 		currentAliases.sort();
 		const embed = commonEmbed.call(this, `help ${helpCommand}`)
-			.addField('❯ Részletes leírás', currentCommand.helpRelated.ownDescription)
+			.addField('❯ Részconstes leírás', currentCommand.helpRelated.ownDescription)
 			.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${currentCommand.helpRelated.params.map((attribute: string) => `<${attribute}>`).join(' ')} \``)
 			.addField('❯ Használat feltételei', (currentCommand.helpRelated.requirements || ['-']).join(' '))
 			.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
@@ -284,18 +224,18 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 });
 actions.set('guilds', async function (_) {
 	const guildLines = client.guilds.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
-	const embed: Discord.RichEmbed = commonEmbed.call(this, 'guilds');
-	await useScrollableEmbed(this, embed, _ => `❯ ${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines);
+	createPastebin(`${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines.join('\n'))
+		.then(link => this.channel.send(link));
 });
 actions.set('connections', async function (_) {
-	const embed: Discord.RichEmbed = commonEmbed.call(this, 'connections');
 	const connectionLines = client.voiceConnections.map(vc => `${vc.channel.guild.name} (${vc.channel.guild.id}) - ${vc.channel.name} (${vc.channel.members.filter(member => !member.user.bot).size})`);
 	const usersAffected = client.voiceConnections.map(vc => vc.channel.members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
-	await useScrollableEmbed(this, embed, _ => `❯ ${client.user.username} on ${client.voiceConnections.size} voice channels with ${usersAffected} users.`, connectionLines);
+	createPastebin(`${client.user.username} on ${client.voiceConnections.size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
+		.then(link => this.channel.send(link));
 });
 actions.set('leaveguild', async function (param) {
-	let id = sscanf(param, '%s');
-	let guildToLeave = await client.guilds.get(id).leave();
+	const id = sscanf(param, '%s');
+	const guildToLeave = await client.guilds.get(id).leave();
 	this.channel.send(`**Szerver elhagyva:** ${guildToLeave.name}`);
 });
 actions.set('voicecount', function (_) {
@@ -318,7 +258,7 @@ actions.set('fallback', async function (param) {
 	config.fallbackModes.set(this.guild.id, <FallbackType>mode);
 	this.channel.send(`**Új fallback: ${mode}. **`);
 	try {
-		await saveRow({ guildID: this.guild.id, type: mode }, 'fallbackModes');
+		await saveRow.fallbackModes({ guildID: this.guild.id, type: <FallbackType>mode });
 	}
 	catch (ex) {
 		console.error(ex);
@@ -326,7 +266,7 @@ actions.set('fallback', async function (param) {
 	}
 });
 actions.set('fallbackradio', async function (param) {
-	let given: string = sscanf(param, '%s') || '';
+	const given: string = sscanf(param, '%s') || '';
 	if (radiosList.has(given)) {
 		var fr: MusicData = Object.assign({ type: 'radio' as StreamType }, radiosList.get(given));
 	}
@@ -341,7 +281,7 @@ actions.set('fallbackradio', async function (param) {
 	config.fallbackChannels.set(this.guild.id, fr);
 	this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`);
 	try {
-		await saveRow({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url }, 'fallbackData');
+		await saveRow.fallbackData({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url });
 	}
 	catch (ex) {
 		console.error(ex);
@@ -352,9 +292,9 @@ actions.set('skip', function (_) {
 	this.guildPlayer.skip();
 });
 actions.set('tune', function (param) {
-	let voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
+	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	let channel = sscanf(param, '%s') || '';
-	let randChannel = randomElement(channels);
+	const randChannel = randomElement(channels);
 	if (!radiosList.has(channel)) {
 		channel = randChannel;
 		this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
@@ -382,7 +322,7 @@ actions.set('denyeveryone', function (param: string) {
 	actions.get('deny').call(this, `${param} @everyone`);
 });
 actions.set('nowplaying', function (_) {
-	let nowPlayingData = this.guildPlayer.getNowPlayingData();
+	const nowPlayingData = this.guildPlayer.getNowPlayingData();
 	if (!nowPlayingData)
 		return void this.channel.send('**CSEND**');
 	const embed = commonEmbed.call(this, 'nowplaying')
@@ -391,7 +331,7 @@ actions.set('nowplaying', function (_) {
 	this.channel.send({ embed });
 });
 actions.set('volume', function (param) {
-	let vol = sscanf(param, '%d');
+	const vol = sscanf(param, '%d');
 	if (vol == undefined || vol <= 0 || vol > 15)
 		return void this.reply('paraméterként szám elvárt. (1-15)');
 	if (vol > 10)
@@ -408,8 +348,8 @@ actions.set('unmute', function (_) {
 	this.react('☑');
 });
 actions.set('announce', function (param) {
-	let [guildInfo, message = ''] = <string[]>sscanf(param, '%s %S');
-	let guildToAnnounce = guildInfo == 'all' ? client.guilds.array() : guildInfo == 'conn' ? client.voiceConnections.map(conn => conn.channel.guild) : [client.guilds.get(guildInfo)];
+	const [guildInfo, message = ''] = <string[]>sscanf(param, '%s %S');
+	const guildToAnnounce = guildInfo == 'all' ? client.guilds.array() : guildInfo == 'conn' ? client.voiceConnections.map(conn => conn.channel.guild) : [client.guilds.get(guildInfo)];
 	guildToAnnounce.forEach(guild => sendGuild(guild, message));
 });
 async function permissionReused(param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
@@ -422,42 +362,22 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 	}
 	if (!permCommands)
 		return void this.reply('az első paraméter üres.');
-	let commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|');
-	let firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
+	const commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|');
+	const firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void this.reply(`\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.`);
-	let role = this.guild.roles.find((elem: Discord.Role) => elem.name == roleName);
+	const role: Discord.Role = this.guild.roles.find((elem: Discord.Role) => elem.name == roleName);
 	if (!role)
 		return void this.reply('nem létezik a megadott role.');
-	let currentRoles = attach(config.roles, this.guild.id, new Map());
-	let roleCommands = attach(currentRoles, role.id, new Array());
+	const currentRoles = attach(config.roles, this.guild.id, new Map());
+	const roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
 	try {
-		await saveRow({ guildID: this.guild.id, roleID: role.id, commands: roleCommands.join('|') }, 'role');
+		await saveRow.role({ guildID: this.guild.id, roleID: role.id, commands: roleCommands.join('|') });
 		this.channel.send(`**Új jogosultságok mentve.**`);
 	}
 	catch (ex) {
 		console.error(ex);
 		this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
-	}
-}
-async function saveRow(rowObj: any, type: TableName) { //a rowObj nem any, igazából ezt szét kéne dobni külön függvényekbe
-	switch (type) {
-		case 'prefix':
-			await database.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
-			await database.run(`INSERT INTO ${type} (guildID, prefix) VALUES (?, ?)`, [rowObj.guildID, rowObj.prefix]);
-			break;
-		case 'fallbackModes':
-			await database.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
-			await database.run(`INSERT INTO ${type} (guildID, type) VALUES (?, ?)`, [rowObj.guildID, rowObj.type]);
-			break;
-		case 'fallbackData':
-			await database.run(`DELETE FROM ${type} WHERE guildID = ?`, rowObj.guildID);
-			await database.run(`INSERT INTO ${type} (guildID, type, name, url) VALUES (?, ?, ?, ?)`, [rowObj.guildID, rowObj.type, rowObj.name, rowObj.url]);
-			break;
-		case 'role':
-			await database.run(`DELETE FROM ${type} WHERE (guildID = ?) AND (roleID = ?)`, [rowObj.guildID, rowObj.roleID]);
-			await database.run(`INSERT INTO ${type} (guildID, roleID, commands) VALUES (?, ?, ?)`, [rowObj.guildID, rowObj.roleID, rowObj.commands]);
-			break;
 	}
 }
