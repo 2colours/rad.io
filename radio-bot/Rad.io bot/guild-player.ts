@@ -57,7 +57,7 @@ class VoiceHandler {
 	eventTriggered() {
 		const voiceEmpty = !this.controlledPlayer.ownerGuild.voiceConnection.channel.members.some(member => !member.user.bot);
 		if (voiceEmpty && !this.timeoutId)
-			this.timeoutId = global.setTimeout(this.controlledPlayer.leave.bind(this.controlledPlayer), 60000 * 5);
+			this.timeoutId = global.setTimeout(()=>this.controlledPlayer.leave(), 60000 * 5);
 		if (!voiceEmpty && this.timeoutId) {
 			global.clearTimeout(this.timeoutId);
 			delete this.timeoutId;
