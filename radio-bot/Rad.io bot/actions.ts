@@ -292,10 +292,10 @@ actions.set('skip', function (_) {
 	this.guildPlayer.skip();
 });
 actions.set('pause', function (_) {
-	this.guilPlayer.pause();
+	this.guildPlayer.pause();
 });
 actions.set('resume', function (_) {
-	this.guilPlayer.resume();
+	this.guildPlayer.resume();
 });
 actions.set('tune', function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
