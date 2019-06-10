@@ -197,7 +197,7 @@ actions.set('help', function (param) {
 		const embed = commonEmbed.call(this, 'help')
 			.addField('❯ Felhasználói parancsok', userCommands.map(cmd => `\`${cmd}\``).join(' '))
 			.addField('❯ Adminisztratív parancsok', adminCommands.map(cmd => `\`${cmd}\``).join(' '))
-			.addField('❯ Részconstes leírás', `\`${prefix}help <command>\``)
+			.addField('❯ Részletes leírás', `\`${prefix}help <command>\``)
 			.addField('❯ Egyéb információk', `RAD.io meghívása saját szerverre: [Ide kattintva](https://discordapp.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot)
 Meghívó a RAD.io Development szerverre: [discord.gg/C83h4Sk](https://discord.gg/C83h4Sk)
 A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
@@ -209,7 +209,7 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 		const currentAliases = currentCommand.aliases;
 		currentAliases.sort();
 		const embed = commonEmbed.call(this, `help ${helpCommand}`)
-			.addField('❯ Részconstes leírás', currentCommand.helpRelated.ownDescription)
+			.addField('❯ Részletes leírás', currentCommand.helpRelated.ownDescription)
 			.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${currentCommand.helpRelated.params.map((attribute: string) => `<${attribute}>`).join(' ')} \``)
 			.addField('❯ Használat feltételei', (currentCommand.helpRelated.requirements || ['-']).join(' '))
 			.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
