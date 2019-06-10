@@ -179,7 +179,7 @@ actions.set('radios', async function (_) {
 			.setDescription(listRadios('eng'))
 	});
 });
-actions.set('shuffle', async function (_) {
+actions.set('shuffle', function (_) {
 	this.guildPlayer.shuffle();
 	this.channel.send('**Sor megkeverve.**');
 });
@@ -290,6 +290,12 @@ actions.set('fallbackradio', async function (param) {
 });
 actions.set('skip', function (_) {
 	this.guildPlayer.skip();
+});
+actions.set('pause', function (_) {
+	this.guilPlayer.pause();
+});
+actions.set('resume', function (_) {
+	this.guilPlayer.resume();
 });
 actions.set('tune', function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;

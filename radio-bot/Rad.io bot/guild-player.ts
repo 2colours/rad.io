@@ -1,17 +1,19 @@
 import * as Discord from 'discord.js';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import { defaultConfig, getEmoji, Config, configPromise, MusicData, StreamType, shuffle } from './internal';
+import { defaultConfig, getEmoji, Config, configPromise, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean } from './internal';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 let config: Config;
 configPromise.then(cfg => config = cfg);
-const downloadMethods = new Map<StreamType,any>([
+const downloadMethods = new Map<StreamType, any>([
 	['yt', ytdl],
-	['custom',(url:string) => url],
-	['radio',(url:string) => url]]);
+	['custom', (url: string) => url],
+	['radio', (url: string) => url]]);
 class Playable {
 	readonly data?: any;
-	skip: any;
-	halt: any;
+	skip: PlayableCallbackVoid;
+	halt: PlayableCallbackVoid;
+	pause: PlayableCallbackBoolean;
+	resume: PlayableCallbackBoolean;
 	started: boolean;
 	constructor(musicData?: MusicData) {
 		this.data = musicData;
@@ -29,6 +31,8 @@ class Playable {
 			if (!this.data) {
 				this.skip = () => resolve(true);
 				this.halt = () => reject('leave');
+				this.pause = () => false;
+				this.resume = () => false;
 				return;
 			}
 			const stream = downloadMethods.get(this.data.type)(this.data.url);
@@ -47,17 +51,23 @@ class Playable {
 				reject('leave');
 				dispatcher.end();
 			};
+			this.pause = () => {
+				return !dispatcher.paused && (dispatcher.pause(), true);
+			};
+			this.resume = () => {
+				return dispatcher.paused && (dispatcher.resume(), true);
+			};
 		});
 	}
 }
 class VoiceHandler {
-	private timeoutId?:NodeJS.Timeout;
+	private timeoutId?: NodeJS.Timeout;
 	constructor(private controlledPlayer: GuildPlayer) {
 	}
 	eventTriggered() {
 		const voiceEmpty = !this.controlledPlayer.ownerGuild.voiceConnection.channel.members.some(member => !member.user.bot);
 		if (voiceEmpty && !this.timeoutId)
-			this.timeoutId = global.setTimeout(()=>this.controlledPlayer.leave(), 60000 * 5);
+			this.timeoutId = global.setTimeout(() => this.controlledPlayer.leave(), 60000 * 5);
 		if (!voiceEmpty && this.timeoutId) {
 			global.clearTimeout(this.timeoutId);
 			delete this.timeoutId;
@@ -134,7 +144,7 @@ export class GuildPlayer {
 		if (this.nowPlaying.started)
 			this.nowPlaying.skip();
 		else {
-			this.nowPlaying = this.queue.shift() || new Playable();
+			this.nowPlaying = this.queue.shift() || new Playable(); //ez akkor fordulhat elő, ha egy playlist-tel indítják a botot vagy egyéb módon bulkSchedule hívódik csend után
 		}
 	}
 	repeat(maxTimes?: number) {
@@ -145,7 +155,7 @@ export class GuildPlayer {
 		else
 			this.nowPlaying.askRepeat = repeatCounter(maxTimes);
 	}
-	schedule(musicData:MusicData) {
+	schedule(musicData: MusicData) {
 		this.queue.push(new Playable(musicData));
 		if (!this.nowPlaying.isDefinite() && this.queue.length == 1) //azért a length==1, mert különben nem arra lépnénk át, amit pont most raktunk be - kicsit furcsa
 			this.skip();
@@ -154,7 +164,7 @@ export class GuildPlayer {
 	}
 	bulkSchedule(musicDatas: MusicData[]) {
 		const autoSkip = !this.nowPlaying.isDefinite() && this.queue.length == 0;
-		for (const musicData of musicDatas) 
+		for (const musicData of musicDatas)
 			this.queue.push(new Playable(musicData));
 		if (autoSkip)
 			this.skip();
@@ -204,11 +214,21 @@ export class GuildPlayer {
 		if (!this.nowPlaying)
 			throw 'destroyed';
 	}
-	getQueueData():MusicData[] {
+	getQueueData(): MusicData[] {
 		return this.queue.map(playable => playable.data);
 	}
 	getNowPlayingData() {
 		return this.nowPlaying.data;
+	}
+	pause() {
+		if (!this.nowPlaying.started || !this.nowPlaying.pause())
+			throw 'Csak lejátszás alatt álló stream szüneteltethető.';
+		this.announcementChannel.send('**Lejátszás felfüggesztve.**');
+	}
+	resume() {
+		if (!this.nowPlaying.started || !this.nowPlaying.resume())
+			throw 'Ez a stream nem folytatható. (Nincs leállítva?)';
+		this.announcementChannel.send('**Lejátszás folytatása...**');
 	}
 }
 function repeatCounter(nTimes: number) {

@@ -55,9 +55,9 @@ const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('**ez a 
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));
 const isPlayingFallbackSet: Predicate = ctx => config.fallbackModes.get(ctx.guild.id) == 'radio';
 const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('**ez a parancs nem használható a jelenlegi fallback beállítással.**'));
-const naturalErrors: Decorator = action => function (param) {
+const naturalErrors: Decorator = action => async function (param) {
 	try {
-		action.call(this, param);
+		await Promise.resolve(action.call(this, param));
 	}
 	catch (ex) {
 		if (typeof ex == 'string')
