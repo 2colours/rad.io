@@ -1,5 +1,5 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
@@ -23,12 +23,7 @@ actions.set('setprefix', async function (param) {
 	}
 });
 actions.set('join', async function (param) {
-	let channelToPlay = sscanf(param, '%s') || '';
-	const randChannel = randomElement(channels);
-	if (channelToPlay && !radiosList.has(channelToPlay)) {
-		channelToPlay = randChannel;
-		this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
-	}
+	const channelToPlay = extractChannel(this, param);
 	joinAndStartup.call(this, (gp: GuildPlayer) => {
 		if (channelToPlay)
 			gp.schedule(Object.assign({ type: 'radio' as StreamType }, radiosList.get(channelToPlay)));
@@ -299,12 +294,7 @@ actions.set('resume', function (_) {
 });
 actions.set('tune', function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
-	let channel = sscanf(param, '%s') || '';
-	const randChannel = randomElement(channels);
-	if (!radiosList.has(channel)) {
-		channel = randChannel;
-		this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
-	}
+	const channel = extractChannel(this, param);
 	forceSchedule(this.channel, voiceChannel, this, [Object.assign({ type: 'radio' as StreamType }, radiosList.get(channel))]);
 });
 actions.set('grant', function (param) {
@@ -387,4 +377,13 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 		console.error(ex);
 		this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
 	}
+}
+
+function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
+	let channelToPlay = sscanf(param, '%s') || '';
+	if (channelToPlay && !radiosList.has(channelToPlay)) {
+		channelToPlay = randomElement(channels);
+		textChannelHolder.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
+	}
+	return channelToPlay;
 }
