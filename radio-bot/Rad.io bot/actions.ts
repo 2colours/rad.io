@@ -328,7 +328,7 @@ actions.set('denyeveryone', function (param: string) {
 	actions.get('deny').call(this, `${param} @everyone`);
 });
 actions.set('nowplaying', function (_) {
-	const nowPlayingData = this.guildPlayer.getNowPlayingData();
+	const nowPlayingData: MusicData = this.guildPlayer.getNowPlayingData();
 	if (!nowPlayingData)
 		return void this.channel.send('**CSEND**');
 	const embed = commonEmbed.call(this, 'nowplaying')
@@ -357,6 +357,7 @@ actions.set('announce', function (param) {
 	const [guildInfo, message = ''] = <string[]>sscanf(param, '%s %S');
 	const guildToAnnounce = guildInfo == 'all' ? client.guilds.array() : guildInfo == 'conn' ? client.voiceConnections.map(conn => conn.channel.guild) : [client.guilds.get(guildInfo)];
 	guildToAnnounce.forEach(guild => sendGuild(guild, message));
+	this.react('☑');
 });
 async function permissionReused(param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
 	try {
