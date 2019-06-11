@@ -9,14 +9,12 @@ const downloadMethods = new Map<StreamType, any>([
 	['custom', (url: string) => url],
 	['radio', (url: string) => url]]);
 class Playable {
-	readonly data?: MusicData;
 	skip: PlayableCallbackVoid;
 	halt: PlayableCallbackVoid;
 	pause: PlayableCallbackBoolean;
 	resume: PlayableCallbackBoolean;
 	started: boolean;
-	constructor(musicData?: MusicData) {
-		this.data = musicData;
+	constructor(readonly data?: MusicData) {
 		this.started = false;
 	}
 	isDefinite() {

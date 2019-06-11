@@ -124,3 +124,6 @@ export async function createPastebin(title: string, content: string): Promise<st
 	let paste: string = await pastebin.createPaste({ text: content, title });
 	return paste;
 }
+export function isLink(text: string) {
+	return text.search(/https?:\/\//) == 0;
+}

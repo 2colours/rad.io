@@ -1,5 +1,5 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
@@ -49,7 +49,7 @@ async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
 actions.set('yt', async function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	param = param.trim();
-	if (param.search(/https?:\/\//) == 0) {
+	if (isLink(param)) {
 		try {
 			const ytPlaylist = await youtube.getPlaylistByUrl(param);
 			const videos = await ytPlaylist.fetchVideos();
