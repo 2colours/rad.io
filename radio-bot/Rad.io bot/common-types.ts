@@ -98,7 +98,7 @@ interface HelpInfo {
 export class Creator {
 	constructor(readonly id: Snowflake, private alias: string) {
 	}
-	resolve():string {
+	resolve() {
 		const user = client.users.get(this.id);
 		return user ? user.tag : this.alias;
 	}

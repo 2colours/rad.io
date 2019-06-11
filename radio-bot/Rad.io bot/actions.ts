@@ -176,11 +176,11 @@ actions.set('radios', async function (_) {
 });
 actions.set('shuffle', function (_) {
 	this.guildPlayer.shuffle();
-	this.channel.send('**Sor megkeverve.**');
+	this.react('☑');
 });
 actions.set('clear', function (_) {
 	this.guildPlayer.clear();
-	this.channel.send('**Sor törölve.**');
+	this.react('☑');
 });
 actions.set('toplast', function (_) {
 	this.guildPlayer.topLast();
