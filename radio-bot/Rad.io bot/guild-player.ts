@@ -189,7 +189,7 @@ export class GuildPlayer {
 		const fallbackMode = config.fallbackModes.get(this.ownerGuild.id) || defaultConfig.fallback;
 		switch (fallbackMode) {
 			case 'radio':
-				const fallbackMusic = config.fallbackChannels.get(this.ownerGuild.id)
+				const fallbackMusic = config.fallbackChannels.get(this.ownerGuild.id);
 				if (!fallbackMusic)
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
 				this.nowPlaying = new Playable(fallbackMusic);
