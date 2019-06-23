@@ -277,7 +277,12 @@ const radios = {
 	'hitserbia': {
 		name: 'Hit Music FM',
 		url: 'http://streaming11.tdiradio.com:8000/hit',
-		cult: 'eng',
+		cult: 'eng'
+	},
+	'radiof1': {
+		name: 'Rádio frekvence jedna',
+		url: 'http://icecast3.play.cz/frekvence1-128.mp3',
+		cult: 'eng'
 	}
 };
 const r: Map<string, RadioData> = new Map(Object.entries(radios));
