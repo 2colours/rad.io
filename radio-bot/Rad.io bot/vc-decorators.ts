@@ -61,7 +61,7 @@ const naturalErrors: Decorator = action => async function (param) {
 	}
 	catch (ex) {
 		if (typeof ex == 'string')
-			return void this.reply(`**hiba - ${ex}**`);
+			return void this.reply(`hiba - ${ex}`);
 		console.error(ex);
 	}
 };
