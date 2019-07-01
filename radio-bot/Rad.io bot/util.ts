@@ -20,9 +20,11 @@ export function shuffle(array: any[]) {
 		[array[i], array[j]] = [array[j], array[i]];
 	}
 }
-export function hourMinSec(minutes: number, seconds: number) { //a seconds bugosnak bizonyult - már javítva?
-	const hours = Math.floor(minutes / 60);
-	minutes %= 60;
+export function hourMinSec(seconds: number) {
+	const hours = Math.floor(seconds / 3600);
+	seconds %= 3600;
+	const minutes = Math.floor(seconds / 60);
+	seconds %= 60;
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
 export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
@@ -49,11 +51,11 @@ export async function forceSchedule(textChannel: TextChannel, voiceChannel: Voic
 	else
 		holder.guildPlayer.bulkSchedule(playableData);
 };
-export function commonEmbed(cmd: string) { //TODO ez sem akármilyen string, hanem parancsnév
+export function commonEmbed(additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
 	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 	return new RichEmbed()
 		.setColor(embedC)
-		.setFooter(`${prefix}${cmd} - ${client.user.username}`, client.user.avatarURL)
+		.setFooter(`${prefix}${this.cmdName}${additional} - ${client.user.username}`, client.user.avatarURL)
 		.setTimestamp();
 };
 function scrollRequest(context: AuthorHolder, message: Message, currentPage: number, allPages: number) {

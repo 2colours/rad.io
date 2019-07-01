@@ -103,3 +103,7 @@ export class Creator {
 		return user ? user.tag : this.alias;
 	}
 }
+export interface SearchResultView {
+	title: string;
+	duration: number; //másodpercben
+}

@@ -4,6 +4,7 @@ const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
+import { SearchResultView } from './common-types';
 let config: Config;
 configPromise.then(cfg => config = cfg);
 export const actions: Map<string, Action> = new Map();
@@ -51,25 +52,14 @@ actions.set('yt', async function (param) {
 	param = param.trim();
 	if (isLink(param)) {
 		try {
-			const ytPlaylist = await youtube.getPlaylistByUrl(param);
-			const videos = await ytPlaylist.fetchVideos();
-			this.channel.send(`**${videos.length} elem került a sorba.**`);
-			return void forceSchedule(this.channel, voiceChannel, this, videos.map(elem => Object.assign({}, {
-				name: elem.title,
-				url: elem.url,
-				type: 'yt'
-			}) as MusicData));
+			var toSchedule = await resolveYoutubeUrl(param);
 		}
 		catch (ex) {
-			if (ex != 'Not a valid playlist url')
-				return console.error(ex);
-			const ytVideo = await youtube.getVideoByUrl(param);
-			return void forceSchedule(this.channel, voiceChannel, this, [{
-				name: ytVideo.title,
-				url: param,
-				type: 'yt'
-			}]);
+			return void this.channel.send('**Érvénytelen youtube url.**');
 		}
+		if (toSchedule.length > 1)
+			this.channel.send(`**${toSchedule.length} elem került a sorba.**`);
+		return void forceSchedule(this.channel, voiceChannel, this, toSchedule);
 	};
 	const ytString = sscanf(param, '%S') || '';
 	try {
@@ -78,47 +68,12 @@ actions.set('yt', async function (param) {
 			return void this.channel.send('nincs találat.');
 		await Promise.all(results.map((elem: Video) => elem.fetch()));
 		try {
-			var message, embed;
-			var selectedResult;
-			if (results.length == 1)
-				selectedResult = results[0];
-			else if (!this.guild.member(client.user).permissions.has('ADD_REACTIONS')) {
-				this.channel.send('** Az opciók közüli választáshoz a botnak **`ADD_REACTIONS`** jogosultságra van szüksége.\nAutomatikusan az első opció kiválasztva. **');
-				selectedResult = results[0];
-			}
-			else {
-				const emojis = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣'].slice(0, results.length);
-				const selectionPromise: Promise<number> = new Promise(async (resolve, reject) => {
-					let counter = 1;
-					embed = commonEmbed.call(this, 'yt')
-						.setTitle("❯ Találatok")
-						.setDescription(results.map((elem: Video) => `__${counter++}.__ - ${elem.title} \`(${hourMinSec(elem.minutes, elem.seconds)})\``).join('\n'));
-					message = await this.channel.send(embed);
-					const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
-					const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 30000 });
-					collector.on('collect', (r: Discord.MessageReaction) => {
-						const index = emojis.indexOf(r.emoji.name);
-						resolve(index);
-						collector.stop();
-					});
-					collector.on('end', (_: any) => reject('Lejárt a választási idő.'));
-					for (const emoji of emojis) {
-						const reaction = await message.react(emoji);
-						selectionPromise.then(_ => reaction.remove(client.user), _ => reaction.remove(client.user));
-					}
-
-				});
-				const which = await selectionPromise;
-				selectedResult = results[which];
-			}
+			var index: number = await searchPick.call(this, results);
 		}
-		catch (err) {
-			if (typeof err != 'string')
-				return void console.log(err);
-			embed.setTitle(`❯ Találatok - ${err}`);
-			message.edit(embed);
+		catch (ex) {
 			return;
 		}
+		const selectedResult = results[index];
 		forceSchedule(this.channel, voiceChannel, this, [{
 			name: selectedResult.title,
 			url: selectedResult.url,
@@ -162,7 +117,7 @@ actions.set('radios', async function (_) {
 		return res.join('\n');
 	}
 	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
-	const baseEmbed: Discord.RichEmbed = commonEmbed.call(this, 'radios').addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
+	const baseEmbed: Discord.RichEmbed = commonEmbed.call(this).addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
 	await this.channel.send({
 		embed: baseEmbed
 			.setTitle('❯ Magyar rádiók')
@@ -194,7 +149,7 @@ actions.set('help', function (param) {
 	const adminCommands = [...commands].filter(entry => ['adminOnly'].includes(entry[1].type)).map(entry => entry[0]);
 	adminCommands.sort();
 	if (!helpCommand) {
-		const embed = commonEmbed.call(this, 'help')
+		const embed = commonEmbed.call(this)
 			.addField('❯ Felhasználói parancsok', userCommands.map(cmd => `\`${cmd}\``).join(' '))
 			.addField('❯ Adminisztratív parancsok', adminCommands.map(cmd => `\`${cmd}\``).join(' '))
 			.addField('❯ Részletes leírás', `\`${prefix}help <command>\``)
@@ -208,7 +163,7 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 		const currentCommand = commands.get(helpCommand);
 		const currentAliases = currentCommand.aliases;
 		currentAliases.sort();
-		const embed = commonEmbed.call(this, `help ${helpCommand}`)
+		const embed = commonEmbed.call(this, ` ${helpCommand}`)
 			.addField('❯ Részletes leírás', currentCommand.helpRelated.ownDescription)
 			.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${currentCommand.helpRelated.params.map((attribute: string) => `<${attribute}>`).join(' ')} \``)
 			.addField('❯ Használat feltételei', (currentCommand.helpRelated.requirements || ['-']).join(' '))
@@ -240,7 +195,7 @@ actions.set('queue', async function (_) {
 	const queue: MusicData[] = this.guildPlayer.getQueueData();
 	if (queue.length == 0)
 		return void this.channel.send('**A sor jelenleg üres.**');
-	const embed = commonEmbed.call(this, 'queue');
+	const embed = commonEmbed.call(this);
 	const queueLines = queue.map(elem => `${getEmoji(elem.type)} ${elem.name}`);
 	await useScrollableEmbed(this, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}`, queueLines);
 });
@@ -321,7 +276,7 @@ actions.set('nowplaying', function (_) {
 	const nowPlayingData: MusicData = this.guildPlayer.getNowPlayingData();
 	if (!nowPlayingData)
 		return void this.channel.send('**CSEND**');
-	const embed = commonEmbed.call(this, 'nowplaying')
+	const embed = commonEmbed.call(this)
 		.setTitle('❯ Épp játszott stream')
 		.setDescription(`${getEmoji(nowPlayingData.type)} ${nowPlayingData.name}`);
 	this.channel.send({ embed });
@@ -386,4 +341,72 @@ function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
 		textChannelHolder.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
 	}
 	return channelToPlay;
+}
+
+async function resolveYoutubeUrl(url: string): Promise<MusicData[]> {
+	try {
+		const ytPlaylist = await youtube.getPlaylistByUrl(url);
+		const videos = await ytPlaylist.fetchVideos();
+		return videos.map(elem => Object.assign({}, {
+			name: elem.title,
+			url: elem.url,
+			type: 'yt'
+		}) as MusicData);
+	}
+	catch (ex) {
+		if (ex != 'Not a valid playlist url')
+			throw ex;
+		const ytVideo = await youtube.getVideoByUrl(url);
+		return [{
+			name: ytVideo.title,
+			url,
+			type: 'yt'
+		}];
+	}
+}
+
+async function searchPick(results: SearchResultView[]): Promise<number> {
+	try {
+		var message, embed;
+		if (results.length == 1)
+			return 0;
+		else if (!this.guild.member(client.user).permissions.has('ADD_REACTIONS')) {
+			this.channel.send('** Az opciók közüli választáshoz a botnak **`ADD_REACTIONS`** jogosultságra van szüksége.\nAutomatikusan az első opció kiválasztva. **');
+			return 0;
+		}
+		else {
+			const emojis = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣'].slice(0, results.length);
+			const selectionPromise: Promise<number> = new Promise(async (resolve, reject) => {
+				let counter = 1;
+				embed = commonEmbed.call(this)
+					.setTitle("❯ Találatok")
+					.setDescription(results.map(elem => `__${counter++}.__ - ${elem.title} \`(${hourMinSec(elem.duration)})\``).join('\n'));
+				message = await this.channel.send(embed);
+				const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
+				const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 30000 });
+				collector.on('collect', (r: Discord.MessageReaction) => {
+					const index = emojis.indexOf(r.emoji.name);
+					resolve(index);
+					collector.stop();
+				});
+				collector.on('end', (_: any) => reject('Lejárt a választási idő.'));
+				for (const emoji of emojis) {
+					const reaction = await message.react(emoji);
+					selectionPromise.then(_ => reaction.remove(client.user), _ => reaction.remove(client.user));
+				}
+
+			});
+			const which = await selectionPromise;
+			return which;
+		}
+	}
+	catch (err) {
+		if (typeof err != 'string')
+			console.log(err);
+		else {
+			embed.setTitle(`❯ Találatok - ${err}`);
+			message.edit(embed);
+		}
+		throw err;
+	}
 }
