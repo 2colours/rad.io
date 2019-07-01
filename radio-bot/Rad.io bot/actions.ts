@@ -75,7 +75,7 @@ actions.set('yt', async function (param) {
 	try {
 		const results = await youtube.searchVideos(ytString, 5);
 		if (!results || results.length == 0)
-			return void this.reply('nincs találat.');
+			return void this.channel.send('nincs találat.');
 		await Promise.all(results.map((elem: Video) => elem.fetch()));
 		try {
 			var message, embed;
@@ -234,7 +234,7 @@ actions.set('leaveguild', async function (param) {
 	this.channel.send(`**Szerver elhagyva:** ${guildToLeave.name}`);
 });
 actions.set('voicecount', function (_) {
-	this.channel.send(`${client.voiceConnections.array().length} voice connection(s) right now.`);
+	this.channel.send(`:information_source: ${client.voiceConnections.array().length} voice connection(s) right now.`);
 });
 actions.set('queue', async function (_) {
 	const queue: MusicData[] = this.guildPlayer.getQueueData();
@@ -249,7 +249,7 @@ actions.set('fallback', async function (param) {
 	let mode = sscanf(param, '%s') || '';
 	mode = aliases.get(mode) || mode;
 	if (!<FallbackType>mode)
-		return void this.reply("ilyen fallback mód nem létezik.");
+		return void this.reply('**ilyen fallback mód nem létezik.**');
 	config.fallbackModes.set(this.guild.id, <FallbackType>mode);
 	this.channel.send(`**Új fallback: ${mode}. **`);
 	try {
@@ -355,17 +355,17 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 	}
 	catch (ex) {
 		//Nem nyertünk ki értelmeset
-		return void this.reply('nem megfelelő formátum.');
+		return void this.reply('**nem megfelelő formátum.**');
 	}
 	if (!permCommands)
-		return void this.reply('az első paraméter üres.');
+		return void this.reply('**az első paraméter üres.**');
 	const commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|');
 	const firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
-		return void this.reply(`\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.`);
+		return void this.reply(`**\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.**`);
 	const role: Discord.Role = this.guild.roles.find((elem: Discord.Role) => elem.name == roleName);
 	if (!role)
-		return void this.reply('nem létezik a megadott role.');
+		return void this.channel.send('**nem létezik a megadott role.**');
 	const currentRoles = attach(config.roles, this.guild.id, new Map());
 	const roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
