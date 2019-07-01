@@ -67,8 +67,11 @@ actions.set('yt', async function (param) {
 		if (!results || results.length == 0)
 			return void this.channel.send('nincs találat.');
 		await Promise.all(results.map((elem: Video) => elem.fetch()));
+		const resultsView: SearchResultView[] = results.map(elem => Object.assign({}, {
+			title: elem.title, duration: elem.minutes * 60 + elem.seconds
+		}));
 		try {
-			var index: number = await searchPick.call(this, results);
+			var index: number = await searchPick.call(this, resultsView);
 		}
 		catch (ex) {
 			return;
