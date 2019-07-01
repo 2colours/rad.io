@@ -47,8 +47,14 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 	const guildPlayer = guildPlayers.get(id);
 	if (!guildPlayer)
 		return;
-	if (oldMember.user == client.user && oldMember.voiceChannel && newMember.voiceChannel) //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia
-		guildPlayer.handler.eventTriggered();
+	if (oldMember.user == client.user && oldMember.voiceChannel)
+		if (newMember.voiceChannel) //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia
+			guildPlayer.handler.eventTriggered();
+		else {//ha a botot elküldik - régen ilyen nem volt :))
+			console.log('kthxbye');
+			guildPlayer.leave();
+			guildPlayers.set(id, undefined);
+		}
 	if (oldMember.user.bot) //innen csak nem botokra figyelünk
 		return;
 	if ([oldMember.voiceChannel, newMember.voiceChannel].includes(guildPlayer.ownerGuild.voiceConnection.channel))
@@ -95,7 +101,7 @@ async function sendWelcome(guild: Discord.Guild) {
 		.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${debatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
 		.setColor(embedC)
 		.setTimestamp();
-	sendGuild(guild, devServerInvite,{ embed });
+	sendGuild(guild, devServerInvite, { embed });
 }
 
 function setPStatus() {

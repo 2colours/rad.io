@@ -1,5 +1,5 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
@@ -23,12 +23,7 @@ actions.set('setprefix', async function (param) {
 	}
 });
 actions.set('join', async function (param) {
-	let channelToPlay = sscanf(param, '%s') || '';
-	const randChannel = randomElement(channels);
-	if (channelToPlay && !radiosList.has(channelToPlay)) {
-		channelToPlay = randChannel;
-		this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
-	}
+	const channelToPlay = extractChannel(this, param);
 	joinAndStartup.call(this, (gp: GuildPlayer) => {
 		if (channelToPlay)
 			gp.schedule(Object.assign({ type: 'radio' as StreamType }, radiosList.get(channelToPlay)));
@@ -54,7 +49,7 @@ async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
 actions.set('yt', async function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	param = param.trim();
-	if (param.search(/https?:\/\//) == 0) {
+	if (isLink(param)) {
 		try {
 			const ytPlaylist = await youtube.getPlaylistByUrl(param);
 			const videos = await ytPlaylist.fetchVideos();
@@ -179,13 +174,13 @@ actions.set('radios', async function (_) {
 			.setDescription(listRadios('eng'))
 	});
 });
-actions.set('shuffle', async function (_) {
+actions.set('shuffle', function (_) {
 	this.guildPlayer.shuffle();
-	this.channel.send('**Sor megkeverve.**');
+	this.react('☑');
 });
 actions.set('clear', function (_) {
 	this.guildPlayer.clear();
-	this.channel.send('**Sor törölve.**');
+	this.react('☑');
 });
 actions.set('toplast', function (_) {
 	this.guildPlayer.topLast();
@@ -202,7 +197,7 @@ actions.set('help', function (param) {
 		const embed = commonEmbed.call(this, 'help')
 			.addField('❯ Felhasználói parancsok', userCommands.map(cmd => `\`${cmd}\``).join(' '))
 			.addField('❯ Adminisztratív parancsok', adminCommands.map(cmd => `\`${cmd}\``).join(' '))
-			.addField('❯ Részconstes leírás', `\`${prefix}help <command>\``)
+			.addField('❯ Részletes leírás', `\`${prefix}help <command>\``)
 			.addField('❯ Egyéb információk', `RAD.io meghívása saját szerverre: [Ide kattintva](https://discordapp.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot)
 Meghívó a RAD.io Development szerverre: [discord.gg/C83h4Sk](https://discord.gg/C83h4Sk)
 A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
@@ -214,7 +209,7 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 		const currentAliases = currentCommand.aliases;
 		currentAliases.sort();
 		const embed = commonEmbed.call(this, `help ${helpCommand}`)
-			.addField('❯ Részconstes leírás', currentCommand.helpRelated.ownDescription)
+			.addField('❯ Részletes leírás', currentCommand.helpRelated.ownDescription)
 			.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${currentCommand.helpRelated.params.map((attribute: string) => `<${attribute}>`).join(' ')} \``)
 			.addField('❯ Használat feltételei', (currentCommand.helpRelated.requirements || ['-']).join(' '))
 			.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
@@ -291,14 +286,15 @@ actions.set('fallbackradio', async function (param) {
 actions.set('skip', function (_) {
 	this.guildPlayer.skip();
 });
+actions.set('pause', function (_) {
+	this.guildPlayer.pause();
+});
+actions.set('resume', function (_) {
+	this.guildPlayer.resume();
+});
 actions.set('tune', function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
-	let channel = sscanf(param, '%s') || '';
-	const randChannel = randomElement(channels);
-	if (!radiosList.has(channel)) {
-		channel = randChannel;
-		this.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
-	}
+	const channel = extractChannel(this, param);
 	forceSchedule(this.channel, voiceChannel, this, [Object.assign({ type: 'radio' as StreamType }, radiosList.get(channel))]);
 });
 actions.set('grant', function (param) {
@@ -322,7 +318,7 @@ actions.set('denyeveryone', function (param: string) {
 	actions.get('deny').call(this, `${param} @everyone`);
 });
 actions.set('nowplaying', function (_) {
-	const nowPlayingData = this.guildPlayer.getNowPlayingData();
+	const nowPlayingData: MusicData = this.guildPlayer.getNowPlayingData();
 	if (!nowPlayingData)
 		return void this.channel.send('**CSEND**');
 	const embed = commonEmbed.call(this, 'nowplaying')
@@ -351,6 +347,7 @@ actions.set('announce', function (param) {
 	const [guildInfo, message = ''] = <string[]>sscanf(param, '%s %S');
 	const guildToAnnounce = guildInfo == 'all' ? client.guilds.array() : guildInfo == 'conn' ? client.voiceConnections.map(conn => conn.channel.guild) : [client.guilds.get(guildInfo)];
 	guildToAnnounce.forEach(guild => sendGuild(guild, message));
+	this.react('☑');
 });
 async function permissionReused(param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
 	try {
@@ -380,4 +377,13 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 		console.error(ex);
 		this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
 	}
+}
+
+function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
+	let channelToPlay = sscanf(param, '%s') || '';
+	if (channelToPlay && !radiosList.has(channelToPlay)) {
+		channelToPlay = randomElement(channels);
+		textChannelHolder.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
+	}
+	return channelToPlay;
 }

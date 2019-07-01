@@ -11,6 +11,8 @@ export type Action = (param:string) => Resolvable<void>;
 export type Decorator = (toDecorate:Action) => Action;
 export type Predicate = (x: ThisBinding) => Resolvable<boolean>;
 export type ScrollableEmbedTitleResolver = (currentPage: number, maxPage: number) => string;
+export type PlayableCallbackVoid = () => void;
+export type PlayableCallbackBoolean = () => boolean;
 export interface PackedMessage extends Message {
 	cmdName:string;
 }
@@ -96,7 +98,7 @@ interface HelpInfo {
 export class Creator {
 	constructor(readonly id: Snowflake, private alias: string) {
 	}
-	resolve():string {
+	resolve() {
 		const user = client.users.get(this.id);
 		return user ? user.tag : this.alias;
 	}

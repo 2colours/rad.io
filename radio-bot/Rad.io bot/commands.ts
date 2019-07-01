@@ -206,6 +206,24 @@ setupCommand({
 });
 
 setupCommand({
+	name: 'pause',
+	aliases: [],
+	params: [],
+	descrip: 'Az aktuálisan játszott stream szüneteltetése. (Figyelem: online stream eközben tovább haladhat.)',
+	type: 'grantable',
+	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.nonSilenceNeded])
+});
+
+setupCommand({
+	name: 'resume',
+	aliases: ['r'],
+	params: [],
+	descrip: 'Felfüggesztett stream folytatása. (Figyelem: online stream esetében ez ugrással járhat.)',
+	type: 'grantable',
+	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.nonSilenceNeded])
+});
+
+setupCommand({
 	name: 'tune',
 	aliases: ['t'],
 	params: ['ID'],

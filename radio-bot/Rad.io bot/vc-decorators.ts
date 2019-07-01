@@ -20,7 +20,7 @@ const isAloneUser: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voiceConnection
 const isAloneBot: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
 const rejectReply=(replyMessage:string)=>(_:Action)=>function(_:string) {
-this.reply(replyMessage);
+this.reply(`**${replyMessage}**`);
 };
 const nop:Decorator=_=>_=>{};
 const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
@@ -50,14 +50,14 @@ const parameterNeeded: Decorator = action => function (param) {
 const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
 const isFallback: Predicate = ctx => ctx.guildPlayer.fallbackPlayed;
 const isSilence: Predicate = ctx => !ctx.guildPlayer.nowPlaying.data;
-const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('**ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).**'), pass);
-const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('**ez a parancs nem használható, amikor semmi nem szól (leave-eld a botot vagy ütemezz be valamilyen zenét).**'), pass);
+const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
+const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('ez a parancs nem használható, amikor semmi nem szól (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));
 const isPlayingFallbackSet: Predicate = ctx => config.fallbackModes.get(ctx.guild.id) == 'radio';
-const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('**ez a parancs nem használható a jelenlegi fallback beállítással.**'));
-const naturalErrors: Decorator = action => function (param) {
+const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('ez a parancs nem használható a jelenlegi fallback beállítással.'));
+const naturalErrors: Decorator = action => async function (param) {
 	try {
-		action.call(this, param);
+		await Promise.resolve(action.call(this, param));
 	}
 	catch (ex) {
 		if (typeof ex == 'string')

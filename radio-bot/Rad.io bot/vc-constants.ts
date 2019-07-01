@@ -1,4 +1,4 @@
-﻿import { FallbackType, StreamType, EmojiLike, Creator } from './internal';
+﻿import { FallbackType, StreamType, EmojiLike, Creator, RadioData } from './internal';
 export const defaultConfig = {
 	prefix: '.',
 	fallback: 'radio' as FallbackType
@@ -277,10 +277,15 @@ const radios = {
 	'hitserbia': {
 		name: 'Hit Music FM',
 		url: 'http://streaming11.tdiradio.com:8000/hit',
-		cult: 'eng',
+		cult: 'eng'
+	},
+	'radiof1': {
+		name: 'Rádio frekvence jedna',
+		url: 'http://icecast3.play.cz/frekvence1-128.mp3',
+		cult: 'eng'
 	}
 };
-const r = new Map(Object.entries(radios));
+const r: Map<string, RadioData> = new Map(Object.entries(radios));
 export { r as radios };
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
