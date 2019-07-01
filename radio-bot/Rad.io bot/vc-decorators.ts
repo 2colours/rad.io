@@ -20,7 +20,7 @@ const isAloneUser: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voiceConnection
 const isAloneBot: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
 const rejectReply=(replyMessage:string)=>(_:Action)=>function(_:string) {
-this.reply(`**{replyMessage}**`);
+this.reply(`**${replyMessage}**`);
 };
 const nop:Decorator=_=>_=>{};
 const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
