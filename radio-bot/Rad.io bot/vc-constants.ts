@@ -290,11 +290,13 @@ export { r as radios };
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 const youtubeEmoji = '<:youtube:506897247145951233>';
+const soundcloudEmoji = '<:sc:595619676827025408>';
 export function getEmoji(type: StreamType): EmojiLike {
 	const emojis: Map<StreamType, EmojiLike> = new Map<StreamType, EmojiLike>([
 		['yt', youtubeEmoji],
 		['radio', ':radio:'],
-		['custom', ':radio:']
+		['custom', ':radio:'],
+		['sc', soundcloudEmoji]
 	]);
 	return emojis.get(type);
 }

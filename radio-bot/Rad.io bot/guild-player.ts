@@ -7,7 +7,8 @@ configPromise.then(cfg => config = cfg);
 const downloadMethods = new Map<StreamType, any>([
 	['yt', ytdl],
 	['custom', (url: string) => url],
-	['radio', (url: string) => url]]);
+	['radio', (url: string) => url],
+	['sc', (url: string) => url]]);
 class Playable {
 	skip: PlayableCallbackVoid;
 	halt: PlayableCallbackVoid;
@@ -18,7 +19,8 @@ class Playable {
 		this.started = false;
 	}
 	isDefinite() {
-		return this.data && ['yt', 'custom'].includes(this.data.type);
+		const definiteTypes: StreamType[] = ['yt', 'custom', 'sc'];
+		return !!this.data && definiteTypes.includes(this.data.type);
 	}
 	askRepeat() {
 		return false;

@@ -46,7 +46,7 @@ export interface RoleTableData {
 	roleID: Snowflake;
 	commands: string;
 }
-export type StreamType = 'yt' | 'custom' | 'radio';
+export type StreamType = 'yt' | 'custom' | 'radio' | 'sc';
 export interface MusicData {
 	name:string;
 	url: string;
@@ -106,4 +106,8 @@ export class Creator {
 export interface SearchResultView {
 	title: string;
 	duration: number; //másodpercben
+}
+
+export interface SoundcloudResult extends SearchResultView {
+	url: string;
 }

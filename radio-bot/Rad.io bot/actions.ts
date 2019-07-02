@@ -1,10 +1,9 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, SoundcloudResult } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
-import { SearchResultView } from './common-types';
 let config: Config;
 configPromise.then(cfg => config = cfg);
 export const actions: Map<string, Action> = new Map();
@@ -81,6 +80,31 @@ actions.set('yt', async function (param) {
 			name: selectedResult.title,
 			url: selectedResult.url,
 			type: 'yt'
+		}]);
+	}
+	catch (e) {
+		console.error(e);
+		this.channel.send('**Hiba a keresés során.**');
+	}
+});
+actions.set('soundcloud', async function (param) {
+	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
+	const scString = sscanf(param, '%S') || '';
+	try {
+		const results = await soundcloudSearch(scString, 5);
+		if (!results || results.length == 0)
+			return void this.channel.send('nincs találat.');
+		try {
+			var index: number = await searchPick.call(this, results);
+		}
+		catch (ex) {
+			return;
+		}
+		const selectedResult = results[index];
+		forceSchedule(this.channel, voiceChannel, this, [{
+			name: selectedResult.title,
+			url: selectedResult.url,
+			type: 'sc'
 		}]);
 	}
 	catch (e) {
