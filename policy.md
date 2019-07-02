@@ -10,3 +10,7 @@ Ha egy típus nem alkot önálló szerkezeti egységet: common-types.
 Ez érvényes akkor is, ha egy önálló szerkezeti egységben csak publikus interfész-funkciót lát el.  
 Ha egy függvény privát és csak kódrefaktorálási célt szolgál (nem önálló funkcionalitás), akkor a használó modulba kerüljön.  
 Ellenkező esetben: util megfontolandó.
+## Elnevezések:
+Soundcloud, Youtube a nevek  
+camelCase a preferált const, let és var és függvények esetében  
+PascalCase a típusok esetében
