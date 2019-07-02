@@ -2,13 +2,14 @@ import * as Discord from 'discord.js';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
 import { defaultConfig, getEmoji, Config, configPromise, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean } from './internal';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
+const clientId = process.env.soundcloudClientId;
 let config: Config;
 configPromise.then(cfg => config = cfg);
 const downloadMethods = new Map<StreamType, any>([
 	['yt', ytdl],
 	['custom', (url: string) => url],
 	['radio', (url: string) => url],
-	['sc', (url: string) => url]]);
+	['sc', (url: string) => `${url}?client_id=${clientId}`]]);
 class Playable {
 	skip: PlayableCallbackVoid;
 	halt: PlayableCallbackVoid;
