@@ -6,6 +6,6 @@ export async function soundcloudSearch(keywords: string, amount: number): Promis
 	return response.map(elem => Object.assign({}, {
 		url: elem.stream_url as string,
 		title: elem.title as string,
-		duration: elem.duration/1000
+		duration: Math.round(elem.duration/1000)
 	}));
 }
