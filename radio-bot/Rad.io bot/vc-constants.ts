@@ -11,7 +11,7 @@ const radios = {
 	},
 	'radio1': {
 		name: 'Rádió 1',
-		url: 'http://stream2.radio1.hu/mid.mp3#.mp3',
+		url: 'http://stream5.radio1.hu/mid.mp3',
 		cult: 'hun'
 	},
 	'petofi': {
