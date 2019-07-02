@@ -46,7 +46,16 @@ setupCommand({
 	name: 'yt',
 	aliases: [],
 	params: ['URL / cím'],
-	descrip: 'YouTube stream sorba ütemezése URL vagy keresőszó alapján. Keresőszó esetén a választás a bot által elhelyezett reakciók szerint történik.',
+	descrip: 'Youtube stream sorba ütemezése URL vagy keresőszó alapján. Keresőszó esetén a választás a bot által elhelyezett reakciók szerint történik.',
+	type: 'unlimited',
+	filters: new Set([Filter.vcUserNeeded, Filter.vcPermissionNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
+});
+
+setupCommand({
+	name: 'soundcloud',
+	aliases: ['sc'],
+	params: ['cím'],
+	descrip: 'Soundcloud stream sorba ütemezése keresőszó alapján. A választás a bot által elhelyezett reakciók szerint történik.',
 	type: 'unlimited',
 	filters: new Set([Filter.vcUserNeeded, Filter.vcPermissionNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
 });
