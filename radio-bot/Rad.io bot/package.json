@@ -17,7 +17,8 @@
     "scanf": "^1.0.2",
     "sqlite": "^3.0.3",
     "typescript": "^3.4.4",
-    "ytdl-core": "^0.29.2"
+    "ytdl-core": "^0.29.2",
+    "ytdl-core-discord": "^1.0.3"
   },
   "engines": {
     "node": "8.11.1"
