@@ -22,7 +22,9 @@ client.on('message', async (message) => {
 	if (message.guild == null) return;
 	const prefix = config.prefixes.get(message.guild.id) || defaultConfig.prefix;
 	if (message.mentions.users.has(client.user.id))
-		return void help.call(message, '');
+		return void help.call(Object.assign(message, {
+			cmdName: 'help'
+		}), '');
 	const content = message.content;
 	if (!content.toLowerCase().startsWith(prefix)) return;
 	try {
