@@ -4,6 +4,7 @@ const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
+import { soundcloudResolveTrack } from './soundcloud-util';
 let config: Config;
 configPromise.then(cfg => config = cfg);
 export const actions: Map<string, Action> = new Map();
@@ -90,26 +91,42 @@ actions.set('yt', async function (param) {
 actions.set('soundcloud', async function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	const scString = sscanf(param, '%S') || '';
-	try {
-		const results = await soundcloudSearch(scString, 5);
-		if (!results || results.length == 0)
-			return void this.channel.send('nincs találat.');
+	if (isLink(scString)) {
 		try {
-			var index: number = await searchPick.call(this, results);
+			const track = await soundcloudResolveTrack(scString);
+			forceSchedule(this.channel, voiceChannel, this, [{
+				name: track.title,
+				url: track.url,
+				type: 'sc'
+			}]);
 		}
-		catch (ex) {
-			return;
+		catch (e) {
+			console.error(e);
+			this.channel.send('**Hiba a keresés során.**');
 		}
-		const selectedResult = results[index];
-		forceSchedule(this.channel, voiceChannel, this, [{
-			name: selectedResult.title,
-			url: selectedResult.url,
-			type: 'sc'
-		}]);
 	}
-	catch (e) {
-		console.error(e);
-		this.channel.send('**Hiba a keresés során.**');
+	else {
+		try {
+			const results = await soundcloudSearch(scString, 5);
+			if (!results || results.length == 0)
+				return void this.channel.send('nincs találat.');
+			try {
+				var index: number = await searchPick.call(this, results);
+			}
+			catch (e) {
+				return;
+			}
+			const selectedResult = results[index];
+			forceSchedule(this.channel, voiceChannel, this, [{
+				name: selectedResult.title,
+				url: selectedResult.url,
+				type: 'sc'
+			}]);
+		}
+		catch (e) {
+			console.error(e);
+			this.channel.send('**Hiba a keresés során.**');
+		}
 	}
 });
 actions.set('custom', async function (param) {
