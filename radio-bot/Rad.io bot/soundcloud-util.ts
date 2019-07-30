@@ -10,7 +10,7 @@ export async function soundcloudSearch(keywords: string, amount: number): Promis
 	}));
 }
 export async function soundcloudResolveTrack(url: string): Promise<SoundcloudResult> {
-	const response: any = await request(`https://api.soundcloud.com/resolve?client_id=${clientId}&url=${url}`);
+	const response: any = JSON.parse(await request(`https://api.soundcloud.com/resolve?client_id=${clientId}&url=${url}`));
 	return {
 		title: response.title as string,
 		duration: Math.round(response.duration / 1000),
