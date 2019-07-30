@@ -13,4 +13,5 @@ Ellenkező esetben: util megfontolandó.
 ## Elnevezések:
 Soundcloud, Youtube a nevek  
 camelCase a preferált const, let és var és függvények esetében  
-PascalCase a típusok esetében
+PascalCase a típusok esetében  
+catch ág hibája: _e_
