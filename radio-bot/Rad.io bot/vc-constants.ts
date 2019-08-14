@@ -134,6 +134,11 @@ const radios = {
 		url: 'http://stream.tilos.hu/tilos',
 		cult: 'hun'
 	},
+	'jazzy': {
+		name: 'Jazzy Rádió',
+		url: 'http://94.199.183.186/jazzy.mp3',
+		cult: 'hun'
+	},
 	'rock': {
 		name: 'Rádió Rock',
 		url: 'http://cloudfront44.lexanetwork.com/cdn/cloudstream4151.mp3',
