@@ -206,11 +206,12 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 	if (commands.has(helpCommand)) {
 		const currentCommand = commands.get(helpCommand);
 		const currentAliases = currentCommand.aliases;
+		const currentRequirements = currentCommand.helpRelated.requirements;
 		currentAliases.sort();
 		const embed = commonEmbed.call(this, ` ${helpCommand}`)
 			.addField('❯ Részletes leírás', currentCommand.helpRelated.ownDescription)
 			.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${currentCommand.helpRelated.params.map((attribute: string) => `<${attribute}>`).join(' ')} \``)
-			.addField('❯ Használat feltételei', (currentCommand.helpRelated.requirements || ['-']).join(' '))
+			.addField('❯ Használat feltételei', currentRequirements.length == 0 ? '-' : ccurrentRequirements.join(' '))
 			.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
 		return void this.channel.send({ embed });
 	}
