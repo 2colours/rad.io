@@ -1,5 +1,5 @@
 ﻿import * as Discord from 'discord.js';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, SoundcloudResult } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
@@ -211,7 +211,7 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 		const embed = commonEmbed.call(this, ` ${helpCommand}`)
 			.addField('❯ Részletes leírás', currentCommand.helpRelated.ownDescription)
 			.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${currentCommand.helpRelated.params.map((attribute: string) => `<${attribute}>`).join(' ')} \``)
-			.addField('❯ Használat feltételei', currentRequirements.length == 0 ? '-' : ccurrentRequirements.join(' '))
+			.addField('❯ Használat feltételei', currentRequirements.length == 0 ? '-' : currentRequirements.join(' '))
 			.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
 		return void this.channel.send({ embed });
 	}
