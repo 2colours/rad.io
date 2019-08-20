@@ -383,7 +383,7 @@ function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
 	let channelToPlay = sscanf(param, '%s') || '';
 	if (channelToPlay && !radiosList.has(channelToPlay)) {
 		channelToPlay = randomElement(channels);
-		textChannelHolder.channel.send("**Hibás csatorna nevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
+		textChannelHolder.channel.send("**Hibás csatornanevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
 	}
 	return channelToPlay;
 }
