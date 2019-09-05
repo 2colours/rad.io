@@ -191,7 +191,7 @@ export class GuildPlayer {
 		if (this.queue.length == 0)
 			throw 'Már üres volt a sor.';
 		if (queuePosition <= 0)
-			throw 'A pozíciónak pozitív számnak kell lennie';
+			throw 'A pozíciónak pozitív számnak kell lennie.';
 		if (this.queue.length < queuePosition)
 			throw 'Nincs ennyi elem a sorban.';
 		this.queue.splice(queuePosition - 1, 1);
