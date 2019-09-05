@@ -11,7 +11,11 @@ Ez érvényes akkor is, ha egy önálló szerkezeti egységben csak publikus int
 Ha egy függvény privát és csak kódrefaktorálási célt szolgál (nem önálló funkcionalitás), akkor a használó modulba kerüljön.  
 Ellenkező esetben: util megfontolandó.
 ## Elnevezések:
+A kódban legyen minden angolul.
 Soundcloud, Youtube a nevek  
 camelCase a preferált const, let és var és függvények esetében  
 PascalCase a típusok esetében  
 catch ág hibája: _e_
+## Indexelés, számok:
+- a GuildPlayer elég magas szintűnek minősül, ezért az indexelés a queue-ban 1-től kezdődik, akárcsak a felhasználói interfészen
+  - a validációt is neki kell elvégeznie
