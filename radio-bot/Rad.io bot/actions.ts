@@ -185,6 +185,13 @@ actions.set('toplast', function (_) {
 	this.guildPlayer.topLast();
 	this.react('☑');
 });
+actions.set('remove', function (param) {
+	const queuePosition = sscanf(param, '%d');
+	if (queuePosition == undefined)
+		return void this.reply('**paraméterként szám elvárt.**');
+	this.guildPlayer.remove(queuePosition);
+	this.react('☑');
+});
 actions.set('help', function (param) {
 	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 	let helpCommand = sscanf(param, '%s');
@@ -329,7 +336,7 @@ actions.set('nowplaying', function (_) {
 actions.set('volume', function (param) {
 	const vol = sscanf(param, '%d');
 	if (vol == undefined || vol <= 0 || vol > 15)
-		return void this.reply('paraméterként szám elvárt. (1-15)');
+		return void this.reply('**paraméterként szám elvárt. (1-15)**');
 	if (vol > 10)
 		this.channel.send('**Figyelem: erősítést alkalmaztál, a hangban torzítás léphet fel.**');
 	this.guildPlayer.setVolume(vol / 10);

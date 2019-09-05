@@ -125,6 +125,15 @@ setupCommand({
 });
 
 setupCommand({
+	name: 'remove',
+	aliases: ['rm'],
+	params: ['sorszám'],
+	descrip: 'A várakozási sor adott elemének törlése sorszám szerint.',
+	type: 'grantable',
+	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+});
+
+setupCommand({
 	name: 'help',
 	aliases: ['h'],
 	params: ['parancs (opcionális)'],

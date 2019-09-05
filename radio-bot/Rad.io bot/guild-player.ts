@@ -98,7 +98,7 @@ export class GuildPlayer {
 			this.bulkSchedule(musicToPlay);
 		this.playLoop();
 	}
-	async playLoop() {
+	private async playLoop() {
 		try {
 			while (true) {
 				do { //Itt kéne kiírás is
@@ -187,7 +187,16 @@ export class GuildPlayer {
 		const elementToMove = this.queue.pop();
 		this.queue.unshift(elementToMove);
 	}
-	async fallbackMode() {
+	remove(queuePosition: number) {
+		if (this.queue.length == 0)
+			throw 'Már üres volt a sor.';
+		if (queuePosition <= 0)
+			throw 'A pozíciónak pozitív számnak kell lennie';
+		if (this.queue.length < queuePosition)
+			throw 'Nincs ennyi elem a sorban.';
+		this.queue.splice(queuePosition - 1, 1);
+	}
+	private async fallbackMode() {
 		this.announcementChannel.send('**Fallback mód.**');
 		const fallbackMode = config.fallbackModes.get(this.ownerGuild.id) || defaultConfig.fallback;
 		switch (fallbackMode) {
