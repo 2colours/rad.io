@@ -18,3 +18,4 @@ PascalCase a típusok esetében
 catch ág hibája: _e_
 ## Indexelés, számok:
 - a GuildPlayer elég magas szintűnek minősül, ezért az indexelés a queue-ban 1-től kezdődik, akárcsak a felhasználói interfészen
+  - a validációt is neki kell elvégeznie
