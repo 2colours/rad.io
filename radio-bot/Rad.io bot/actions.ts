@@ -366,7 +366,7 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 	}
 	if (!permCommands)
 		return void this.reply('**az első paraméter üres.**');
-	const commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|');
+	const commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|').map(translateAlias);
 	const firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void this.reply(`**\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.**`);
