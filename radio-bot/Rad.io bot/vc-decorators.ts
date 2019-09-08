@@ -42,8 +42,11 @@ const vcPermissionNeeded:Decorator=action=>function(param) {
     action.call(this,param);
 };
 const parameterNeeded: Decorator = action => function (param) {
-	if (!sscanf(param, '%S'))
-		actions.get('help').call(this, this.cmdName);
+	if (!sscanf(param, '%S')) {
+		const originalName = this.cmdName;
+		this.cmdName = 'help';
+		actions.get('help').call(this, originalName);
+	}
 	else
 		action.call(this, param);
 };
