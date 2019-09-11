@@ -291,7 +291,7 @@ const radios = {
 	},
 	'hot108': {
 		name: 'Hot 108 JAMZ (Hiphop)',
-		url: 'http://listen.hot108.com/hot108?aw_0_req.gdpr=true&esPlayer&cb=130611.mp3',
+		url: 'http://sc.hot108.com:4000/',
 		cult: 'eng'
 	}
 };
