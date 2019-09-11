@@ -288,6 +288,11 @@ const radios = {
 		name: 'Rádio frekvence jedna',
 		url: 'http://icecast3.play.cz/frekvence1-128.mp3',
 		cult: 'eng'
+	},
+	'hot108': {
+		name: 'Hot 108 JAMZ (Hiphop)',
+		url: 'http://listen.hot108.com/hot108?aw_0_req.gdpr=true&esPlayer&cb=130611.mp3',
+		cult: 'eng'
 	}
 };
 const r: Map<string, RadioData> = new Map(Object.entries(radios));
