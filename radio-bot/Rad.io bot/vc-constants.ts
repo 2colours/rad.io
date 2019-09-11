@@ -1,4 +1,4 @@
-﻿import { FallbackType, StreamType, EmojiLike, Creator, RadioData } from './internal';
+﻿import { FallbackType, StreamType, EmojiLike, Creator, RadioConstantData } from './internal';
 export const defaultConfig = {
 	prefix: '.',
 	fallback: 'radio' as FallbackType
@@ -295,7 +295,7 @@ const radios = {
 		cult: 'eng'
 	}
 };
-const r: Map<string, RadioData> = new Map(Object.entries(radios));
+const r: Map<string, RadioConstantData> = new Map(Object.entries(radios));
 export { r as radios };
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;

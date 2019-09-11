@@ -1,5 +1,6 @@
-import { Emoji, Snowflake, Message, User, TextChannel } from 'discord.js';
+import { Emoji, Snowflake, Message, User, TextChannel, GuildMember } from 'discord.js';
 import { GuildPlayer, Filter, aggregateDecorators, client } from './internal';
+import { ISODuration } from 'better-youtube-api';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, FallbackType>; //TODO nem akármilyen string!
@@ -47,12 +48,16 @@ export interface RoleTableData {
 	commands: string;
 }
 export type StreamType = 'yt' | 'custom' | 'radio' | 'sc';
-export interface MusicData {
-	name:string;
+export interface PlayableData {
 	url: string;
-	type:StreamType;
+	type: StreamType;
 }
-export interface RadioData {
+export interface MusicData extends PlayableData {
+	name: string;
+	length: number;
+	requester: GuildMember
+}
+export interface RadioConstantData {
 	name:string;
 	url:string;
 	cult:string; //TODO biztos nem enum inkább?

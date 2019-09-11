@@ -1,6 +1,6 @@
 import * as Discord from 'discord.js';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import { defaultConfig, getEmoji, Config, configPromise, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean } from './internal';
+import { defaultConfig, getEmoji, Config, configPromise, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData } from './internal';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const clientId = process.env.soundcloudClientId;
 let config: Config;
@@ -16,7 +16,7 @@ class Playable {
 	pause: PlayableCallbackBoolean;
 	resume: PlayableCallbackBoolean;
 	started: boolean;
-	constructor(readonly data?: MusicData) {
+	constructor(readonly data?: PlayableData) {
 		this.started = false;
 	}
 	isDefinite() {
@@ -80,9 +80,10 @@ class VoiceHandler {
 	}
 }
 export class GuildPlayer {
-	nowPlaying: Playable;
+	private currentPlay: Playable;
+	nowPlayingData: MusicData;
 	private announcementChannel: Discord.TextChannel;
-	private queue: Playable[];
+	queue: MusicData[];
 	fallbackPlayed: boolean;
 	public handler: VoiceHandler;
 	private volume: number;
@@ -93,7 +94,7 @@ export class GuildPlayer {
 		this.queue = [];
 		this.handler = new VoiceHandler(this);
 		this.volume = 0.5;
-		this.nowPlaying = new Playable();
+		this.currentPlay = new Playable();
 		if (musicToPlay.length > 0)
 			this.bulkSchedule(musicToPlay);
 		this.playLoop();
@@ -102,18 +103,18 @@ export class GuildPlayer {
 		try {
 			while (true) {
 				do { //Itt kéne kiírás is
-					if (this.nowPlaying.data)
-						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.nowPlaying.data.type)} \`${this.nowPlaying.data.name}\``);
-					var forcedOver = await this.nowPlaying.play(this.ownerGuild.voiceConnection, this.volume);
-					var shouldRepeat = this.nowPlaying.askRepeat();
+					if (this.nowPlayingData)
+						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.nowPlayingData.type)} \`${this.nowPlayingData.name}\``);
+					var forcedOver = await this.currentPlay.play(this.ownerGuild.voiceConnection, this.volume);
+					var shouldRepeat = this.currentPlay.askRepeat();
 				} while (!forcedOver && shouldRepeat);
-				this.nowPlaying = null;
+				this.nowPlayingData = null;
 				if (this.queue.length != 0) {
-					this.nowPlaying = this.queue.shift();
+					this.nowPlayingData = this.queue.shift();
 					this.fallbackPlayed = false;
 				}
 				else if (this.fallbackPlayed) {
-					this.nowPlaying = new Playable();
+					this.currentPlay = new Playable();
 				}
 				else
 					await this.fallbackMode();
@@ -142,31 +143,32 @@ export class GuildPlayer {
 		this.volume = vol;
 	}
 	skip() {
-		if (this.nowPlaying.started)
-			this.nowPlaying.skip();
+		if (this.currentPlay.started)
+			this.currentPlay.skip();
 		else {
-			this.nowPlaying = this.queue.shift() || new Playable(); //ez akkor fordulhat elő, ha egy playlist-tel indítják a botot vagy egyéb módon bulkSchedule hívódik csend után
+			this.nowPlayingData = this.queue.shift();
+			this.currentPlay = new Playable(this.nowPlayingData); //ez akkor fordulhat elő, ha egy playlist-tel indítják a botot vagy egyéb módon bulkSchedule hívódik csend után
 		}
 	}
 	repeat(maxTimes?: number) {
-		if (!this.nowPlaying.isDefinite())
+		if (!this.currentPlay.isDefinite())
 			throw 'Végtelen streameket nem lehet loopoltatni.';
 		if (!maxTimes)
-			this.nowPlaying.askRepeat = () => true;
+			this.currentPlay.askRepeat = () => true;
 		else
-			this.nowPlaying.askRepeat = repeatCounter(maxTimes);
+			this.currentPlay.askRepeat = repeatCounter(maxTimes);
 	}
 	schedule(musicData: MusicData) {
-		this.queue.push(new Playable(musicData));
-		if (!this.nowPlaying.isDefinite() && this.queue.length == 1) //azért a length==1, mert különben nem arra lépnénk át, amit pont most raktunk be - kicsit furcsa
+		this.queue.push(musicData);
+		if (!this.currentPlay.isDefinite() && this.queue.length == 1) //azért a length==1, mert különben nem arra lépnénk át, amit pont most raktunk be - kicsit furcsa
 			this.skip();
 		else
 			this.announcementChannel.send(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
 	bulkSchedule(musicDatas: MusicData[]) {
-		const autoSkip = !this.nowPlaying.isDefinite() && this.queue.length == 0;
+		const autoSkip = !this.currentPlay.isDefinite() && this.queue.length == 0;
 		for (const musicData of musicDatas)
-			this.queue.push(new Playable(musicData));
+			this.queue.push(musicData);
 		if (autoSkip)
 			this.skip();
 	}
@@ -204,39 +206,35 @@ export class GuildPlayer {
 				const fallbackMusic = config.fallbackChannels.get(this.ownerGuild.id);
 				if (!fallbackMusic)
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
-				this.nowPlaying = new Playable(fallbackMusic);
+				this.nowPlayingData = fallbackMusic;
+				this.currentPlay = new Playable(fallbackMusic);
 				this.fallbackPlayed = true;
 				break;
 			case 'leave':
 				this.leave();
 			case 'silence':
-				this.nowPlaying = new Playable();
+				this.nowPlayingData = undefined;
+				this.currentPlay = new Playable();
 				this.fallbackPlayed = true;
 				break;
 		}
 	}
 	leave() {
-		if (this.nowPlaying)
-			this.nowPlaying.halt();
+		if (this.currentPlay)
+			this.currentPlay.halt();
 		this.ownerGuild.voiceConnection.disconnect(); //KÉRDÉSES!
 		this.handler.destroy();
 		delete this.ownerGuild;
-		if (!this.nowPlaying)
+		if (!this.nowPlayingData)
 			throw 'destroyed';
 	}
-	getQueueData(): MusicData[] {
-		return this.queue.map(playable => playable.data);
-	}
-	getNowPlayingData() {
-		return this.nowPlaying.data;
-	}
 	pause() {
-		if (!this.nowPlaying.started || !this.nowPlaying.pause())
+		if (!this.currentPlay.started || !this.currentPlay.pause())
 			throw 'Csak lejátszás alatt álló stream szüneteltethető.';
 		this.announcementChannel.send('**Lejátszás felfüggesztve.**');
 	}
 	resume() {
-		if (!this.nowPlaying.started || !this.nowPlaying.resume())
+		if (!this.currentPlay.started || !this.currentPlay.resume())
 			throw 'Ez a stream nem folytatható. (Nincs leállítva?)';
 		this.announcementChannel.send('**Lejátszás folytatása...**');
 	}

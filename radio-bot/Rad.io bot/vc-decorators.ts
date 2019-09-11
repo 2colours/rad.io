@@ -52,7 +52,7 @@ const parameterNeeded: Decorator = action => function (param) {
 };
 const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
 const isFallback: Predicate = ctx => ctx.guildPlayer.fallbackPlayed;
-const isSilence: Predicate = ctx => !ctx.guildPlayer.nowPlaying.data;
+const isSilence: Predicate = ctx => !ctx.guildPlayer.nowPlayingData.data;
 const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
 const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('ez a parancs nem használható, amikor semmi nem szól (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));

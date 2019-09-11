@@ -1,4 +1,5 @@
 ﻿import * as Discord from 'discord.js';
+import * as moment from 'moment';
 import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
@@ -27,7 +28,11 @@ actions.set('join', async function (param) {
 	const channelToPlay = extractChannel(this, param);
 	joinAndStartup.call(this, (gp: GuildPlayer) => {
 		if (channelToPlay)
-			gp.schedule(Object.assign({ type: 'radio' as StreamType }, radiosList.get(channelToPlay)));
+			gp.schedule(Object.assign({
+				type: 'radio' as StreamType,
+				length: undefined,
+				requester: this.member
+			}, radiosList.get(channelToPlay)));
 	});
 });
 actions.set('joinfallback', function (_) {
@@ -52,7 +57,7 @@ actions.set('yt', async function (param) {
 	param = param.trim();
 	if (isLink(param)) {
 		try {
-			var toSchedule = await resolveYoutubeUrl(param);
+			var toSchedule = await resolveYoutubeUrl(param, this.member);
 		}
 		catch (ex) {
 			return void this.channel.send('**Érvénytelen youtube url.**');
@@ -80,7 +85,9 @@ actions.set('yt', async function (param) {
 		forceSchedule(this.channel, voiceChannel, this, [{
 			name: selectedResult.title,
 			url: selectedResult.url,
-			type: 'yt'
+			type: 'yt',
+			length: moment.duration(selectedResult._length).asSeconds(),
+			requester: this.member
 		}]);
 	}
 	catch (e) {
@@ -97,7 +104,9 @@ actions.set('soundcloud', async function (param) {
 			forceSchedule(this.channel, voiceChannel, this, [{
 				name: track.title,
 				url: track.url,
-				type: 'sc'
+				type: 'sc',
+				length: track.duration,
+				requester: this.member
 			}]);
 		}
 		catch (e) {
@@ -120,7 +129,9 @@ actions.set('soundcloud', async function (param) {
 			forceSchedule(this.channel, voiceChannel, this, [{
 				name: selectedResult.title,
 				url: selectedResult.url,
-				type: 'sc'
+				type: 'sc',
+				length: selectedResult.duration,
+				requester: this.member
 			}]);
 		}
 		catch (e) {
@@ -135,7 +146,9 @@ actions.set('custom', async function (param) {
 	forceSchedule(this.channel, voiceChannel, this, [{
 		name: 'Custom',
 		url,
-		type: 'custom'
+		type: 'custom',
+		length: undefined,
+		requester: this.member
 	}]);
 });
 actions.set('leave', function (_) {
@@ -244,7 +257,7 @@ actions.set('voicecount', function (_) {
 	this.channel.send(`:information_source: ${client.voiceConnections.array().length} voice connection(s) right now.`);
 });
 actions.set('queue', async function (_) {
-	const queue: MusicData[] = this.guildPlayer.getQueueData();
+	const queue: MusicData[] = this.guildPlayer.queue;
 	if (queue.length == 0)
 		return void this.channel.send('**A sor jelenleg üres.**');
 	const embed = commonEmbed.call(this);
@@ -270,13 +283,19 @@ actions.set('fallback', async function (param) {
 actions.set('fallbackradio', async function (param) {
 	const given: string = sscanf(param, '%s') || '';
 	if (radiosList.has(given)) {
-		var fr: MusicData = Object.assign({ type: 'radio' as StreamType }, radiosList.get(given));
+		var fr: MusicData = Object.assign({
+			type: 'radio' as StreamType,
+			length: undefined,
+			requester: undefined
+		}, radiosList.get(given));
 	}
 	else if (given.search(/https?:\/\//) == 0)
 		fr = {
 			type: 'custom',
 			name: given,
-			url: given
+			url: given,
+			length: undefined,
+			requester: undefined
 		};
 	else
 		return void this.reply('érvénytelen rádióadó.');
@@ -302,7 +321,11 @@ actions.set('resume', function (_) {
 actions.set('tune', function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	const channel = extractChannel(this, param);
-	forceSchedule(this.channel, voiceChannel, this, [Object.assign({ type: 'radio' as StreamType }, radiosList.get(channel))]);
+	forceSchedule(this.channel, voiceChannel, this, [Object.assign({
+		type: 'radio' as StreamType,
+		length: undefined,
+		requester: this.member
+	}, radiosList.get(channel))]);
 });
 actions.set('grant', function (param) {
 	permissionReused.call(this, param, (commands: string[], roleCommands: string[]) =>
@@ -325,7 +348,7 @@ actions.set('denyeveryone', function (param: string) {
 	actions.get('deny').call(this, `${param} @everyone`);
 });
 actions.set('nowplaying', function (_) {
-	const nowPlayingData: MusicData = this.guildPlayer.getNowPlayingData();
+	const nowPlayingData: MusicData = this.guildPlayer.nowPlayingData();
 	if (!nowPlayingData)
 		return void this.channel.send('**CSEND**');
 	const embed = commonEmbed.call(this)
@@ -395,7 +418,7 @@ function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
 	return channelToPlay;
 }
 
-async function resolveYoutubeUrl(url: string): Promise<MusicData[]> {
+async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): Promise<MusicData[]> {
 	try {
 		const ytPlaylist = await youtube.getPlaylistByUrl(url);
 		const videos = await ytPlaylist.fetchVideos();
@@ -412,7 +435,9 @@ async function resolveYoutubeUrl(url: string): Promise<MusicData[]> {
 		return [{
 			name: ytVideo.title,
 			url,
-			type: 'yt'
+			type: 'yt',
+			length: moment.duration(ytVideo._length).asSeconds(),
+			requester
 		}];
 	}
 }
