@@ -143,7 +143,7 @@ export class GuildPlayer {
 		this.volume = vol;
 	}
 	skip() {
-		if (this.currentPlay.started)
+		if (this.currentPlay && this.currentPlay.started)
 			this.currentPlay.skip();
 		else 
 			this.nowPlayingData = this.queue.shift();
@@ -164,7 +164,7 @@ export class GuildPlayer {
 			this.announcementChannel.send(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
 	bulkSchedule(musicDatas: MusicData[]) {
-		const autoSkip = !this.currentPlay.isDefinite() && this.queue.length == 0;
+		const autoSkip = !this.currentPlay || !this.currentPlay.isDefinite() && this.queue.length == 0;
 		for (const musicData of musicDatas)
 			this.queue.push(musicData);
 		if (autoSkip)
