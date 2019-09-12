@@ -15,9 +15,7 @@ class Playable {
 	halt: PlayableCallbackVoid;
 	pause: PlayableCallbackBoolean;
 	resume: PlayableCallbackBoolean;
-	started: boolean;
 	constructor(readonly data: PlayableData) {
-		this.started = false;
 	}
 	isDefinite() {
 		const definiteTypes: StreamType[] = ['yt', 'custom', 'sc'];
@@ -28,7 +26,6 @@ class Playable {
 	}
 	play(voiceConnection: Discord.VoiceConnection, vol: number) {
 		return new Promise((resolve, reject) => {
-			this.started = true;
 			if (!this.data) {
 				this.skip = () => resolve(true);
 				this.halt = () => reject('leave');
@@ -143,7 +140,7 @@ export class GuildPlayer {
 		this.volume = vol;
 	}
 	skip() {
-		if (this.currentPlay && this.currentPlay.started)
+		if (this.currentPlay)
 			this.currentPlay.skip();
 		else 
 			this.nowPlayingData = this.queue.shift();
@@ -225,12 +222,12 @@ export class GuildPlayer {
 			throw 'destroyed';
 	}
 	pause() {
-		if (!this.currentPlay.started || !this.currentPlay.pause())
+		if (!this.currentPlay.pause())
 			throw 'Csak lejátszás alatt álló stream szüneteltethető.';
 		this.announcementChannel.send('**Lejátszás felfüggesztve.**');
 	}
 	resume() {
-		if (!this.currentPlay.started || !this.currentPlay.resume())
+		if (!this.currentPlay.resume())
 			throw 'Ez a stream nem folytatható. (Nincs leállítva?)';
 		this.announcementChannel.send('**Lejátszás folytatása...**');
 	}
