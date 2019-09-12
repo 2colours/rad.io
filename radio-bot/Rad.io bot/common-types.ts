@@ -1,6 +1,5 @@
 import { Emoji, Snowflake, Message, User, TextChannel, GuildMember } from 'discord.js';
 import { GuildPlayer, Filter, aggregateDecorators, client } from './internal';
-import { ISODuration } from 'better-youtube-api';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, FallbackType>; //TODO nem akármilyen string!

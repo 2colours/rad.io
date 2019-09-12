@@ -348,7 +348,7 @@ actions.set('denyeveryone', function (param: string) {
 	actions.get('deny').call(this, `${param} @everyone`);
 });
 actions.set('nowplaying', function (_) {
-	const nowPlayingData: MusicData = this.guildPlayer.nowPlayingData();
+	const nowPlayingData: MusicData = this.guildPlayer.nowPlayingData;
 	if (!nowPlayingData)
 		return void this.channel.send('**CSEND**');
 	const embed = commonEmbed.call(this)
