@@ -16,7 +16,7 @@ class Playable {
 	pause: PlayableCallbackBoolean;
 	resume: PlayableCallbackBoolean;
 	started: boolean;
-	constructor(readonly data?: PlayableData) {
+	constructor(readonly data: PlayableData) {
 		this.started = false;
 	}
 	isDefinite() {
@@ -94,7 +94,7 @@ export class GuildPlayer {
 		this.queue = [];
 		this.handler = new VoiceHandler(this);
 		this.volume = 0.5;
-		this.currentPlay = new Playable();
+		this.nowPlayingData = null;
 		if (musicToPlay.length > 0)
 			this.bulkSchedule(musicToPlay);
 		this.playLoop();
@@ -102,19 +102,19 @@ export class GuildPlayer {
 	private async playLoop() {
 		try {
 			while (true) {
+				this.currentPlay = new Playable(this.nowPlayingData);
 				do { //Itt kéne kiírás is
 					if (this.nowPlayingData)
 						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.nowPlayingData.type)} \`${this.nowPlayingData.name}\``);
 					var forcedOver = await this.currentPlay.play(this.ownerGuild.voiceConnection, this.volume);
 					var shouldRepeat = this.currentPlay.askRepeat();
 				} while (!forcedOver && shouldRepeat);
-				this.nowPlayingData = null;
 				if (this.queue.length != 0) {
 					this.nowPlayingData = this.queue.shift();
 					this.fallbackPlayed = false;
 				}
 				else if (this.fallbackPlayed) {
-					this.currentPlay = new Playable();
+					this.nowPlayingData = null;
 				}
 				else
 					await this.fallbackMode();
@@ -145,10 +145,8 @@ export class GuildPlayer {
 	skip() {
 		if (this.currentPlay.started)
 			this.currentPlay.skip();
-		else {
+		else 
 			this.nowPlayingData = this.queue.shift();
-			this.currentPlay = new Playable(this.nowPlayingData); //ez akkor fordulhat elő, ha egy playlist-tel indítják a botot vagy egyéb módon bulkSchedule hívódik csend után
-		}
 	}
 	repeat(maxTimes?: number) {
 		if (!this.currentPlay.isDefinite())
@@ -207,14 +205,12 @@ export class GuildPlayer {
 				if (!fallbackMusic)
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
 				this.nowPlayingData = fallbackMusic;
-				this.currentPlay = new Playable(fallbackMusic);
 				this.fallbackPlayed = true;
 				break;
 			case 'leave':
 				this.leave();
 			case 'silence':
-				this.nowPlayingData = undefined;
-				this.currentPlay = new Playable();
+				this.nowPlayingData = null;
 				this.fallbackPlayed = true;
 				break;
 		}
