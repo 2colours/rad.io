@@ -1,3 +1,5 @@
+[![Support Server](https://i.imgur.com/3CDbHx5.png)](https://discord.gg/C83h4Sk)
+
 # RAD.io - inb4 gyakran ismételt kérdések
 A szerver ugyan még csak indulóban van, de van pár magától értetődő kérdés, amit jó előre tisztázni.
 #### Mi az a RAD.io?
