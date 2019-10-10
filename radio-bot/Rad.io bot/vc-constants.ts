@@ -174,6 +174,11 @@ const radios = {
 		url: 'http://live.city-radio.ro:8800/;stream',
 		cult: 'hun'
 	},
+	'triofm': {
+		name: 'Trio FM',
+		url: 'http://vps1.innobrand.hu:9090//stream',
+		cult: 'hun'
+	},
 	'therapmixx': {
 		name: 'The Rap MIXX (Classic HipHop)',
 		url: 'http://ais-sa2.cdnstream1.com/1988_128.mp3',
