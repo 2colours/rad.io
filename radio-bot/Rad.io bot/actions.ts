@@ -381,7 +381,7 @@ actions.set('announce', function (param) {
 	this.react('☑');
 });
 actions.set('partner', function (param) {
-	const [link = '', rawContent = '""', username = '', serverName = ''] = <string[]>sscanf(param, '%s %s %s %S');
+	const [link = '', rawContent = '""', username = '', serverName = ''] = <string[]>sscanf(param, '%S %S %S %S');
 	const content: string = eval(rawContent);
 	sendToPartnerHook(link, content, username, serverName);
 	this.react('☑');
