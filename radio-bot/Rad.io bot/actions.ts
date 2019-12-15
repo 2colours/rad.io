@@ -1,6 +1,6 @@
 ﻿import * as Discord from 'discord.js';
 import * as moment from 'moment';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'better-youtube-api';
 const youtube = new YouTube(apiKey);
@@ -374,9 +374,16 @@ actions.set('unmute', function (_) {
 	this.react('☑');
 });
 actions.set('announce', function (param) {
-	const [guildInfo, message = ''] = <string[]>sscanf(param, '%s %S');
+	const [guildInfo, rawMessage = ''] = <string[]>sscanf(param, '%s %S');
+	const message: string = eval(rawMessage);
 	const guildToAnnounce = guildInfo == 'all' ? client.guilds.array() : guildInfo == 'conn' ? client.voiceConnections.map(conn => conn.channel.guild) : [client.guilds.get(guildInfo)];
 	guildToAnnounce.forEach(guild => sendGuild(guild, message));
+	this.react('☑');
+});
+actions.set('partner', function (param) {
+	const [link = '', rawContent = '""', username = '', serverName = ''] = <string[]>sscanf(param, '%s %s %s %S');
+	const content: string = eval(rawContent);
+	sendToPartnerHook(link, content, username, serverName);
 	this.react('☑');
 });
 async function permissionReused(param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
@@ -487,3 +494,10 @@ async function searchPick(results: SearchResultView[]): Promise<number> {
 		throw err;
 	}
 }
+function sendToPartnerHook(link: string, content: string, username: string, serverName: string): void {
+	const embed = new Discord.RichEmbed();
+	embed.setColor(webhookC);
+	embed.setFooter(serverName);
+	embed.setDescription(content);
+	partnerHook.send(link, { embeds: [embed], username, avatarURL }).catch(console.error);
+};
