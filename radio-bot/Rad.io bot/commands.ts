@@ -172,7 +172,7 @@ setupCommand({
 setupCommand({
 	name: 'partner',
 	aliases: [],
-	params: ['invite link\n', 'üzenet JS-sztringként\n','felhasználónév\n','szerver neve\n'],
+	params: ['invite link\\n', 'üzenet JS-sztringként\\n','felhasználónév\\n','szerver neve\\n'],
 	descrip: 'A partner webhookra küld egy üzenetet a felhasználó nevében. Ennek szövege az invite link, és mellé kerül egy embed, aminek a footerje a szerver neve, a tartalma pedig az üzenet sztringként kiértékelve.',
 	type: 'creatorsOnly',
 	filters: new Set([Filter.creatorNeeded, Filter.parameterNeeded])

@@ -28,7 +28,10 @@ client.on('message', async (message) => {
 	const content = message.content;
 	if (!content.toLowerCase().startsWith(prefix)) return;
 	try {
-		let { command: commandString, param } = <any>sscanf(content.substring(prefix.length), '%s %S', 'command', 'param');
+		const prefixless = content.substring(prefix.length);
+		const commandTerminator = prefixless.indexOf(' ');
+		let commandString = prefixless.substring(0, commandTerminator);
+		const param = prefixless.substring(commandTerminator).trim();
 		commandString = commandString.toLowerCase();
 		commandString = translateAlias(commandString);
 		const { decoratedAction: commandFunction = Function.prototype } = commands.get(commandString) || {};
