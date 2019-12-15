@@ -2,7 +2,6 @@
 const token = process.env.radioToken;
 
 import { configPromise, client, PackedMessage, ThisBinding, Config, actions, GuildPlayer, defaultConfig, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild } from './internal';
-import { sscanf } from 'scanf';
 import * as moment from 'moment';
 const help = actions.get('help');
 
@@ -28,9 +27,9 @@ client.on('message', async (message) => {
 	const content = message.content;
 	if (!content.toLowerCase().startsWith(prefix)) return;
 	try {
-		const prefixless = content.substring(prefix.length);
+		const prefixless = content.substring(prefix.length).trim();
 		const commandTerminator = prefixless.indexOf(' ');
-		let commandString = prefixless.substring(0, commandTerminator);
+		let commandString = prefixless.substring(0, commandTerminator != -1 ? commandTerminator : undefined);
 		const param = prefixless.substring(commandTerminator).trim();
 		commandString = commandString.toLowerCase();
 		commandString = translateAlias(commandString);
