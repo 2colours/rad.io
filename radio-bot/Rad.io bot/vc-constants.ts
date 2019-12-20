@@ -1,4 +1,5 @@
 ﻿import { FallbackType, StreamType, EmojiLike, Creator, RadioConstantData } from './internal';
+import { WebhookClient } from 'discord.js';
 export const defaultConfig = {
 	prefix: '.',
 	fallback: 'radio' as FallbackType
@@ -298,12 +299,18 @@ const radios = {
 		name: 'Hot 108 JAMZ (Hiphop)',
 		url: 'http://sc.hot108.com:4000/',
 		cult: 'eng'
+	},
+	'fimbul': {
+		name: 'Fimbul Radio',
+		url: 'http://radio.fimbulrecords.com:8000/stream?icy=http',
+		cult: 'eng'
 	}
 };
 const r: Map<string, RadioConstantData> = new Map(Object.entries(radios));
 export { r as radios };
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
+export const webhookC = 0x36393f;
 const youtubeEmoji = '<:youtube:506897247145951233>';
 const soundcloudEmoji = '<:sc:595619676827025408>';
 export function getEmoji(type: StreamType): EmojiLike {
@@ -317,3 +324,5 @@ export function getEmoji(type: StreamType): EmojiLike {
 }
 export const creators = [new Creator('297037173541175296', 'Nemokosch#9980'), new Creator('419447790675165195', 'garton#8800')];
 export const devServerInvite = 'https://discord.gg/C83h4Sk';
+export const partnerHook = new WebhookClient('645344959192498226', 'IJTUoz7KtA2D2DK0j8GVkzVHN5nrNaRKpwovPF6BxYXg1ZIoIsbdOXOvHEuCULjS2qAb');
+export const avatarURL = 'https://i.imgur.com/FXgwVII.png';
