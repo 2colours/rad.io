@@ -166,12 +166,11 @@ actions.set('repeat', function (param) {
 });
 actions.set('radios', async function (_) {
 	function listRadios(lang: string) { //TODO ez is enum: kultkód/nyelvkód
-		const res = [];
-		for (const [key, value] of radiosList) {
-			if (value.cult == lang)
-				res.push(`${value.name}** ID:** *${key}*`);
-		}
-		return res.join('\n');
+		return [...radiosList.entries()]
+			.filter(([_key, value]) => value.cult == lang)
+			.map(([key, value]) => `${value.name}** ID:** *${key}*`)
+			.sort()
+			.join('\n');
 	}
 	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
 	const baseEmbed: Discord.RichEmbed = commonEmbed.call(this).addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
