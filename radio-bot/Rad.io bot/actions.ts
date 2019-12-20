@@ -70,7 +70,7 @@ actions.set('yt', async function (param) {
 	try {
 		const results = await youtube.searchVideos(ytString, 5);
 		if (!results || results.length == 0)
-			return void this.channel.send('nincs találat.');
+			return void this.channel.send('**Nincs találat.**');
 		await Promise.all(results.map((elem: Video) => elem.fetch()));
 		const resultsView: SearchResultView[] = results.map(elem => Object.assign({}, {
 			title: elem.title, duration: elem.minutes * 60 + elem.seconds
