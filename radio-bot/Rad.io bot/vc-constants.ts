@@ -299,6 +299,11 @@ const radios = {
 		name: 'Hot 108 JAMZ (Hiphop)',
 		url: 'http://sc.hot108.com:4000/',
 		cult: 'eng'
+	},
+	'fimbul': {
+		name: 'Fimbul Radio',
+		url: 'http://radio.fimbulrecords.com:8000/stream?icy=http',
+		cult: 'eng'
 	}
 };
 const r: Map<string, RadioConstantData> = new Map(Object.entries(radios));
