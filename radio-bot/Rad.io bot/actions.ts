@@ -42,8 +42,8 @@ actions.set('joinfallback', function (_) {
 async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	try {
-		await voiceChannel.join();
 		this.channel.send('**Csatlakozva.**');
+		await voiceChannel.join();
 		this.guildPlayer = new GuildPlayer(this.guild, this.channel, []);
 		startup(this.guildPlayer);
 	}
@@ -153,9 +153,9 @@ actions.set('custom', async function (param) {
 });
 actions.set('leave', function (_) {
 	const guildPlayer: GuildPlayer = this.guildPlayer;
-	this.channel.send('**Kilépés**');
 	guildPlayer.leave();
 	this.guildPlayer = undefined; //guildPlayer törlése így tehető meg
+	this.channel.send('**Kilépés**');
 });
 actions.set('repeat', function (param) {
 	const count = sscanf(param, '%d');
