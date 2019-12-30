@@ -28,8 +28,9 @@ client.on('message', async (message) => {
 	if (!content.toLowerCase().startsWith(prefix)) return;
 	try {
 		const prefixless = content.substring(prefix.length).trim();
-		const commandTerminator = prefixless.indexOf(' ');
-		let commandString = prefixless.substring(0, commandTerminator != -1 ? commandTerminator : undefined);
+		const firstSpace = prefixless.indexOf(' ');
+		const commandTerminator = firstSpace != -1 ? firstSpace : prefixless.length;
+		let commandString = prefixless.substring(0, commandTerminator);
 		const param = prefixless.substring(commandTerminator).trim();
 		commandString = commandString.toLowerCase();
 		commandString = translateAlias(commandString);
