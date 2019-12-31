@@ -48,8 +48,8 @@ async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
 		startup(this.guildPlayer);
 	}
 	catch (ex) {
-		this.channel.send('**Hiba a csatlakozás során.**');
 		console.error(ex);
+		this.channel.send('**Hiba a csatlakozás során.**');
 	}
 }
 actions.set('yt', async function (param) {
