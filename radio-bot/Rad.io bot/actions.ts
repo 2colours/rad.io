@@ -42,7 +42,7 @@ actions.set('joinfallback', function (_) {
 async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
 	try {
-		this.channel.send('**Csatlakozva.**');
+		await this.channel.send('**Csatlakozva.**');
 		await voiceChannel.join();
 		this.guildPlayer = new GuildPlayer(this.guild, this.channel, []);
 		startup(this.guildPlayer);

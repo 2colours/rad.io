@@ -102,7 +102,7 @@ export class GuildPlayer {
 				this.currentPlay = new Playable(this.nowPlayingData);
 				do { //Itt kéne kiírás is
 					if (this.nowPlayingData)
-						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.nowPlayingData.type)} \`${this.nowPlayingData.name}\``);
+						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.nowPlayingData.type)} \`${this.nowPlayingData.name}\``).catch();
 					var forcedOver = await this.currentPlay.play(this.ownerGuild.voiceConnection, this.volume);
 					var shouldRepeat = this.currentPlay.askRepeat();
 				} while (!forcedOver && shouldRepeat);
