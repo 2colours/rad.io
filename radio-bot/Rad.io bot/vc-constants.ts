@@ -324,5 +324,5 @@ export function getEmoji(type: StreamType): EmojiLike {
 }
 export const creators = [new Creator('297037173541175296', 'Nemokosch#9980'), new Creator('419447790675165195', 'garton#8800')];
 export const devServerInvite = 'https://discord.gg/C83h4Sk';
-export const partnerHook = new WebhookClient('645344959192498226', 'IJTUoz7KtA2D2DK0j8GVkzVHN5nrNaRKpwovPF6BxYXg1ZIoIsbdOXOvHEuCULjS2qAb');
+export const partnerHook = new WebhookClient('663426173552033802', process.env.partnerWebhookToken);
 export const avatarURL = 'https://i.imgur.com/FXgwVII.png';
