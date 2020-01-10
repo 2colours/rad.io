@@ -227,7 +227,7 @@ const radios = {
 	},
 	'rockro': {
 		name: 'Rock Fm Romania',
-		url: 'http://80.86.106.143:9128/rockfm.aacp',
+		url: 'https://live.rockfm.ro:8443/rockfm.aacp',
 		cult: 'eng'
 	},
 	'rainbow': {
@@ -282,7 +282,7 @@ const radios = {
 	},
 	'actualitati': {
 		name: 'Radio România Actualități',
-		url: 'http://stream2.srr.ro:8000/;stream/1?1551626541463.mp3',
+		url: 'http://89.238.227.6:8002/;time1578665093598',
 		cult: 'eng'
 	},
 	'hitserbia': {
