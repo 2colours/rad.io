@@ -6,6 +6,10 @@ export const dbPromise = sql.open("./radio.sqlite");
 export const configPromise: Promise<Config> = dbPromise.then(db => loadCFG(db));
 
 async function loadCFG(db: sql.Database): Promise<Config> {
+	await db.run('CREATE TABLE IF NOT EXISTS prefix (guildID TEXT, prefix TEXT)').catch(console.error);
+	await db.run('CREATE TABLE IF NOT EXISTS fallbackModes (guildID TEXT, type TEXT)').catch(console.error);
+	await db.run('CREATE TABLE IF NOT EXISTS fallbackData (guildID TEXT, type TEXT, name TEXT, url TEXT)').catch(console.error);
+	await db.run('CREATE TABLE IF NOT EXISTS role (guildID TEXT, roleID TEXT, commands TEXT)').catch(console.error);
 	const prefixes: Map<Snowflake, string> = new Map();
 	const fallbackModes: Map<Snowflake, FallbackType> = new Map();
 	const fallbackData: Map<Snowflake, MusicData> = new Map();
