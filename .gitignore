@@ -6,3 +6,4 @@
 /.vs
 /radio-bot/Rad.io bot/package-lock.json
 /package-lock.json
+*.env
