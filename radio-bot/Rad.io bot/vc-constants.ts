@@ -180,6 +180,11 @@ const radios = {
 		url: 'http://vps1.innobrand.hu:9090//stream',
 		cult: 'hun'
 	},
+	'radioop': {
+		name: 'Radio OP',
+		url: 'http://85.195.88.149:17970/',
+		cult: 'hun'
+	},
 	'therapmixx': {
 		name: 'The Rap MIXX (Classic HipHop)',
 		url: 'http://ais-sa2.cdnstream1.com/1988_128.mp3',
