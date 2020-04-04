@@ -277,7 +277,7 @@ const radios = {
 	},
 	'radio886': {
 		name: 'Radio 88.6 Wien',
-		url: 'http://xapp2450489345c1000321-f-l.i.farm.core.cdn.streamfarm.net/radio_886/128k.mp3',
+		url: 'https://radio886.fluidstream.eu/886_live.mp3',
 		cult: 'eng'
 	},
 	'antrock': {
