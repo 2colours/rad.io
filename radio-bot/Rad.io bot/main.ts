@@ -109,6 +109,13 @@ async function sendWelcome(guild: Discord.Guild) {
 	sendGuild(guild, devServerInvite, { embed });
 }
 
+function forceLogin() {
+	client.login(token).catch(_ => {
+		console.log('Login failed, retrying...');
+		forceLogin();
+	});
+}
+
 function setPStatus() {
 	const presenceEndings = [`G: ${client.guilds.size}`, `Rádiók száma: ${channels.length} `, `@${client.user.username}`, `U: ${client.users.size}`];
 	const randomRadioName = radios.get(randomElement(channels)).name;
@@ -124,4 +131,4 @@ function updateStatusChannels() {
 	usersChan.setName(`RAD.io (${client.users.size}) felhasználóval`);
 };
 setInterval(setPStatus, 60000 * 5);
-configPromise.then(_ => client.login(token));
+configPromise.then(_ => forceLogin());
