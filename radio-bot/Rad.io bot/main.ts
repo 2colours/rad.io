@@ -1,11 +1,11 @@
 ﻿import * as Discord from 'discord.js';
 const token = process.env.radioToken;
 
-import { configPromise, client, PackedMessage, ThisBinding, Config, actions, GuildPlayer, defaultConfig, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild } from './internal';
+import { configPromise, client, PackedMessage, ThisBinding, Config, actions, GuildPlayer, defaultConfig, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId } from './internal';
 import * as moment from 'moment';
 const help = actions.get('help');
 
-const devChannel = () => client.channels.get('470574072565202944');
+const devChannel = () => client.channels.get(devChanId);
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
 client.on('ready', () => {
@@ -74,7 +74,7 @@ client.on('guildCreate', guild => {
 });
 
 client.on('guildDelete', guild => {
-	((devChannel()) as Discord.TextChannel).send(`**${client.user.tag}** left \`${guild.name}\``);
+	(devChannel() as Discord.TextChannel).send(`**${client.user.tag}** left \`${guild.name}\``);
 	setPStatus();
 	updateStatusChannels()
 });
@@ -95,7 +95,7 @@ Members: ${guild.memberCount}
 Owner: ${guild.owner ? guild.owner.user.tag : 'unable to fetch'}
 Created At: ${created}
 Icon: [Link](${guild.iconURL ? guild.iconURL : client.user.displayAvatarURL})`);
-	((devChannel()) as Discord.TextChannel).send(`**${client.user.tag}** joined \`${guild.name}\``, { embed: embed });
+	(devChannel() as Discord.TextChannel).send(`**${client.user.tag}** joined \`${guild.name}\``, { embed: embed });
 }
 
 async function sendWelcome(guild: Discord.Guild) {
@@ -117,9 +117,9 @@ function setPStatus() {
 };
 
 function updateStatusChannels() {
-	if (client.user.id != '430326522146979861') return;
-	const guildsChan: Discord.VoiceChannel = client.channels.get('470522240551616523') as Discord.VoiceChannel;
-	const usersChan: Discord.VoiceChannel = client.channels.get('470522309132943360') as Discord.VoiceChannel;
+	if (client.user.id != dedicatedClientId) return;
+	const guildsChan = client.channels.get(guildsChanId) as Discord.VoiceChannel;
+	const usersChan = client.channels.get(usersChanId) as Discord.VoiceChannel;
 	guildsChan.setName(`RAD.io (${client.guilds.size}) szerveren`);
 	usersChan.setName(`RAD.io (${client.users.size}) felhasználóval`);
 };
