@@ -2,7 +2,7 @@
 import * as moment from 'moment';
 import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC } from './internal';
 const apiKey = process.env.youtubeApiKey;
-import { YouTube, Video } from 'better-youtube-api';
+import { YouTube, Video } from 'popyt';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
 import { soundcloudResolveTrack } from './soundcloud-util';
