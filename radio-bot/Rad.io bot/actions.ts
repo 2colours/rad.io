@@ -68,7 +68,7 @@ actions.set('yt', async function (param) {
 	};
 	const ytString = sscanf(param, '%S') || '';
 	try {
-		const results = await youtube.searchVideos(ytString, 5);
+		const { results }  = await youtube.searchVideos(ytString, 5);
 		if (!results || results.length == 0)
 			return void this.channel.send('**Nincs találat.**');
 		await Promise.all(results.map((elem: Video) => elem.fetch()));
