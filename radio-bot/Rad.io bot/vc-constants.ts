@@ -297,7 +297,7 @@ const radios = {
 	},
 	'radiof1': {
 		name: 'Rádio frekvence jedna',
-		url: 'http://icecast3.play.cz/frekvence1-128.mp3',
+		url: 'http://ice.actve.net/fm-frekvence1-128',
 		cult: 'eng'
 	},
 	'hot108': {
