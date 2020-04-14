@@ -248,20 +248,7 @@ actions.set('connections', async function (_) {
 		.then(link => this.channel.send(link));
 });
 actions.set('testradios', async function (_) {
-	//const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, await axios.get(data.url, { timeout: 1000 }).then(response => response.status == 200, _ => false)]));
-	let idAndAvailables: Array<[string, boolean]> = [];
-	for (let [id, data] of radios) {
-		try {
-			let response = await axios.get(data.url, {
-				timeout: 1000
-			});
-			idAndAvailables.push([id, response.status == 200]);
-		}
-		catch (ex) {
-			console.log(ex);
-			idAndAvailables.push([id, false]);
-		}
-	}
+	const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, await axios.get(data.url, { timeout: 5000, responseType: 'stream' }).then(response => response.status == 200, _ => false)]));
 	const offRadios = idAndAvailables.filter(([_, available]) => !available).map(([id, _]) => id);
 	createPastebin(`${offRadios.length} radios went offline`, offRadios.join('\n'))
 		.then(link => this.channel.send(link));

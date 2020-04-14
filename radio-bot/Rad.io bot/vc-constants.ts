@@ -127,7 +127,7 @@ const radios = {
 	},
 	'folkradio': {
 		name: 'Folkrádió',
-		url: 'http://stream1.virtualisan.net/6140/live.mp3',
+		url: 'https://stream.folkradio.hu/folkradio.mp3',
 		cult: 'hun'
 	},
 	'tilos': {
