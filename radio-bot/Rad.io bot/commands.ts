@@ -160,6 +160,16 @@ setupCommand({
 	filters: new Set([Filter.creatorNeeded])
 });
 
+
+setupCommand({
+	name: 'testradios',
+	aliases: ['tr'],
+	params: [],
+	descrip: 'A bot által éppen használt voice csatornák listázása.',
+	type: 'creatorsOnly',
+	filters: new Set([Filter.creatorNeeded])
+});
+
 setupCommand({
 	name: 'announce',
 	aliases: ['a'],

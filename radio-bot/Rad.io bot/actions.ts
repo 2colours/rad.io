@@ -1,11 +1,11 @@
 ﻿import * as Discord from 'discord.js';
 import * as moment from 'moment';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC } from './internal';
+import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'popyt';
+import axios from 'axios';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
-import { soundcloudResolveTrack } from './soundcloud-util';
 let config: Config;
 configPromise.then(cfg => config = cfg);
 export const actions: Map<string, Action> = new Map();
@@ -68,7 +68,7 @@ actions.set('yt', async function (param) {
 	};
 	const ytString = sscanf(param, '%S') || '';
 	try {
-		const { results }  = await youtube.searchVideos(ytString, 5);
+		const { results } = await youtube.searchVideos(ytString, 5);
 		if (!results || results.length == 0)
 			return void this.channel.send('**Nincs találat.**');
 		await Promise.all(results.map((elem: Video) => elem.fetch()));
@@ -245,6 +245,12 @@ actions.set('connections', async function (_) {
 	const connectionLines = client.voiceConnections.map(vc => `${vc.channel.guild.name} (${vc.channel.guild.id}) - ${vc.channel.name} (${vc.channel.members.filter(member => !member.user.bot).size})`);
 	const usersAffected = client.voiceConnections.map(vc => vc.channel.members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
 	createPastebin(`${client.user.username} on ${client.voiceConnections.size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
+		.then(link => this.channel.send(link));
+});
+actions.set('testradios', async function (_) {
+	const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, (await axios.get(data.url)).status == 200]));
+	const offRadios = idAndAvailables.filter(([_, available]) => !available).map(([id, _]) => id);
+	createPastebin(`${offRadios.length} radios went offline`, offRadios.join('\n'))
 		.then(link => this.channel.send(link));
 });
 actions.set('leaveguild', async function (param) {
