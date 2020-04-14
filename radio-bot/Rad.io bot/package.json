@@ -5,7 +5,7 @@
   },
   "dependencies": {
     "@types/node": "^12.12.13",
-    "@types/request-promise-native": "^1.0.17",
+    "axios": "^0.19.2",
     "concurrently": "^5.0.2",
     "discord.js": "^11.5.1",
     "dotenv": "^8.2.0",
@@ -14,8 +14,6 @@
     "node-opus": "^0.3.2",
     "pastebin-js": "^1.0.4",
     "popyt": "^2.2.0",
-    "request": "^2.88.2",
-    "request-promise-native": "^1.0.8",
     "scanf": "^1.1.1",
     "sqlite": "^3.0.3",
     "typescript": "^3.8.3",
