@@ -248,7 +248,7 @@ actions.set('connections', async function (_) {
 		.then(link => this.channel.send(link));
 });
 actions.set('testradios', async function (_) {
-	const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, (await axios.get(data.url)).status == 200]));
+	const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, await axios.get(data.url).then(response => response.status == 200, _ => false)]));
 	const offRadios = idAndAvailables.filter(([_, available]) => !available).map(([id, _]) => id);
 	createPastebin(`${offRadios.length} radios went offline`, offRadios.join('\n'))
 		.then(link => this.channel.send(link));
