@@ -173,7 +173,7 @@ actions.set('radios', async function (_) {
 			.join('\n');
 	}
 	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
-	const baseEmbed: Discord.RichEmbed = commonEmbed.call(this).addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
+	const baseEmbed: Discord.MessageEmbed = commonEmbed.call(this).addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
 	await this.channel.send({
 		embed: baseEmbed
 			.setTitle('❯ Magyar rádiók')
@@ -237,14 +237,14 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 	this.reply('nincs ilyen nevű parancs.');
 });
 actions.set('guilds', async function (_) {
-	const guildLines = client.guilds.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
-	createPastebin(`${client.user.username} on ${client.guilds.size} guilds with ${client.users.size} users.`, guildLines.join('\n'))
+	const guildLines = client.guilds.cache.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
+	createPastebin(`${client.user.username} on ${client.guilds.cache.size} guilds with ${client.users.cache.size} users.`, guildLines.join('\n'))
 		.then(link => this.channel.send(link));
 });
 actions.set('connections', async function (_) {
-	const connectionLines = client.voiceConnections.map(vc => `${vc.channel.guild.name} (${vc.channel.guild.id}) - ${vc.channel.name} (${vc.channel.members.filter(member => !member.user.bot).size})`);
-	const usersAffected = client.voiceConnections.map(vc => vc.channel.members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
-	createPastebin(`${client.user.username} on ${client.voiceConnections.size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
+	const connectionLines = client.voice.connections.map(vc => `${vc.channel.guild.name} (${vc.channel.guild.id}) - ${vc.channel.name} (${vc.channel.members.filter(member => !member.user.bot).size})`);
+	const usersAffected = client.voice.connections.map(vc => vc.channel.members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
+	createPastebin(`${client.user.username} on ${client.voice.connections.size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
 		.then(link => this.channel.send(link));
 });
 actions.set('testradios', async function (_) {
@@ -255,11 +255,11 @@ actions.set('testradios', async function (_) {
 });
 actions.set('leaveguild', async function (param) {
 	const id = sscanf(param, '%s');
-	const guildToLeave = await client.guilds.get(id).leave();
+	const guildToLeave = await client.guilds.resolve(id).leave();
 	this.channel.send(`**Szerver elhagyva:** ${guildToLeave.name}`);
 });
 actions.set('voicecount', function (_) {
-	this.channel.send(`:information_source: ${client.voiceConnections.array().length} voice connection(s) right now.`);
+	this.channel.send(`:information_source: ${client.voice.connections.size} voice connection(s) right now.`);
 });
 actions.set('queue', async function (_) {
 	const queue: MusicData[] = this.guildPlayer.queue;
@@ -349,7 +349,7 @@ actions.set('deny', function (param) {
 				roleCommands.splice(roleCommands.indexOf(elem), 1);
 		}));
 });
-actions.set('denyeveryone', function (param: string) {
+actions.set('denyeveryone', function (param) {
 	actions.get('deny').call(this, `${param} @everyone`);
 });
 actions.set('nowplaying', function (_) {
@@ -381,7 +381,7 @@ actions.set('unmute', function (_) {
 actions.set('announce', function (param) {
 	const [guildInfo, rawMessage = ''] = <string[]>sscanf(param, '%s %S');
 	const message: string = eval(rawMessage);
-	const guildToAnnounce = guildInfo == 'all' ? client.guilds.array() : guildInfo == 'conn' ? client.voiceConnections.map(conn => conn.channel.guild) : [client.guilds.get(guildInfo)];
+	const guildToAnnounce = guildInfo == 'all' ? client.guilds.cache.array() : guildInfo == 'conn' ? client.voice.connections.map(conn => conn.channel.guild) : [client.guilds.resolve(guildInfo)];
 	guildToAnnounce.forEach(guild => sendGuild(guild, message));
 	this.react('☑');
 });
@@ -455,52 +455,51 @@ async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): P
 }
 
 async function searchPick(results: SearchResultView[]): Promise<number> {
-	try {
-		var message, embed;
-		if (results.length == 1)
-			return 0;
-		else if (!this.guild.member(client.user).permissions.has('ADD_REACTIONS')) {
-			this.channel.send('** Az opciók közüli választáshoz a botnak **`ADD_REACTIONS`** jogosultságra van szüksége.\nAutomatikusan az első opció kiválasztva. **');
-			return 0;
-		}
-		else {
-			const emojis = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣'].slice(0, results.length);
-			const selectionPromise: Promise<number> = new Promise(async (resolve, reject) => {
-				let counter = 1;
-				embed = commonEmbed.call(this)
-					.setTitle("❯ Találatok")
-					.setDescription(results.map(elem => `__${counter++}.__ - ${elem.title} \`(${hourMinSec(elem.duration)})\``).join('\n'));
-				message = await this.channel.send(embed);
-				const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
-				const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 30000 });
-				collector.on('collect', (r: Discord.MessageReaction) => {
-					const index = emojis.indexOf(r.emoji.name);
-					resolve(index);
-					collector.stop();
-				});
-				collector.on('end', (_: any) => reject('Lejárt a választási idő.'));
-				for (const emoji of emojis) {
-					const reaction = await message.react(emoji);
-					selectionPromise.then(_ => reaction.remove(client.user), _ => reaction.remove(client.user));
-				}
-
+	if (results.length == 1)
+		return 0;
+	else if (!this.guild.member(client.user).permissions.has('ADD_REACTIONS')) {
+		this.channel.send('**Az opciók közüli választáshoz a botnak **`ADD_REACTIONS`** jogosultságra van szüksége.\nAutomatikusan az első opció kiválasztva.**');
+		return 0;
+	}
+	else {
+		const emojis = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣'].slice(0, results.length);
+		let counter = 1;
+		const embed = commonEmbed.call(this)
+			.setTitle("❯ Találatok")
+			.setDescription(results.map(elem => `__${counter++}.__ - ${elem.title} \`(${hourMinSec(elem.duration)})\``).join('\n'));
+		const message: Discord.Message = await this.channel.send(embed);
+		const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
+		const selectionPromise: Promise<number> = new Promise(async (resolve, reject) => {
+			const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 30000 });
+			collector.on('collect', (r: Discord.MessageReaction) => {
+				const index = emojis.indexOf(r.emoji.name);
+				resolve(index);
+				collector.stop();
 			});
+			collector.on('end', (_: any) => reject('Lejárt a választási idő.'));
+			for (const emoji of emojis) {
+				const reaction = await message.react(emoji);
+				selectionPromise.then(_ => reaction.users.remove(client.user), _ => reaction.users.remove(client.user));
+			}
+
+		});
+		try {
 			const which = await selectionPromise;
 			return which;
 		}
-	}
-	catch (err) {
-		if (typeof err != 'string')
-			console.log(err);
-		else {
-			embed.setTitle(`❯ Találatok - ${err}`);
-			message.edit(embed);
+		catch (err) {
+			if (typeof err != 'string')
+				console.log(err);
+			else {
+				embed.setTitle(`❯ Találatok - ${err}`);
+				message.edit(embed);
+			}
+			throw err;
 		}
-		throw err;
 	}
 }
 function sendToPartnerHook(link: string, content: string, username: string, serverName: string): void {
-	const embed = new Discord.RichEmbed();
+	const embed = new Discord.MessageEmbed();
 	embed.setColor(webhookC);
 	embed.setFooter(serverName);
 	embed.setDescription(content);

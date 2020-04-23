@@ -1,4 +1,4 @@
-import { Emoji, Snowflake, Message, User, TextChannel, GuildMember } from 'discord.js';
+import { Snowflake, Message, User, TextChannel, GuildMember } from 'discord.js';
 import { GuildPlayer, Filter, aggregateDecorators, client } from './internal';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
@@ -61,7 +61,6 @@ export interface RadioConstantData {
 	url:string;
 	cult:string; //TODO biztos nem enum inkább?
 }
-export type EmojiLike = Emoji | string;
 export interface CommandExtraData {
 	type: CommandType;
 	name: string; //Biztos? Még mindig a validálás kérdése
@@ -103,7 +102,7 @@ export class Creator {
 	constructor(readonly id: Snowflake, private alias: string) {
 	}
 	resolve() {
-		const user = client.users.get(this.id);
+		const user = client.users.resolve(this.id);
 		return user ? user.tag : this.alias;
 	}
 }

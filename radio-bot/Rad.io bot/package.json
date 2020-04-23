@@ -7,7 +7,7 @@
     "@types/node": "^12.12.13",
     "axios": "^0.19.2",
     "concurrently": "^5.0.2",
-    "discord.js": "^11.5.1",
+    "discord.js": "12.2.0",
     "dotenv": "^8.2.0",
     "moment": "^2.24.0",
     "node-gyp": "^6.1.0",
@@ -20,6 +20,6 @@
     "ytdl-core": "^2.0.1"
   },
   "engines": {
-    "node": "8.11.1"
+    "node": "^10"
   }
 }

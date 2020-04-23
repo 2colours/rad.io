@@ -5,11 +5,11 @@ import { configPromise, client, PackedMessage, ThisBinding, Config, actions, Gui
 import * as moment from 'moment';
 const help = actions.get('help');
 
-const devChannel = () => client.channels.get(devChanId);
+const devChannel = () => client.channels.resolve(devChanId);
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
 client.on('ready', () => {
-	console.log(`${client.user.tag}: client online, on ${client.guilds.size} guilds, with ${client.users.size} users.`);
+	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();
 });
@@ -47,22 +47,22 @@ client.on('message', async (message) => {
 	}
 });
 
-client.on('voiceStateUpdate', (oldMember, newMember) => {
-	const id = oldMember.guild.id;
+client.on('voiceStateUpdate', (oldState, newState) => {
+	const id = oldState.guild.id;
 	const guildPlayer = guildPlayers.get(id);
 	if (!guildPlayer)
 		return;
-	if (oldMember.user == client.user && oldMember.voiceChannel)
-		if (newMember.voiceChannel) //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia
+	if (oldState.connection)
+		if (newState.connection) //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia
 			guildPlayer.handler.eventTriggered();
 		else {//ha a botot elküldik - régen ilyen nem volt :))
 			console.log('kthxbye');
 			guildPlayer.leave();
 			guildPlayers.set(id, undefined);
 		}
-	if (oldMember.user.bot) //innen csak nem botokra figyelünk
+	if (oldState.member?.user.bot) //innen csak nem botokra figyelünk
 		return;
-	if ([oldMember.voiceChannel, newMember.voiceChannel].includes(guildPlayer.ownerGuild.voiceConnection.channel))
+	if ([oldState.connection, newState.connection].includes(guildPlayer.ownerGuild.voice?.connection))
 		guildPlayer.handler.eventTriggered();
 });
 
@@ -89,18 +89,18 @@ process.on('unhandledRejection', (reason, _) => {
 
 function logGuildJoin(guild: Discord.Guild) {
 	const created = moment(guild.createdAt).format("MMM Do YY");
-	const embed = new Discord.RichEmbed()
+	const embed = new Discord.MessageEmbed()
 		.setDescription(`ID: ${guild.id}
 Members: ${guild.memberCount}
 Owner: ${guild.owner ? guild.owner.user.tag : 'unable to fetch'}
 Created At: ${created}
-Icon: [Link](${guild.iconURL ? guild.iconURL : client.user.displayAvatarURL})`);
+Icon: [Link](${guild.iconURL ? guild.iconURL : client.user.displayAvatarURL()})`);
 	(devChannel() as Discord.TextChannel).send(`**${client.user.tag}** joined \`${guild.name}\``, { embed: embed });
 }
 
 async function sendWelcome(guild: Discord.Guild) {
-	const embed = new Discord.RichEmbed()
-		.setAuthor(client.user.tag, client.user.displayAvatarURL)
+	const embed = new Discord.MessageEmbed()
+		.setAuthor(client.user.tag, client.user.displayAvatarURL())
 		.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
 		.addField('❯ Néhány szó a botról', 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.')
 		.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${debatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
@@ -109,26 +109,25 @@ async function sendWelcome(guild: Discord.Guild) {
 	sendGuild(guild, devServerInvite, { embed });
 }
 
-function forceLogin() {
-	client.login(token).catch(_ => {
+function forceLogin():Promise<any> {
+	return client.login(token).catch(_ => {
 		console.log('Login failed, retrying...');
-		forceLogin();
+		return forceLogin();
 	});
 }
 
 function setPStatus() {
-	const presenceEndings = [`G: ${client.guilds.size}`, `Rádiók száma: ${channels.length} `, `@${client.user.username}`, `U: ${client.users.size}`];
+	const presenceEndings = [`G: ${client.guilds.cache.size}`, `Rádiók száma: ${channels.length} `, `@${client.user.username}`, `U: ${client.users.cache.size}`];
 	const randomRadioName = radios.get(randomElement(channels)).name;
 	const presence = `${randomRadioName} | ${randomElement(presenceEndings)}`;
-	client.user.setPresence({ game: { name: presence, type: 'LISTENING' } });
+	client.user.setPresence({ activity: { name: presence, type: 'LISTENING' } });
 };
 
 function updateStatusChannels() {
 	if (client.user.id != dedicatedClientId) return;
-	const guildsChan = client.channels.get(guildsChanId) as Discord.VoiceChannel;
-	const usersChan = client.channels.get(usersChanId) as Discord.VoiceChannel;
-	guildsChan.setName(`RAD.io (${client.guilds.size}) szerveren`);
-	usersChan.setName(`RAD.io (${client.users.size}) felhasználóval`);
+	const guildsChan = client.channels.resolve(guildsChanId) as Discord.VoiceChannel;
+	const usersChan = client.channels.resolve(usersChanId) as Discord.VoiceChannel;
+	guildsChan.setName(`RAD.io (${client.guilds.cache.size}) szerveren`);
+	usersChan.setName(`RAD.io (${client.users.cache.size}) felhasználóval`);
 };
-setInterval(setPStatus, 60000 * 5);
-configPromise.then(_ => forceLogin());
+configPromise.then(_ => forceLogin()).then(_ => setInterval(setPStatus, 60000 * 5));

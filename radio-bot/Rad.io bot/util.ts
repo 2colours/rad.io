@@ -1,5 +1,5 @@
-﻿import { Snowflake, Guild, TextChannel, StringResolvable, RichEmbed, Attachment, MessageOptions, Message, MessageReaction, User, VoiceChannel } from 'discord.js';
-import { Decorator, AuthorHolder, TextChannelHolder, client, defaultConfig, embedC, EmojiLike, GuildPlayerHolder, MusicData, GuildPlayer, Config, configPromise, ScrollableEmbedTitleResolver, dbPromise, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData } from './internal';
+﻿import { Snowflake, Guild, TextChannel, StringResolvable, MessageEmbed, MessageAttachment, MessageOptions, Message, MessageReaction, User, VoiceChannel, EmojiIdentifierResolvable } from 'discord.js';
+import { Decorator, AuthorHolder, TextChannelHolder, client, defaultConfig, embedC, GuildPlayerHolder, MusicData, GuildPlayer, Config, configPromise, ScrollableEmbedTitleResolver, dbPromise, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData } from './internal';
 import { Database } from 'sqlite';
 const PastebinAPI = require('pastebin-js');
 const pastebin: any = new PastebinAPI(process.env.pastebin);
@@ -28,8 +28,8 @@ export function hourMinSec(seconds: number) {
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
 export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
-export async function sendGuild(guild: Guild, content: StringResolvable, options?: RichEmbed | MessageOptions | Attachment) {
-	for (const channel of guild.channels.values()) {
+export async function sendGuild(guild: Guild, content: StringResolvable, options?: MessageEmbed | MessageOptions | MessageAttachment) {
+	for (const channel of guild.channels.cache.values()) {
 		if (!(channel instanceof TextChannel))
 			continue;
 		try {
@@ -41,7 +41,7 @@ export async function sendGuild(guild: Guild, content: StringResolvable, options
 	}
 }
 export async function forceSchedule(textChannel: TextChannel, voiceChannel: VoiceChannel, holder: GuildPlayerHolder, playableData: MusicData[]) {
-	if (!voiceChannel.connection) {
+	if (!voiceChannel.members.map(member => member.user).includes(client.user)) {
 		await voiceChannel.join();
 		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
 		return;
@@ -53,14 +53,14 @@ export async function forceSchedule(textChannel: TextChannel, voiceChannel: Voic
 };
 export function commonEmbed(additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
 	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
-	return new RichEmbed()
+	return new MessageEmbed()
 		.setColor(embedC)
-		.setFooter(`${prefix}${this.cmdName}${additional} - ${client.user.username}`, client.user.avatarURL)
+		.setFooter(`${prefix}${this.cmdName}${additional} - ${client.user.username}`, client.user.avatarURL())
 		.setTimestamp();
 };
 function scrollRequest(context: AuthorHolder, message: Message, currentPage: number, allPages: number) {
 	const res = new Promise<number>(async (resolve, reject) => {
-		const emojis: EmojiLike[] = [];
+		const emojis: EmojiIdentifierResolvable[] = [];
 		if (currentPage > 1)
 			emojis.push('◀');
 		if (currentPage < allPages)
@@ -77,12 +77,12 @@ function scrollRequest(context: AuthorHolder, message: Message, currentPage: num
 		for (const emoji of emojis) {
 			const reaction = await message.react(emoji);
 			res
-				.then(_ => reaction.remove(client.user), _ => reaction.remove(client.user));
+				.then(_ => reaction.users.remove(client.user), _ => reaction.users.remove(client.user));
 		}
 	});
 	return res;
 };
-export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, baseEmbed: RichEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
+export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, baseEmbed: MessageEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
 	let currentPage = 1;
 	const maxPage = Math.ceil(linesForDescription.length / elementsPerPage);
 	const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');

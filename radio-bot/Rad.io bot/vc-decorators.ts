@@ -1,9 +1,9 @@
 ﻿import { aggregateDecorators, Config, configPromise, Predicate, Action, Decorator, ThisBinding, creators, actions } from './internal';
 import { sscanf } from 'scanf';
-const isAdmin:Predicate=ctx=>ctx.member.permissions.has('ADMINISTRATOR');
-const isVcUser:Predicate=ctx=>!!ctx.member.voiceChannel;
-const isDifferentVc:Predicate=ctx=>(ctx.guild.voiceConnection && ctx.guild.voiceConnection.channel) != ctx.member.voiceChannel;
-const isVcBot:Predicate=ctx=>!!ctx.guild.voiceConnection;
+const isAdmin: Predicate = ctx => ctx.member.permissions.has('ADMINISTRATOR');
+const isVcUser: Predicate = ctx => !!ctx.member.voice.channel;
+const isDifferentVc: Predicate = ctx => ctx.guild.voice.channel != ctx.member.voice.channel;
+const isVcBot: Predicate = ctx => !!ctx.guild.voice.channel;
 const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (param: string) {
 	const currentDecorator = await Promise.resolve(pred(this)) ? dec1 : dec2;
 currentDecorator(action).call(this,param);
@@ -12,12 +12,12 @@ let config: Config;
 configPromise.then(cfg => config = cfg);
 const hasPermission: Predicate = ctx => {
 	const guildRoles = [...(config.roles.get(ctx.guild.id) || new Map())];
-	return guildRoles.some(roleData=>ctx.member.roles.has(roleData[0]) && roleData[1].includes(ctx.cmdName));
+	return guildRoles.some(roleData => ctx.member.roles.cache.has(roleData[0]) && roleData[1].includes(ctx.cmdName));
 }
-const hasVcPermission: Predicate = ctx => ctx.member.voiceChannel.joinable;
+const hasVcPermission: Predicate = ctx => ctx.member.voice.channel.joinable;
 const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.author.id);
-const isAloneUser: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot && member != ctx.member);
-const isAloneBot: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voiceConnection.channel.members.some(member => !member.user.bot);
+const isAloneUser: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voice.channel.members.some(member => !member.user.bot && member != ctx.member);
+const isAloneBot: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voice.channel.members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
 const rejectReply=(replyMessage:string)=>(_:Action)=>function(_:string) {
 this.reply(`**${replyMessage}**`);

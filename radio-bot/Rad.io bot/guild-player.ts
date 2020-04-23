@@ -34,7 +34,7 @@ class Playable {
 				return;
 			}
 			const stream = downloadMethods.get(this.data.type)(this.data.url);
-			const dispatcher = voiceConnection.playStream(stream, { seek: 0 });
+			const dispatcher = voiceConnection.play(stream, { seek: 0 });
 			dispatcher.setVolume(vol);
 			dispatcher.on('end', () => resolve(false)); //nem volt forced, hanem magától
 			dispatcher.on('error', () => {
@@ -63,7 +63,7 @@ class VoiceHandler {
 	constructor(private controlledPlayer: GuildPlayer) {
 	}
 	eventTriggered() {
-		const voiceEmpty = !this.controlledPlayer.ownerGuild.voiceConnection.channel.members.some(member => !member.user.bot);
+		const voiceEmpty = !this.controlledPlayer.ownerGuild.voice.channel.members.some(member => !member.user.bot);
 		if (voiceEmpty && !this.timeoutId)
 			this.timeoutId = global.setTimeout(() => this.controlledPlayer.leave(), 60000 * 5);
 		if (!voiceEmpty && this.timeoutId) {
@@ -103,7 +103,7 @@ export class GuildPlayer {
 				do { //Itt kéne kiírás is
 					if (this.nowPlayingData)
 						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.nowPlayingData.type)} \`${this.nowPlayingData.name}\``).catch();
-					var forcedOver = await this.currentPlay.play(this.ownerGuild.voiceConnection, this.volume);
+					var forcedOver = await this.currentPlay.play(this.ownerGuild.voice.connection, this.volume);
 					var shouldRepeat = this.currentPlay.askRepeat();
 				} while (!forcedOver && shouldRepeat);
 				if (this.queue.length != 0) {
@@ -134,9 +134,9 @@ export class GuildPlayer {
 		this.setVolume(this.oldVolume);
 	}
 	setVolume(vol: number) {
-		if (!this.ownerGuild.voiceConnection.dispatcher)
+		if (!this.ownerGuild.voice.connection.dispatcher)
 			throw 'Semmi nincs lejátszás alatt.';
-		this.ownerGuild.voiceConnection.dispatcher.setVolume(vol);
+		this.ownerGuild.voice.connection.dispatcher.setVolume(vol);
 		this.volume = vol;
 	}
 	skip() {
@@ -215,7 +215,7 @@ export class GuildPlayer {
 	leave() {
 		if (this.currentPlay)
 			this.currentPlay.halt();
-		this.ownerGuild.voiceConnection.disconnect(); //KÉRDÉSES!
+		this.ownerGuild.voice.connection.disconnect(); //KÉRDÉSES!
 		this.handler.destroy();
 		delete this.ownerGuild;
 		if (!this.nowPlayingData)
