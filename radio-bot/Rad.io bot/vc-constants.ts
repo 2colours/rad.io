@@ -152,7 +152,7 @@ const radios = {
 	},
 	'amadeus': {
 		name: 'Amadeus Rádió',
-		url: 'http://87.229.73.156:8004/stream192',
+		url: 'http://stream1.bestfmnyiregyhaza.hu/szolnok.mp3',
 		cult: 'hun'
 	},
 	'radiom': {
