@@ -36,7 +36,7 @@ class Playable {
 			const stream = downloadMethods.get(this.data.type)(this.data.url);
 			const dispatcher = voiceConnection.play(stream, { seek: 0 });
 			dispatcher.setVolume(vol);
-			dispatcher.on('end', () => resolve(false)); //nem volt forced, hanem magától
+			dispatcher.on('finish', () => resolve(false)); //nem volt forced, hanem magától
 			dispatcher.on('error', () => {
 				console.log('Futott az error handler.');
 				resolve(true); //ha hiba történt, inkább ne próbálkozzunk a loopolással - "forced"
