@@ -40,7 +40,7 @@ actions.set('joinfallback', function (_) {
 });
 
 async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
-	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
+	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;
 	try {
 		await this.channel.send('**Csatlakozva.**');
 		await voiceChannel.join();
@@ -53,7 +53,7 @@ async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
 	}
 }
 actions.set('yt', async function (param) {
-	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
+	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;
 	param = param.trim();
 	if (isLink(param)) {
 		try {
@@ -96,7 +96,7 @@ actions.set('yt', async function (param) {
 	}
 });
 actions.set('soundcloud', async function (param) {
-	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
+	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;
 	const scString = sscanf(param, '%S') || '';
 	if (isLink(scString)) {
 		try {
@@ -141,7 +141,7 @@ actions.set('soundcloud', async function (param) {
 	}
 });
 actions.set('custom', async function (param) {
-	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
+	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;
 	const url = sscanf(param, '%s') || '';
 	forceSchedule(this.channel, voiceChannel, this, [{
 		name: 'Custom',
@@ -324,7 +324,7 @@ actions.set('resume', function (_) {
 	this.guildPlayer.resume();
 });
 actions.set('tune', function (param) {
-	const voiceChannel: Discord.VoiceChannel = this.member.voiceChannel;
+	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;
 	const channel = extractChannel(this, param);
 	forceSchedule(this.channel, voiceChannel, this, [Object.assign({
 		type: 'radio' as StreamType,
