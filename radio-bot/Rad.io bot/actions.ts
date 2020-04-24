@@ -229,7 +229,7 @@ A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
 		currentAliases.sort();
 		const embed = commonEmbed.call(this, ` ${helpCommand}`)
 			.addField('❯ Részletes leírás', currentCommand.helpRelated.ownDescription)
-			.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${currentCommand.helpRelated.params.map((attribute: string) => `<${attribute}>`).join(' ')} \``)
+			.addField('❯ Teljes parancs', `\`${prefix}${helpCommand} ${currentCommand.helpRelated.params.map((attribute: string) => `<${attribute}>`).join(' ')}\``)
 			.addField('❯ Használat feltételei', currentRequirements.length == 0 ? '-' : currentRequirements.join(' '))
 			.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
 		return void this.channel.send({ embed });
