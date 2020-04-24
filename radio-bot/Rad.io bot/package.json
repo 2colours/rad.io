@@ -20,6 +20,6 @@
     "ytdl-core": "^2.0.1"
   },
   "engines": {
-    "node": "^10"
+    "node": "^12"
   }
 }
