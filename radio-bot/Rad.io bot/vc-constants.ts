@@ -265,11 +265,6 @@ const radios = {
 		url: 'http://37.59.37.139:13494/;stream/1',
 		cult: 'eng'
 	},
-	'hititalia': {
-		name: 'Hit Radio Network Italia (Pop)',
-		url: 'http://149.202.196.92:8246/;stream/1',
-		cult: 'eng'
-	},
 	'magicflorida': {
 		name: 'Magic 70s Florida (70s pop)',
 		url: 'http://airspectrum.cdnstream1.com:8012/1605_192',
