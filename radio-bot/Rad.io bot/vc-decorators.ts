@@ -2,8 +2,8 @@
 import { sscanf } from 'scanf';
 const isAdmin: Predicate = ctx => ctx.member.permissions.has('ADMINISTRATOR');
 const isVcUser: Predicate = ctx => !!ctx.member.voice.channel;
-const isDifferentVc: Predicate = ctx => ctx.guild.voice.channel != ctx.member.voice.channel;
-const isVcBot: Predicate = ctx => !!ctx.guild.voice.channel;
+const isDifferentVc: Predicate = ctx => ctx.guild.voice?.channel != ctx.member.voice.channel;
+const isVcBot: Predicate = ctx => !!ctx.guild.voice?.channel;
 const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (param: string) {
 	const currentDecorator = await Promise.resolve(pred(this)) ? dec1 : dec2;
 currentDecorator(action).call(this,param);
