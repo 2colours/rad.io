@@ -52,14 +52,15 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	const guildPlayer = guildPlayers.get(id);
 	if (!guildPlayer)
 		return;
-	if (oldState.connection)
-		if (newState.connection) //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia
-			guildPlayer.handler.eventTriggered();
-		else {//ha a botot elküldik - régen ilyen nem volt :))
+	if (oldState.member?.user == client.user) {
+		if (!newState.connection) {//ha a botot elküldik - régen ilyen nem volt :))
 			console.log('kthxbye');
 			guildPlayer.leave();
 			guildPlayers.set(id, undefined);
 		}
+		else (newState.connection) //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia
+			guildPlayer.handler.eventTriggered();
+	}
 	if (oldState.member?.user.bot) //innen csak nem botokra figyelünk
 		return;
 	if ([oldState.connection, newState.connection].includes(guildPlayer.ownerGuild.voice?.connection))
@@ -109,7 +110,7 @@ async function sendWelcome(guild: Discord.Guild) {
 	sendGuild(guild, devServerInvite, { embed });
 }
 
-function forceLogin():Promise<any> {
+function forceLogin(): Promise<any> {
 	return client.login(token).catch(_ => {
 		console.log('Login failed, retrying...');
 		return forceLogin();
