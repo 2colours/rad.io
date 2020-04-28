@@ -53,7 +53,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	if (!guildPlayer)
 		return;
 	if (oldState.member?.user == client.user) {
-		if (!newState.connection) {//ha a botot elküldik - régen ilyen nem volt :))
+		if (!newState.channel) {//ha a botot elküldik - régen ilyen nem volt :))
 			console.log('kthxbye');
 			guildPlayer.leave();
 			guildPlayers.set(id, undefined);
@@ -63,7 +63,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	}
 	if (oldState.member?.user.bot) //innen csak nem botokra figyelünk
 		return;
-	if ([oldState.connection, newState.connection].includes(guildPlayer.ownerGuild.voice?.connection))
+	if ([oldState.channel, newState.channel].includes(guildPlayer.ownerGuild.voice?.channel))
 		guildPlayer.handler.eventTriggered();
 });
 
