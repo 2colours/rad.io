@@ -58,7 +58,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 			guildPlayer.leave();
 			guildPlayers.set(id, undefined);
 		}
-		else (newState.connection) //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia
+		else //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia
 			guildPlayer.handler.eventTriggered();
 	}
 	if (oldState.member?.user.bot) //innen csak nem botokra figyelünk
