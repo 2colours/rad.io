@@ -41,7 +41,7 @@ export async function sendGuild(guild: Guild, content: StringResolvable, options
 	}
 }
 export async function forceSchedule(textChannel: TextChannel, voiceChannel: VoiceChannel, holder: GuildPlayerHolder, playableData: MusicData[]) {
-	if (!voiceChannel.members.map(member => member.user).includes(client.user)) {
+	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !voiceChannel.guild.voice?.connection) {
 		await voiceChannel.join();
 		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
 		return;
