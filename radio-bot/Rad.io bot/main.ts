@@ -42,12 +42,9 @@ client.on('message', async (message) => {
 				if (cachedPlayer)
 					return cachedPlayer;
 				const voiceChannel = packedMessage.guild.voice?.channel;
-				if (voiceChannel) {
-					const guildPlayer = new GuildPlayer(packedMessage.guild, packedMessage.channel as Discord.TextChannel, []);
-					guildPlayers.set(packedMessage.guild.id, guildPlayer);
-					return guildPlayer;
-				}
-				return undefined;
+				if (voiceChannel) 
+					voiceChannel.leave();
+				return cachedPlayer;
 			},
 			set: value => guildPlayers.set(packedMessage.guild.id, value)
 		});
