@@ -9,7 +9,10 @@ const devChannel = () => client.channels.resolve(devChanId);
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
 client.on('ready', async () => {
-	client.channels.cache.forEach(channel => { if (channel instanceof Discord.VoiceChannel) channel.leave(); });
+	client.guilds.cache.forEach(guild => {
+		if (guild.voice?.channel)
+			guild.voice.channel.leave();
+	});
 	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();
