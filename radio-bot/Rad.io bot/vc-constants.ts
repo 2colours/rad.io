@@ -305,6 +305,11 @@ const radios = {
 		url: 'http://streaming11.tdiradio.com:8000/hit',
 		cult: 'eng'
 	},
+	'r101': {
+		name: 'R101 radio',
+		url: 'https://icecast.unitedradio.it/r101_mp3',
+		cult: 'eng'
+	},
 	'radiof1': {
 		name: 'Rádio frekvence jedna',
 		url: 'http://ice.actve.net/fm-frekvence1-128',
