@@ -213,10 +213,11 @@ export class GuildPlayer {
 		}
 	}
 	leave() {
+		if (!this.ownerGuild.voice?.connection)
+			return;
 		if (this.currentPlay)
 			this.currentPlay.halt();
-		if (this.ownerGuild.voice?.connection)
-			this.ownerGuild.voice.connection.disconnect(); //KÉRDÉSES!
+		this.ownerGuild.voice.connection.disconnect(); //KÉRDÉSES!
 		this.handler.destroy();
 		delete this.ownerGuild;
 		if (!this.nowPlayingData)
