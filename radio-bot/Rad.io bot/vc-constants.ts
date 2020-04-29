@@ -250,6 +250,11 @@ const radios = {
 		url: 'https://live.kissfm.ro:8443/kissfm.aacp',
 		cult: 'eng'
 	},
+	'hitradio': {
+		name: 'Hitradio center',
+		url: 'http://stream3.radiocenter.si:8000/center',
+		cult: 'eng'
+	},
 	'abc50s': {
 		name: 'ABC 50s (50s)',
 		url: 'http://144.217.253.136:8582/;stream/1',
@@ -293,6 +298,11 @@ const radios = {
 	'radiof1': {
 		name: 'Rádio frekvence jedna',
 		url: 'http://ice.actve.net/fm-frekvence1-128',
+		cult: 'eng'
+	},
+	'fajn': {
+		name: 'Fajn radio',
+		url: 'https://20853.live.streamtheworld.com/FAJN_RADIO_128.mp3',
 		cult: 'eng'
 	},
 	'hot108': {
