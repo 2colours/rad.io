@@ -57,7 +57,7 @@ const radios = {
 	},
 	'radioface': {
 		name: 'Rádió Face',
-		url: 'http://91.227.139.87:8000/;stream.nsv#.mp3',
+		url: 'http://ca5.rcast.net:8034/stream',
 		cult: 'hun'
 	},
 	'risefm': {
@@ -246,8 +246,8 @@ const radios = {
 		cult: 'eng'
 	},
 	'kissfm': {
-		name: 'KISS FM 9.61 (Pop)',
-		url: 'http://192.240.102.131:9864/;stream/1',
+		name: 'Kiss Fm Romania',
+		url: 'https://live.kissfm.ro:8443/kissfm.aacp',
 		cult: 'eng'
 	},
 	'abc50s': {
