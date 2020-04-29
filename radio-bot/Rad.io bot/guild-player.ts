@@ -215,7 +215,8 @@ export class GuildPlayer {
 	leave() {
 		if (this.currentPlay)
 			this.currentPlay.halt();
-		this.ownerGuild.voice.connection.disconnect(); //KÉRDÉSES!
+		if (this.ownerGuild.voice?.connection)
+			this.ownerGuild.voice.connection.disconnect(); //KÉRDÉSES!
 		this.handler.destroy();
 		delete this.ownerGuild;
 		if (!this.nowPlayingData)
