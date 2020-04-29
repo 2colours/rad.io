@@ -8,7 +8,8 @@ const help = actions.get('help');
 const devChannel = () => client.channels.resolve(devChanId);
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
-client.on('ready', () => {
+client.on('ready', async () => {
+	client.channels.cache.forEach(channel => { if (channel instanceof Discord.VoiceChannel) channel.leave(); });
 	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();
@@ -37,15 +38,7 @@ client.on('message', async (message) => {
 		const { decoratedAction: commandFunction = Function.prototype } = commands.get(commandString) || {};
 		const packedMessage: PackedMessage = Object.assign(message, { cmdName: commandString });
 		const thisBinding: ThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
-			get: () => {
-				const cachedPlayer = guildPlayers.get(packedMessage.guild.id);
-				if (cachedPlayer)
-					return cachedPlayer;
-				const voiceChannel = packedMessage.guild.voice?.channel;
-				if (voiceChannel) 
-					voiceChannel.leave();
-				return cachedPlayer;
-			},
+			get: () => guildPlayers.get(packedMessage.guild.id),
 			set: value => guildPlayers.set(packedMessage.guild.id, value)
 		});
 		await Promise.resolve(commandFunction.call(thisBinding, param || ''));
