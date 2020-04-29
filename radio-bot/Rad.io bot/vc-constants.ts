@@ -295,6 +295,11 @@ const radios = {
 		url: 'https://edge76.rcs-rds.ro/digifm/digifm.mp3',
 		cult: 'eng'
 	},
+	'popular': {
+		name: 'Radio Popular',
+		url: 'http://live5.radiopopular.ro:8888/;stream/1',
+		cult: 'eng'
+	},
 	'hitserbia': {
 		name: 'Hit Music FM',
 		url: 'http://streaming11.tdiradio.com:8000/hit',
