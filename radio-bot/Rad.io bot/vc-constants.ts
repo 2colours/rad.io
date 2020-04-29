@@ -231,7 +231,7 @@ const radios = {
 		cult: 'eng'
 	},
 	'rockro': {
-		name: 'Rock Fm Romania',
+		name: 'Rock FM Romania',
 		url: 'https://live.rockfm.ro:8443/rockfm.aacp',
 		cult: 'eng'
 	},
@@ -246,7 +246,7 @@ const radios = {
 		cult: 'eng'
 	},
 	'kissfm': {
-		name: 'Kiss Fm Romania',
+		name: 'Kiss FM Romania',
 		url: 'https://live.kissfm.ro:8443/kissfm.aacp',
 		cult: 'eng'
 	},
@@ -288,6 +288,11 @@ const radios = {
 	'actualitati': {
 		name: 'Radio România Actualități',
 		url: 'http://89.238.227.6:8002/;time1578665093598',
+		cult: 'eng'
+	},
+	'digifm': {
+		name: 'Digi FM',
+		url: 'https://edge76.rcs-rds.ro/digifm/digifm.mp3',
 		cult: 'eng'
 	},
 	'hitserbia': {
