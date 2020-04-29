@@ -37,7 +37,18 @@ client.on('message', async (message) => {
 		const { decoratedAction: commandFunction = Function.prototype } = commands.get(commandString) || {};
 		const packedMessage: PackedMessage = Object.assign(message, { cmdName: commandString });
 		const thisBinding: ThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
-			get: () => guildPlayers.get(packedMessage.guild.id),
+			get: () => {
+				const cachedPlayer = guildPlayers.get(packedMessage.guild.id);
+				if (cachedPlayer)
+					return cachedPlayer;
+				const voiceChannel = packedMessage.guild.voice?.channel;
+				if (voiceChannel) {
+					const guildPlayer = new GuildPlayer(packedMessage.guild, packedMessage.channel as Discord.TextChannel, []);
+					guildPlayers.set(packedMessage.guild.id, guildPlayer);
+					return guildPlayer;
+				}
+				return undefined;
+			},
 			set: value => guildPlayers.set(packedMessage.guild.id, value)
 		});
 		await Promise.resolve(commandFunction.call(thisBinding, param || ''));
