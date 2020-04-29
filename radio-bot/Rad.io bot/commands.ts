@@ -51,14 +51,14 @@ setupCommand({
 	filters: new Set([Filter.vcUserNeeded, Filter.vcPermissionNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+/*setupCommand({
 	name: 'soundcloud',
 	aliases: ['sc'],
 	params: ['cím'],
 	descrip: 'Soundcloud stream sorba ütemezése keresőszó alapján. A választás a bot által elhelyezett reakciók szerint történik.',
 	type: 'unlimited',
 	filters: new Set([Filter.vcUserNeeded, Filter.vcPermissionNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
-});
+});*/
 
 setupCommand({
 	name: 'custom',
