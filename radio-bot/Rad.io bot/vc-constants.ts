@@ -266,8 +266,8 @@ const radios = {
 		cult: 'eng'
 	},
 	'sunshinelive': {
-		name: 'Sunshine Live (Latin dance)',
-		url: 'http://37.59.37.139:13494/;stream/1',
+		name: 'Sunshine Live  90er',
+		url: 'https://sunshinelive.hoerradar.de/sunshinelive-90er-mp3-hq',
 		cult: 'eng'
 	},
 	'magicflorida': {
