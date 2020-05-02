@@ -213,7 +213,7 @@ export class GuildPlayer {
 		}
 	}
 	leave() {
-		if (!this.ownerGuild.voice?.connection)
+		if (!this.ownerGuild?.voice?.connection)
 			return;
 		if (this.currentPlay)
 			this.currentPlay.halt();
