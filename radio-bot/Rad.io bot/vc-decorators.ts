@@ -36,8 +36,8 @@ const permissionNeeded:Decorator=choiceFilter(hasPermission,pass,rejectReply('ni
 const adminOrPermissionNeeded:Decorator=choiceFilter(isAdmin,pass,permissionNeeded);
 const creatorNeeded:Decorator=choiceFilter(isCreator,pass,nop);
 const vcPermissionNeeded:Decorator=action=>function(param) {
-  if(!hasVcPermission(this))
-    this.channel.send(`**Nincs jogom csatlakozni a** \`${this.member.voiceChannel.name}\` **csatornához!**`).catch(console.error);
+	if (!hasVcPermission(this))
+		this.channel.send(`**Nincs jogom csatlakozni a** \`${this.member.voice.channel.name}\` **csatornához!**`).catch(console.error);
   else
     action.call(this,param);
 };

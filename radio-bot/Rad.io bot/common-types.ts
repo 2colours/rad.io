@@ -1,13 +1,13 @@
-import { Snowflake, Message, User, TextChannel, GuildMember } from 'discord.js';
+import { Snowflake, Message, User, TextChannel, GuildMember, DMChannel, NewsChannel } from 'discord.js';
 import { GuildPlayer, Filter, aggregateDecorators, client } from './internal';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
-	fallbackModes: Map<Snowflake, FallbackType>; //TODO nem akármilyen string!
-	fallbackChannels: Map<Snowflake, MusicData>; //TODO nem any, a Datát még definiálni kell!
+	fallbackModes: Map<Snowflake, FallbackType>;
+	fallbackChannels: Map<Snowflake, MusicData>;
 	roles: Map<Snowflake, Map<Snowflake,string[]>>; //TODO az a string[] specifikusan parancsnév a debatedCommands-ból
 }
 type Resolvable<T> = T | Promise<T>;
-export type Action = (param:string) => Resolvable<void>;
+export type Action = (this:ThisBinding,param:string) => Resolvable<void>;
 export type Decorator = (toDecorate:Action) => Action;
 export type Predicate = (x: ThisBinding) => Resolvable<boolean>;
 export type ScrollableEmbedTitleResolver = (currentPage: number, maxPage: number) => string;
@@ -23,9 +23,9 @@ export interface AuthorHolder {
 	author: User;
 }
 export interface TextChannelHolder {
-	channel: TextChannel;
+	channel: TextChannel | DMChannel | NewsChannel;
 }
-export interface ThisBinding extends PackedMessage, GuildPlayerHolder {}
+export interface ThisBinding extends PackedMessage, GuildPlayerHolder { }
 export type FallbackType = 'leave' | 'radio' | 'silence';
 export interface PrefixTableData {
 	guildID: Snowflake;

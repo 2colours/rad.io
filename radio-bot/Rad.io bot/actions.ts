@@ -64,7 +64,7 @@ actions.set('yt', async function (param) {
 		}
 		if (toSchedule.length > 1)
 			this.channel.send(`**${toSchedule.length} elem került a sorba.**`);
-		return void forceSchedule(this.channel, voiceChannel, this, toSchedule);
+		return void forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
 	};
 	const ytString = sscanf(param, '%S') || '';
 	try {
@@ -82,7 +82,7 @@ actions.set('yt', async function (param) {
 			return;
 		}
 		const selectedResult = results[index];
-		forceSchedule(this.channel, voiceChannel, this, [{
+		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
 			name: selectedResult.title,
 			url: selectedResult.url,
 			type: 'yt',
@@ -101,7 +101,7 @@ actions.set('soundcloud', async function (param) {
 	if (isLink(scString)) {
 		try {
 			const track = await soundcloudResolveTrack(scString);
-			forceSchedule(this.channel, voiceChannel, this, [{
+			forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
 				name: track.title,
 				url: track.url,
 				type: 'sc',
@@ -126,7 +126,7 @@ actions.set('soundcloud', async function (param) {
 				return;
 			}
 			const selectedResult = results[index];
-			forceSchedule(this.channel, voiceChannel, this, [{
+			forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
 				name: selectedResult.title,
 				url: selectedResult.url,
 				type: 'sc',
@@ -143,7 +143,7 @@ actions.set('soundcloud', async function (param) {
 actions.set('custom', async function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;
 	const url = sscanf(param, '%s') || '';
-	forceSchedule(this.channel, voiceChannel, this, [{
+	forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
 		name: 'Custom',
 		url,
 		type: 'custom',
@@ -326,7 +326,7 @@ actions.set('resume', function (_) {
 actions.set('tune', function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;
 	const channel = extractChannel(this, param);
-	forceSchedule(this.channel, voiceChannel, this, [Object.assign({
+	forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [Object.assign({
 		type: 'radio' as StreamType,
 		length: undefined,
 		requester: this.member
