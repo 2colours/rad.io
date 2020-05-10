@@ -11,7 +11,7 @@ currentDecorator(action).call(this,param);
 let config: Config;
 configPromise.then(cfg => config = cfg);
 const hasPermission: Predicate = ctx => {
-	const guildRoles = [...(config.roles.get(ctx.guild.id) || new Map())];
+	const guildRoles: [string, string][] = [...(config.roles.get(ctx.guild.id) || new Map())];
 	return guildRoles.some(roleData => ctx.member.roles.cache.has(roleData[0]) && roleData[1].includes(ctx.cmdName));
 }
 const hasVcPermission: Predicate = ctx => ctx.member.voice.channel.joinable;
@@ -27,7 +27,6 @@ const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=
 const not=(pred:Predicate)=>(ctx:ThisBinding)=>!pred(ctx);
 const adminNeeded:Decorator=choiceFilter(isAdmin,pass,rejectReply('ezt a parancsot csak adminisztrátorok használhatják.'));
 const vcUserNeeded:Decorator=choiceFilter(isVcUser,pass,rejectReply('nem vagy voice csatornán.'));
-//const sameVcBanned:Decorator=choiceFilter(any(not(isVcUser),isDifferentVc),pass,rejectReply('már közös csatornán vagyunk.'));
 const sameVcNeeded:Decorator=choiceFilter(not(isDifferentVc),pass,rejectReply('nem vagyunk közös voice csatornán.')); //átengedi azt, ha egyik sincs vojszban!
 const vcBotNeeded:Decorator=choiceFilter(isVcBot,pass,rejectReply('nem vagyok voice csatornán.'));
 const noBotVcNeeded:Decorator=choiceFilter(isVcBot,rejectReply('már voice csatornán vagyok'),pass);
