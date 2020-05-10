@@ -1,10 +1,8 @@
 import * as Discord from 'discord.js';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import { defaultConfig, getEmoji, Config, configPromise, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData } from './internal';
+import { getEmoji, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode, getFallbackChannel } from './internal';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const clientId = process.env.soundcloudClientId;
-let config: Config;
-configPromise.then(cfg => config = cfg);
 const downloadMethods = new Map<StreamType, any>([
 	['yt', ytdl],
 	['custom', (url: string) => url],
@@ -195,10 +193,10 @@ export class GuildPlayer {
 	}
 	private async fallbackMode() {
 		this.announcementChannel.send('**Fallback mód.**');
-		const fallbackMode = config.fallbackModes.get(this.ownerGuild.id) || defaultConfig.fallback;
+		const fallbackMode = getFallbackMode(this.ownerGuild.id);
 		switch (fallbackMode) {
 			case 'radio':
-				const fallbackMusic = config.fallbackChannels.get(this.ownerGuild.id);
+				const fallbackMusic = getFallbackChannel(this.ownerGuild.id);
 				if (!fallbackMusic)
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
 				this.nowPlayingData = fallbackMusic;

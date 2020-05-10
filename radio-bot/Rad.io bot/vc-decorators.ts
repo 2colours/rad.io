@@ -1,4 +1,4 @@
-﻿import { aggregateDecorators, Config, configPromise, Predicate, Action, Decorator, ThisBinding, creators, actions } from './internal';
+﻿import { aggregateDecorators, Predicate, Action, Decorator, ThisBinding, creators, actions, getRoles, getFallbackMode } from './internal';
 import { sscanf } from 'scanf';
 const isAdmin: Predicate = ctx => ctx.member.permissions.has('ADMINISTRATOR');
 const isVcUser: Predicate = ctx => !!ctx.member.voice.channel;
@@ -8,10 +8,8 @@ const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (act
 	const currentDecorator = await Promise.resolve(pred(this)) ? dec1 : dec2;
 currentDecorator(action).call(this,param);
 };
-let config: Config;
-configPromise.then(cfg => config = cfg);
 const hasPermission: Predicate = ctx => {
-	const guildRoles: [string, string][] = [...(config.roles.get(ctx.guild.id) || new Map())];
+	const guildRoles = getRoles(ctx.guild.id);
 	return guildRoles.some(roleData => ctx.member.roles.cache.has(roleData[0]) && roleData[1].includes(ctx.cmdName));
 }
 const hasVcPermission: Predicate = ctx => ctx.member.voice.channel.joinable;
@@ -55,7 +53,7 @@ const isSilence: Predicate = ctx => !ctx.guildPlayer.nowPlayingData;
 const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
 const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('ez a parancs nem használható, amikor semmi nem szól (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));
-const isPlayingFallbackSet: Predicate = ctx => config.fallbackModes.get(ctx.guild.id) == 'radio';
+const isPlayingFallbackSet: Predicate = ctx => getFallbackMode(ctx.guild.id) == 'radio';
 const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('ez a parancs nem használható a jelenlegi fallback beállítással.'));
 const naturalErrors: Decorator = action => async function (param) {
 	try {

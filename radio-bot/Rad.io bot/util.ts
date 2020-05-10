@@ -1,10 +1,9 @@
 ﻿import { Snowflake, Guild, TextChannel, StringResolvable, MessageEmbed, MessageAttachment, MessageOptions, Message, MessageReaction, User, VoiceChannel, EmojiIdentifierResolvable } from 'discord.js';
-import { Decorator, AuthorHolder, TextChannelHolder, client, defaultConfig, embedC, GuildPlayerHolder, MusicData, GuildPlayer, Config, configPromise, ScrollableEmbedTitleResolver, dbPromise, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData } from './internal';
+import { Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData, GuildPlayer, ScrollableEmbedTitleResolver, dbPromise, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from './internal';
 import { Database } from 'sqlite';
+import { ThisBinding } from './common-types';
 const PastebinAPI = require('pastebin-js');
 const pastebin: any = new PastebinAPI(process.env.pastebin);
-let config: Config;
-configPromise.then(cfg => config = cfg);
 let database: Database;
 dbPromise.then(db => database = db);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
@@ -51,8 +50,8 @@ export async function forceSchedule(textChannel: TextChannel, voiceChannel: Voic
 	else
 		holder.guildPlayer.bulkSchedule(playableData);
 };
-export function commonEmbed(additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
-	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
+export function commonEmbed(this: ThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
+	const prefix = getPrefix(this.guild.id);
 	return new MessageEmbed()
 		.setColor(embedC)
 		.setFooter(`${prefix}${this.cmdName}${additional} - ${client.user.username}`, client.user.avatarURL())

@@ -1,19 +1,19 @@
 ﻿import * as Discord from 'discord.js';
 import * as moment from 'moment';
-import { randomElement, hourMinSec, attach, Config, GuildPlayer, StreamType, FallbackType, MusicData, configPromise, defaultConfig, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack } from './internal';
+import { randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'popyt';
 import axios from 'axios';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
-let config: Config;
-configPromise.then(cfg => config = cfg);
+import { getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe } from './config-manager';
+import { ThisBinding } from './common-types';
 export const actions: Map<string, Action> = new Map();
 actions.set('setprefix', async function (param) {
 	if (!param)
 		return void this.reply('ez nem lehet prefix!');
 	const newPrefix = param.toLowerCase();
-	config.prefixes.set(this.guild.id, newPrefix);
+	setPrefix(this.guild.id, newPrefix);
 	try {
 		await saveRow.prefix({ guildID: this.guild.id, prefix: newPrefix });
 		this.channel.send(`${newPrefix} **az új prefix.**`);
@@ -66,7 +66,7 @@ actions.set('yt', async function (param) {
 			this.channel.send(`**${toSchedule.length} elem került a sorba.**`);
 		return void forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
 	};
-	const ytString = sscanf(param, '%S') || '';
+	const ytString = sscanf(param, '%S') ?? '';
 	try {
 		const { results } = await youtube.searchVideos(ytString, 5);
 		if (!results || results.length == 0)
@@ -97,7 +97,7 @@ actions.set('yt', async function (param) {
 });
 actions.set('soundcloud', async function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;
-	const scString = sscanf(param, '%S') || '';
+	const scString = sscanf(param, '%S') ?? '';
 	if (isLink(scString)) {
 		try {
 			const track = await soundcloudResolveTrack(scString);
@@ -142,7 +142,7 @@ actions.set('soundcloud', async function (param) {
 });
 actions.set('custom', async function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;
-	const url = sscanf(param, '%s') || '';
+	const url = sscanf(param, '%s') ?? '';
 	forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
 		name: 'Custom',
 		url,
@@ -172,7 +172,7 @@ actions.set('radios', async function (_) {
 			.sort()
 			.join('\n');
 	}
-	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
+	const prefix = getPrefix(this.guild.id);
 	const baseEmbed: Discord.MessageEmbed = commonEmbed.call(this).addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
 	await this.channel.send({
 		embed: baseEmbed
@@ -205,7 +205,7 @@ actions.set('remove', function (param) {
 	this.react('☑');
 });
 actions.set('help', function (param) {
-	const prefix = config.prefixes.get(this.guild.id) || defaultConfig.prefix;
+	const prefix = getPrefix(this.guild.id);
 	let helpCommand = sscanf(param, '%s');
 	const userCommands = [...commands].filter(entry => ['grantable', 'unlimited'].includes(entry[1].type)).map(entry => entry[0]);
 	userCommands.sort();
@@ -271,11 +271,11 @@ actions.set('queue', async function (_) {
 });
 actions.set('fallback', async function (param) {
 	const aliases = new Map([['r', 'radio'], ['s', 'silence'], ['l', 'leave']]);
-	let mode = sscanf(param, '%s') || '';
-	mode = aliases.get(mode) || mode;
+	let mode = sscanf(param, '%s') ?? '';
+	mode = aliases.get(mode) ?? mode;
 	if (!<FallbackType>mode)
 		return void this.reply('**ilyen fallback mód nem létezik.**');
-	config.fallbackModes.set(this.guild.id, <FallbackType>mode);
+	setFallbackMode(this.guild.id, <FallbackType>mode);
 	this.channel.send(`**Új fallback: ${mode}. **`);
 	try {
 		await saveRow.fallbackModes({ guildID: this.guild.id, type: <FallbackType>mode });
@@ -286,7 +286,7 @@ actions.set('fallback', async function (param) {
 	}
 });
 actions.set('fallbackradio', async function (param) {
-	const given: string = sscanf(param, '%s') || '';
+	const given: string = sscanf(param, '%s') ?? '';
 	if (radiosList.has(given)) {
 		var fr: MusicData = Object.assign({
 			type: 'radio' as StreamType,
@@ -304,7 +304,7 @@ actions.set('fallbackradio', async function (param) {
 		};
 	else
 		return void this.reply('érvénytelen rádióadó.');
-	config.fallbackChannels.set(this.guild.id, fr);
+	setFallbackChannel(this.guild.id, fr);
 	this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`);
 	try {
 		await saveRow.fallbackData({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url });
@@ -391,7 +391,7 @@ actions.set('partner', function (param) {
 	sendToPartnerHook(link, content, username, serverName);
 	this.react('☑');
 });
-async function permissionReused(param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
+async function permissionReused(this: ThisBinding, param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
 	try {
 		var [permCommands = '', roleName = ''] = <string[]>sscanf(param, '%s %S');
 	}
@@ -405,10 +405,10 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 	const firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void this.reply(`**\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.**`);
-	const role: Discord.Role = this.guild.roles.find((elem: Discord.Role) => elem.name == roleName);
+	const role: Discord.Role = this.guild.roles.cache.find((elem: Discord.Role) => elem.name == roleName);
 	if (!role)
-		return void this.channel.send('**nem létezik a megadott role.**');
-	const currentRoles = attach(config.roles, this.guild.id, new Map());
+		return void this.channel.send('**Nem létezik a megadott role.**');
+	const currentRoles = getRoleSafe(this.guild.id);
 	const roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
 	try {
@@ -422,7 +422,7 @@ async function permissionReused(param: string, filler: (affectedCommands: string
 }
 
 function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
-	let channelToPlay = sscanf(param, '%s') || '';
+	let channelToPlay = sscanf(param, '%s') ?? '';
 	if (channelToPlay && !radiosList.has(channelToPlay)) {
 		channelToPlay = randomElement(channels);
 		textChannelHolder.channel.send("**Hibás csatornanevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");

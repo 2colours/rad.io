@@ -1,6 +1,7 @@
 export * from './common-types';
 export * from './vc-constants';
 export * from './common-resources';
+export * from './config-manager';
 export * from './util';
 export * from './soundcloud-util';
 export * from './guild-player';

@@ -1,7 +1,7 @@
 ﻿import * as Discord from 'discord.js';
 const token = process.env.radioToken;
 
-import { configPromise, client, PackedMessage, ThisBinding, Config, actions, GuildPlayer, defaultConfig, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId } from './internal';
+import { configPromise, client, PackedMessage, ThisBinding, actions, GuildPlayer, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix } from './internal';
 import * as moment from 'moment';
 const help = actions.get('help');
 
@@ -18,12 +18,10 @@ client.on('ready', async () => {
 	updateStatusChannels();
 });
 
-let config: Config;
-configPromise.then(cfg => config = cfg);
 
 client.on('message', async (message) => {
 	if (message.guild == null) return;
-	const prefix = config.prefixes.get(message.guild.id) || defaultConfig.prefix;
+	const prefix = getPrefix(message.guild.id);
 	if (message.mentions.users.has(client.user.id))
 		return void help.call(Object.assign(message, {
 			cmdName: 'help'
@@ -38,13 +36,13 @@ client.on('message', async (message) => {
 		const param = prefixless.substring(commandTerminator).trim();
 		commandString = commandString.toLowerCase();
 		commandString = translateAlias(commandString);
-		const { decoratedAction: commandFunction = Function.prototype } = commands.get(commandString) || {};
+		const { decoratedAction: commandFunction = Function.prototype } = commands.get(commandString) ?? {};
 		const packedMessage: PackedMessage = Object.assign(message, { cmdName: commandString });
 		const thisBinding: ThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
 			get: () => guildPlayers.get(packedMessage.guild.id),
 			set: value => guildPlayers.set(packedMessage.guild.id, value)
 		});
-		await Promise.resolve(commandFunction.call(thisBinding, param || ''));
+		await Promise.resolve(commandFunction.call(thisBinding, param ?? ''));
 	}
 	catch (ex) {
 		console.log(ex);
