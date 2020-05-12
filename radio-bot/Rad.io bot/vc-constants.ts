@@ -25,11 +25,6 @@ const radios = {
 		url: 'http://92.61.114.159:7812/slagerfm128.mp3',
 		cult: 'hun'
 	},
-	'discoshit': {
-		name: 'Disco*s hit',
-		url: 'http://212.108.220.144:1039/#.mp3',
-		cult: 'hun'
-	},
 	'bartok': {
 		name: 'Bartók Rádió',
 		url: 'http://icast.connectmedia.hu/4741/mr3.mp3',
@@ -43,11 +38,6 @@ const radios = {
 	'retrobp': {
 		name: 'Retro Rádió Budapest',
 		url: 'http://stream.retroradio.hu/mid.mp3',
-		cult: 'hun'
-	},
-	'sanders': {
-		name: 'Sanders Rádió',
-		url: 'http://51.255.152.247:8000/live?format=mp3',
 		cult: 'hun'
 	},
 	'danko': {
