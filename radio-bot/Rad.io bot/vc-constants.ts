@@ -145,6 +145,11 @@ const radios = {
 		url: 'http://cloudfront44.lexanetwork.com/cdn/cloudstream4151.mp3',
 		cult: 'hun'
 	},
+	'mez': {
+		name: 'Méz Rádió Veszprém',
+		url: 'http://stream.mezradio.hu:7812/mezfm128.mp3',
+		cult: 'hun'
+	},
 	'aktiv': {
 		name: 'Aktív Rádió Szolnok',
 		url: 'http://aktivradio.hu:8000/aktiv.mp3',
