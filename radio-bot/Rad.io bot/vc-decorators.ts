@@ -38,6 +38,7 @@ const vcPermissionNeeded:Decorator=action=>function(param) {
   else
     action.call(this,param);
 };
+const eventualVcBotNeeded: Decorator = choiceFilter(isVcBot, pass, vcPermissionNeeded);
 const parameterNeeded: Decorator = action => function (param) {
 	if (!sscanf(param, '%S')) {
 		const originalName = this.cmdName;
@@ -77,7 +78,7 @@ export class Filter {
 	static readonly sameOrNoBotVcNeeded = new Filter(sameOrNoBotVcNeeded, 'A bot nem lehet a felhasználótól eltérő voice csatornán.');
 	static readonly vcUserNeeded = new Filter(vcUserNeeded, 'A felhasználónak voice csatornán kell lennie.');
 	static readonly vcBotNeeded = new Filter(vcBotNeeded, 'A botnak voice csatornában kell lennie.');
-	static readonly vcPermissionNeeded = new Filter(vcPermissionNeeded, '');
+	static readonly eventualVcBotNeeded = new Filter(eventualVcBotNeeded, '');
 	static readonly leaveCriteria = new Filter(leaveCriteria, '');
 	static readonly nonFallbackNeeded = new Filter(nonFallbackNeeded, '');
 	static readonly nonSilenceNeded = new Filter(nonSilenceNeeded, '');

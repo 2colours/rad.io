@@ -30,7 +30,7 @@ setupCommand({
 	params: ['ID (opcionális)'],
 	descrip: 'Bot csatlakoztatása a felhasználó voice csatornájába. Rádió id megadása esetén az adott rádió egyből indításra kerül.',
 	type: 'unlimited',
-	filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.vcPermissionNeeded])
+	filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.eventualVcBotNeeded])
 });
 
 setupCommand({
@@ -39,7 +39,7 @@ setupCommand({
 	params: [],
 	descrip: 'Bot csatlakoztatása egyből fallback állapotban.',
 	type: 'unlimited',
-	filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.vcPermissionNeeded, Filter.playingFallbackNeeded])
+	filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.playingFallbackNeeded])
 });
 
 setupCommand({
@@ -48,7 +48,7 @@ setupCommand({
 	params: ['URL / cím'],
 	descrip: 'Youtube stream sorba ütemezése URL vagy keresőszó alapján. Keresőszó esetén a választás a bot által elhelyezett reakciók szerint történik.',
 	type: 'unlimited',
-	filters: new Set([Filter.vcUserNeeded, Filter.vcPermissionNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
+	filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
 });
 
 /*setupCommand({
@@ -57,7 +57,7 @@ setupCommand({
 	params: ['cím'],
 	descrip: 'Soundcloud stream sorba ütemezése keresőszó alapján. A választás a bot által elhelyezett reakciók szerint történik.',
 	type: 'unlimited',
-	filters: new Set([Filter.vcUserNeeded, Filter.vcPermissionNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
+	filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
 });*/
 
 setupCommand({
@@ -66,7 +66,7 @@ setupCommand({
 	params: ['streamURL'],
 	descrip: 'Egyéni stream sorba ütemezése URL alapján. A stream nem fog rádióadóként viselkedni, tehát nem skippelődik automatikusan a sor bővítése esetén.',
 	type: 'unlimited',
-	filters: new Set([Filter.vcUserNeeded, Filter.vcPermissionNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
+	filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
 });
 
 setupCommand({
