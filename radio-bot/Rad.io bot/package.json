@@ -13,7 +13,7 @@
     "node-gyp": "^6.1.0",
     "node-opus": "^0.3.3",
     "pastebin-js": "^1.0.4",
-    "popyt": "^2.2.0",
+    "popyt": "^3.2.0",
     "scanf": "^1.1.1",
     "sqlite": "^3.0.3",
     "typescript": "^3.9.2",
