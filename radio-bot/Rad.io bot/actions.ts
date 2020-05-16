@@ -319,9 +319,11 @@ actions.set('skip', function (_) {
 });
 actions.set('pause', function (_) {
 	this.guildPlayer.pause();
+	this.react('☑');
 });
 actions.set('resume', function (_) {
 	this.guildPlayer.resume();
+	this.react('☑');
 });
 actions.set('tune', function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;

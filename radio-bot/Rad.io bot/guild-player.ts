@@ -224,12 +224,10 @@ export class GuildPlayer {
 	pause() {
 		if (!this.currentPlay.pause())
 			throw 'Csak lejátszás alatt álló stream szüneteltethető.';
-		this.announcementChannel.send('**Lejátszás felfüggesztve.**');
 	}
 	resume() {
 		if (!this.currentPlay.resume())
 			throw 'Ez a stream nem folytatható. (Nincs leállítva?)';
-		this.announcementChannel.send('**Lejátszás folytatása...**');
 	}
 }
 function repeatCounter(nTimes: number) {
