@@ -434,7 +434,7 @@ function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
 
 async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): Promise<MusicData[]> {
 	try {
-		const ytPlaylist = await youtube.getPlaylistByUrl(url);
+		const ytPlaylist = await youtube.getPlaylist(url);
 		const videos = await ytPlaylist.fetchVideos();
 		return videos.map(elem => Object.assign({}, {
 			name: elem.title,
@@ -445,7 +445,7 @@ async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): P
 	catch (ex) {
 		if (ex != 'Not a valid playlist url')
 			throw ex;
-		const ytVideo = await youtube.getVideoByUrl(url);
+		const ytVideo = await youtube.getVideo(url);
 		return [{
 			name: ytVideo.title,
 			url,
