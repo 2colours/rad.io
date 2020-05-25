@@ -443,8 +443,7 @@ async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): P
 		}) as MusicData);
 	}
 	catch (ex) {
-		if (ex != 'Not a valid playlist url')
-			throw ex;
+		//Not a playlist
 		const ytVideo = await youtube.getVideo(url);
 		return [{
 			name: ytVideo.title,
