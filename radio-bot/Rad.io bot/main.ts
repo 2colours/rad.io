@@ -97,7 +97,7 @@ function logGuildJoin(guild: Discord.Guild) {
 Members: ${guild.memberCount}
 Owner: ${guild.owner ? guild.owner.user.tag : 'unable to fetch'}
 Created At: ${created}
-Icon: [Link](${guild.iconURL ? guild.iconURL : client.user.displayAvatarURL()})`);
+Icon: [Link](${guild.iconURL() ? guild.iconURL() : client.user.displayAvatarURL()})`);
 	(devChannel() as Discord.TextChannel).send(`**${client.user.tag}** joined \`${guild.name}\``, { embed: embed });
 }
 
