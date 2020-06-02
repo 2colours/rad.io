@@ -37,7 +37,7 @@ class Playable {
 			dispatcher.on('finish', () => resolve(false)); //nem volt forced, hanem magától
 			dispatcher.on('error', () => {
 				console.log('Futott az error handler.');
-				resolve(true); //ha hiba történt, inkább ne próbálkozzunk a loopolással - "forced"
+				reject('error'); //hiba jelentése - kezelni kell
 			});
 			this.skip = () => {
 				resolve(true);
@@ -101,7 +101,14 @@ export class GuildPlayer {
 				do { //Itt kéne kiírás is
 					if (this.nowPlayingData)
 						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.nowPlayingData.type)} \`${this.nowPlayingData.name}\``).catch();
-					var forcedOver = await this.currentPlay.play(this.ownerGuild.voice.connection, this.volume);
+					var forcedOver = await this.currentPlay.play(this.ownerGuild.voice.connection, this.volume)
+						.catch(ex => {
+							if (ex == 'error') {
+								this.announcementChannel.send('**Az aktuális stream hiba miatt megszakadt.**').catch();
+								return true;
+							}
+							throw ex;
+						});
 					var shouldRepeat = this.currentPlay.askRepeat();
 				} while (!forcedOver && shouldRepeat);
 				if (this.queue.length != 0) {
