@@ -1,6 +1,6 @@
 ﻿import * as Discord from 'discord.js';
 import * as moment from 'moment';
-import { randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji } from './internal';
+import { randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji, discordEscape } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'popyt';
 import axios from 'axios';
@@ -467,7 +467,7 @@ async function searchPick(results: SearchResultView[]): Promise<number> {
 		let counter = 1;
 		const embed = commonEmbed.call(this)
 			.setTitle("❯ Találatok")
-			.setDescription(results.map(elem => `__${counter++}.__ - ${elem.title} \`(${hourMinSec(elem.duration)})\``).join('\n'));
+			.setDescription(results.map(elem => `__${counter++}.__ - ${discordEscape(elem.title)} \`(${hourMinSec(elem.duration)})\``).join('\n'));
 		const message: Discord.Message = await this.channel.send(embed);
 		const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
 		const selectionPromise: Promise<number> = new Promise(async (resolve, reject) => {

@@ -128,3 +128,7 @@ export async function createPastebin(title: string, content: string): Promise<st
 export function isLink(text: string) {
 	return text.search(/https?:\/\//) == 0;
 }
+
+export function discordEscape(text: string) {
+	return text.replace(/\|/g, '\\|');
+}
