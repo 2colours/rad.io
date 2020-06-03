@@ -1,6 +1,6 @@
 ﻿import * as Discord from 'discord.js';
 import * as moment from 'moment';
-import { randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix } from './internal';
+import { randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'popyt';
 import axios from 'axios';
@@ -155,7 +155,7 @@ actions.set('leave', function (_) {
 	const guildPlayer: GuildPlayer = this.guildPlayer;
 	guildPlayer.leave();
 	this.guildPlayer = undefined; //guildPlayer törlése így tehető meg
-	this.channel.send('**Kilépés**');
+	this.react(tickEmoji);
 });
 actions.set('repeat', function (param) {
 	const count = sscanf(param, '%d');
@@ -187,22 +187,22 @@ actions.set('radios', async function (_) {
 });
 actions.set('shuffle', function (_) {
 	this.guildPlayer.shuffle();
-	this.react('☑');
+	this.react(tickEmoji);
 });
 actions.set('clear', function (_) {
 	this.guildPlayer.clear();
-	this.react('☑');
+	this.react(tickEmoji);
 });
 actions.set('toplast', function (_) {
 	this.guildPlayer.topLast();
-	this.react('☑');
+	this.react(tickEmoji);
 });
 actions.set('remove', function (param) {
 	const queuePosition = sscanf(param, '%d');
 	if (queuePosition == undefined)
 		return void this.reply('**paraméterként szám elvárt.**');
 	this.guildPlayer.remove(queuePosition);
-	this.react('☑');
+	this.react(tickEmoji);
 });
 actions.set('help', function (param) {
 	const prefix = getPrefix(this.guild.id);
@@ -319,11 +319,11 @@ actions.set('skip', function (_) {
 });
 actions.set('pause', function (_) {
 	this.guildPlayer.pause();
-	this.react('☑');
+	this.react(tickEmoji);
 });
 actions.set('resume', function (_) {
 	this.guildPlayer.resume();
-	this.react('☑');
+	this.react(tickEmoji);
 });
 actions.set('tune', function (param) {
 	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;
@@ -370,28 +370,28 @@ actions.set('volume', function (param) {
 	if (vol > 10)
 		this.channel.send('**Figyelem: erősítést alkalmaztál, a hangban torzítás léphet fel.**');
 	this.guildPlayer.setVolume(vol / 10);
-	this.react('☑');
+	this.react(tickEmoji);
 });
 actions.set('mute', function (_) {
 	this.guildPlayer.mute();
-	this.react('☑');
+	this.react(tickEmoji);
 });
 actions.set('unmute', function (_) {
 	this.guildPlayer.unmute();
-	this.react('☑');
+	this.react(tickEmoji);
 });
 actions.set('announce', function (param) {
 	const [guildInfo, rawMessage = ''] = <string[]>sscanf(param, '%s %S');
 	const message: string = eval(rawMessage);
 	const guildToAnnounce = guildInfo == 'all' ? client.guilds.cache.array() : guildInfo == 'conn' ? client.voice.connections.map(conn => conn.channel.guild) : [client.guilds.resolve(guildInfo)];
 	guildToAnnounce.forEach(guild => sendGuild(guild, message));
-	this.react('☑');
+	this.react(tickEmoji);
 });
 actions.set('partner', function (param) {
 	const [link = '', rawContent = '""', username = '', serverName = ''] = param.split('\n');
 	const content: string = eval(rawContent);
 	sendToPartnerHook(link, content, username, serverName);
-	this.react('☑');
+	this.react(tickEmoji);
 });
 async function permissionReused(this: ThisBinding, param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
 	try {
