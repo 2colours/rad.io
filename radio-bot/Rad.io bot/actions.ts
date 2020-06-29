@@ -65,7 +65,7 @@ actions.set('yt', async function (param) {
 		if (toSchedule.length > 1)
 			this.channel.send(`**${toSchedule.length} elem került a sorba.**`);
 		return void forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
-	};
+	}
 	const ytString = sscanf(param, '%S') ?? '';
 	try {
 		const { results } = await youtube.searchVideos(ytString, 5);

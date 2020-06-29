@@ -243,7 +243,7 @@ export class GuildPlayer {
 			throw 'Ez a stream nem folytatható. (Nincs leállítva?)';
 	}
 	nowPlaying() {
-		return Object.defineProperty(this.playingElement, 'playingSeconds', {
+		return this.playingElement && Object.defineProperty(this.playingElement, 'playingSeconds', {
 			get: this.currentPlay.playingSeconds
 		}) as PlayingData;
 	}
