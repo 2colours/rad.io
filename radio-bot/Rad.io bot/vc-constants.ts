@@ -261,7 +261,7 @@ const radios = {
 		cult: 'eng'
 	},
 	'sunshinelive': {
-		name: 'Sunshine Live  90er',
+		name: 'Sunshine Live 90er',
 		url: 'https://sunshinelive.hoerradar.de/sunshinelive-90er-mp3-hq',
 		cult: 'eng'
 	},
