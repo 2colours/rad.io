@@ -30,7 +30,7 @@ actions.set('join', async function (param) {
 		if (channelToPlay)
 			gp.schedule(Object.assign({
 				type: 'radio' as StreamType,
-				length: undefined,
+				lengthSeconds: undefined,
 				requester: this.member
 			}, radiosList.get(channelToPlay)));
 	});
@@ -47,8 +47,8 @@ async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
 		this.guildPlayer = new GuildPlayer(this.guild, this.channel, []);
 		startup(this.guildPlayer);
 	}
-	catch (ex) {
-		console.error(ex);
+	catch (e) {
+		console.error(e);
 		this.channel.send('**Hiba a csatlakozás során.**');
 	}
 }
@@ -59,7 +59,7 @@ actions.set('yt', async function (param) {
 		try {
 			var toSchedule = await resolveYoutubeUrl(param, this.member);
 		}
-		catch (ex) {
+		catch (e) {
 			return void this.channel.send('**Érvénytelen youtube url.**');
 		}
 		if (toSchedule.length > 1)
@@ -78,7 +78,7 @@ actions.set('yt', async function (param) {
 		try {
 			var index: number = await searchPick.call(this, resultsView);
 		}
-		catch (ex) {
+		catch (e) {
 			return;
 		}
 		const selectedResult = results[index];
@@ -86,7 +86,7 @@ actions.set('yt', async function (param) {
 			name: selectedResult.title,
 			url: selectedResult.url,
 			type: 'yt',
-			length: moment.duration(selectedResult._length).asSeconds(),
+			lengthSeconds: moment.duration(selectedResult._length).asSeconds(),
 			requester: this.member
 		}]);
 	}
@@ -105,7 +105,7 @@ actions.set('soundcloud', async function (param) {
 				name: track.title,
 				url: track.url,
 				type: 'sc',
-				length: track.duration,
+				lengthSeconds: track.duration,
 				requester: this.member
 			}]);
 		}
@@ -130,7 +130,7 @@ actions.set('soundcloud', async function (param) {
 				name: selectedResult.title,
 				url: selectedResult.url,
 				type: 'sc',
-				length: selectedResult.duration,
+				lengthSeconds: selectedResult.duration,
 				requester: this.member
 			}]);
 		}
@@ -147,7 +147,7 @@ actions.set('custom', async function (param) {
 		name: 'Custom',
 		url,
 		type: 'custom',
-		length: undefined,
+		lengthSeconds: undefined,
 		requester: this.member
 	}]);
 });
@@ -280,8 +280,8 @@ actions.set('fallback', async function (param) {
 	try {
 		await saveRow.fallbackModes({ guildID: this.guild.id, type: <FallbackType>mode });
 	}
-	catch (ex) {
-		console.error(ex);
+	catch (e) {
+		console.error(e);
 		this.channel.send('**Mentés sikertelen.**');
 	}
 });
@@ -290,7 +290,7 @@ actions.set('fallbackradio', async function (param) {
 	if (radiosList.has(given)) {
 		var fr: MusicData = Object.assign({
 			type: 'radio' as StreamType,
-			length: undefined,
+			lengthSeconds: undefined,
 			requester: undefined
 		}, radiosList.get(given));
 	}
@@ -299,7 +299,7 @@ actions.set('fallbackradio', async function (param) {
 			type: 'custom',
 			name: given,
 			url: given,
-			length: undefined,
+			lengthSeconds: undefined,
 			requester: undefined
 		};
 	else
@@ -309,8 +309,8 @@ actions.set('fallbackradio', async function (param) {
 	try {
 		await saveRow.fallbackData({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url });
 	}
-	catch (ex) {
-		console.error(ex);
+	catch (e) {
+		console.error(e);
 		this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
 	}
 });
@@ -330,7 +330,7 @@ actions.set('tune', function (param) {
 	const channel = extractChannel(this, param);
 	forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [Object.assign({
 		type: 'radio' as StreamType,
-		length: undefined,
+		lengthSeconds: undefined,
 		requester: this.member
 	}, radiosList.get(channel))]);
 });
@@ -355,12 +355,12 @@ actions.set('denyeveryone', function (param) {
 	actions.get('deny').call(this, `${param} @everyone`);
 });
 actions.set('nowplaying', function (_) {
-	const nowPlayingData: MusicData = this.guildPlayer.nowPlayingData;
+	const nowPlayingData = this.guildPlayer.nowPlaying();
 	if (!nowPlayingData)
 		return void this.channel.send('**CSEND**');
 	const embed = commonEmbed.call(this)
 		.setTitle('❯ Épp játszott stream')
-		.setDescription(`${getEmoji(nowPlayingData.type)} ${nowPlayingData.name}`);
+		.setDescription(`${getEmoji(nowPlayingData.type)} ${nowPlayingData.name}\n${hourMinSec(nowPlayingData.playingSeconds)}/${hourMinSec(nowPlayingData.lengthSeconds)}`);
 	this.channel.send({ embed });
 });
 actions.set('volume', function (param) {
@@ -397,7 +397,7 @@ async function permissionReused(this: ThisBinding, param: string, filler: (affec
 	try {
 		var [permCommands = '', roleName = ''] = <string[]>sscanf(param, '%s %S');
 	}
-	catch (ex) {
+	catch (e) {
 		//Nem nyertünk ki értelmeset
 		return void this.reply('**nem megfelelő formátum.**');
 	}
@@ -417,8 +417,8 @@ async function permissionReused(this: ThisBinding, param: string, filler: (affec
 		await saveRow.role({ guildID: this.guild.id, roleID: role.id, commands: roleCommands.join('|') });
 		this.channel.send(`**Új jogosultságok mentve.**`);
 	}
-	catch (ex) {
-		console.error(ex);
+	catch (e) {
+		console.error(e);
 		this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
 	}
 }
@@ -442,14 +442,14 @@ async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): P
 			type: 'yt'
 		}) as MusicData);
 	}
-	catch (ex) {
+	catch (e) {
 		//Not a playlist
 		const ytVideo = await youtube.getVideo(url);
 		return [{
 			name: ytVideo.title,
 			url,
 			type: 'yt',
-			length: moment.duration(ytVideo._length).asSeconds(),
+			lengthSeconds: moment.duration(ytVideo._length).asSeconds(),
 			requester
 		}];
 	}

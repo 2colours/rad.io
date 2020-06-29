@@ -13,6 +13,7 @@ export type Predicate = (x: ThisBinding) => Resolvable<boolean>;
 export type ScrollableEmbedTitleResolver = (currentPage: number, maxPage: number) => string;
 export type PlayableCallbackVoid = () => void;
 export type PlayableCallbackBoolean = () => boolean;
+export type PlayableCallbackNumber = () => number;
 export interface PackedMessage extends Message {
 	cmdName:string;
 }
@@ -53,8 +54,11 @@ export interface PlayableData {
 }
 export interface MusicData extends PlayableData {
 	name: string;
-	length: number;
+	lengthSeconds: number;
 	requester: GuildMember
+}
+export interface PlayingData extends MusicData {
+	playingSeconds: number;
 }
 export interface RadioConstantData {
 	name:string;

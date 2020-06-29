@@ -1,6 +1,7 @@
 import * as Discord from 'discord.js';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import { getEmoji, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode, getFallbackChannel } from './internal';
+import { getEmoji, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode, getFallbackChannel, PlayableCallbackNumber } from './internal';
+import { PlayingData } from './common-types';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const clientId = process.env.soundcloudClientId;
 const downloadMethods = new Map<StreamType, any>([
@@ -13,6 +14,7 @@ class Playable {
 	halt: PlayableCallbackVoid;
 	pause: PlayableCallbackBoolean;
 	resume: PlayableCallbackBoolean;
+	playingSeconds: PlayableCallbackNumber;
 	constructor(readonly data: PlayableData) {
 	}
 	isDefinite() {
@@ -22,13 +24,14 @@ class Playable {
 	askRepeat() {
 		return false;
 	}
-	play(voiceConnection: Discord.VoiceConnection, vol: number) {
+	play(voiceConnection: Discord.VoiceConnection, vol: number): Promise<boolean> {
 		return new Promise((resolve, reject) => {
 			if (!this.data) {
 				this.skip = () => resolve(true);
 				this.halt = () => reject('leave');
 				this.pause = () => false;
 				this.resume = () => false;
+				this.playingSeconds = () => undefined;
 				return;
 			}
 			const stream = downloadMethods.get(this.data.type)(this.data.url);
@@ -53,6 +56,9 @@ class Playable {
 			this.resume = () => {
 				return dispatcher.paused && (dispatcher.resume(), true);
 			};
+			this.playingSeconds = () => {
+				return dispatcher.streamTime;
+			};
 		});
 	}
 }
@@ -76,7 +82,7 @@ class VoiceHandler {
 }
 export class GuildPlayer {
 	private currentPlay: Playable;
-	nowPlayingData: MusicData;
+	private playingElement: MusicData;
 	private announcementChannel: Discord.TextChannel;
 	queue: MusicData[];
 	fallbackPlayed: boolean;
@@ -89,7 +95,7 @@ export class GuildPlayer {
 		this.queue = [];
 		this.handler = new VoiceHandler(this);
 		this.volume = 0.5;
-		this.nowPlayingData = null;
+		this.playingElement = null;
 		if (musicToPlay.length > 0)
 			this.bulkSchedule(musicToPlay);
 		this.playLoop();
@@ -97,34 +103,34 @@ export class GuildPlayer {
 	private async playLoop() {
 		try {
 			while (true) {
-				this.currentPlay = new Playable(this.nowPlayingData);
+				this.currentPlay = new Playable(this.playingElement);
 				do { //Itt kéne kiírás is
-					if (this.nowPlayingData)
-						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.nowPlayingData.type)} \`${this.nowPlayingData.name}\``).catch();
+					if (this.playingElement)
+						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``).catch();
 					var forcedOver = await this.currentPlay.play(this.ownerGuild.voice.connection, this.volume)
-						.catch(ex => {
-							if (ex == 'error') {
+						.catch(e => {
+							if (e == 'error') {
 								this.announcementChannel.send('**Az aktuális stream hiba miatt megszakadt.**').catch();
 								return true;
 							}
-							throw ex;
+							throw e;
 						});
 					var shouldRepeat = this.currentPlay.askRepeat();
 				} while (!forcedOver && shouldRepeat);
 				if (this.queue.length != 0) {
-					this.nowPlayingData = this.queue.shift();
+					this.playingElement = this.queue.shift();
 					this.fallbackPlayed = false;
 				}
 				else if (this.fallbackPlayed) {
-					this.nowPlayingData = null;
+					this.playingElement = null;
 				}
 				else
 					await this.fallbackMode();
 			}
 		}
-		catch (ex) {
-			if (ex != 'leave')
-				console.error(ex);
+		catch (e) {
+			if (e != 'leave')
+				console.error(e);
 		}
 	}
 	mute() {
@@ -148,7 +154,7 @@ export class GuildPlayer {
 		if (this.currentPlay)
 			this.currentPlay.skip();
 		else 
-			this.nowPlayingData = this.queue.shift();
+			this.playingElement = this.queue.shift();
 	}
 	repeat(maxTimes?: number) {
 		if (!this.currentPlay.isDefinite())
@@ -206,13 +212,13 @@ export class GuildPlayer {
 				const fallbackMusic = getFallbackChannel(this.ownerGuild.id);
 				if (!fallbackMusic)
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
-				this.nowPlayingData = fallbackMusic;
+				this.playingElement = fallbackMusic;
 				this.fallbackPlayed = true;
 				break;
 			case 'leave':
 				this.leave();
 			case 'silence':
-				this.nowPlayingData = null;
+				this.playingElement = null;
 				this.fallbackPlayed = true;
 				break;
 		}
@@ -225,7 +231,7 @@ export class GuildPlayer {
 		this.ownerGuild.voice.connection.disconnect(); //KÉRDÉSES!
 		this.handler.destroy();
 		delete this.ownerGuild;
-		if (!this.nowPlayingData)
+		if (!this.playingElement)
 			throw 'destroyed';
 	}
 	pause() {
@@ -235,6 +241,11 @@ export class GuildPlayer {
 	resume() {
 		if (!this.currentPlay.resume())
 			throw 'Ez a stream nem folytatható. (Nincs leállítva?)';
+	}
+	nowPlaying() {
+		return Object.defineProperty(this.playingElement, 'playingSeconds', {
+			get: this.currentPlay.playingSeconds
+		}) as PlayingData;
 	}
 }
 function repeatCounter(nTimes: number) {
