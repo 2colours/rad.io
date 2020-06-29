@@ -4,20 +4,20 @@
     "start": "concurrently --kill-others \"node keepalive.js\" \"node main.js\""
   },
   "dependencies": {
-    "@types/node": "^14.0.5",
+    "@types/node": "^14.0.14",
     "axios": "^0.19.2",
     "concurrently": "^5.2.0",
     "discord.js": "12.2.0",
     "dotenv": "^8.2.0",
-    "moment": "^2.26.0",
+    "moment": "^2.27.0",
     "node-gyp": "^6.1.0",
     "@discordjs/opus": "^0.3.2",
     "pastebin-js": "^1.0.4",
-    "popyt": "3.3.0",
+    "popyt": "^4.1.0",
     "scanf": "^1.1.1",
     "sqlite": "^3.0.3",
-    "typescript": "^3.9.3",
-    "ytdl-core": "^2.1.4"
+    "typescript": "^3.9.5",
+    "ytdl-core": "^3.1.1"
   },
   "engines": {
     "node": "^12"
