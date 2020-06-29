@@ -455,7 +455,7 @@ async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): P
 	}
 }
 
-async function searchPick(results: SearchResultView[]): Promise<number> {
+async function searchPick(this: ThisBinding, results: SearchResultView[]): Promise<number> {
 	if (results.length == 1)
 		return 0;
 	else if (!this.guild.member(client.user).permissions.has('ADD_REACTIONS')) {
