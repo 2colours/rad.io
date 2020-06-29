@@ -57,7 +57,7 @@ class Playable {
 				return dispatcher.paused && (dispatcher.resume(), true);
 			};
 			this.playingSeconds = () => {
-				return dispatcher.streamTime;
+				return Math.floor(dispatcher.streamTime / 1000);
 			};
 		});
 	}
