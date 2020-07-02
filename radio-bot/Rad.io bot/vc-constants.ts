@@ -177,7 +177,7 @@ const radios = {
 	},
 	'radioop': {
 		name: 'Radio OP',
-		url: 'http://85.195.88.149:17970/',
+		url: 'https://server4.streamserver24.com:26250/stream',
 		cult: 'hun'
 	},
 	'therapmixx': {
