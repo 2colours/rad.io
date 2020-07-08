@@ -20,6 +20,8 @@ export function shuffle(array: any[]) {
 	}
 }
 export function hourMinSec(seconds: number) {
+	if (seconds == undefined)
+		return 'N/A';
 	const hours = Math.floor(seconds / 3600);
 	seconds %= 3600;
 	const minutes = Math.floor(seconds / 60);
