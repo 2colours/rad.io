@@ -266,7 +266,7 @@ actions.set('queue', async function (_) {
 	if (queue.length == 0)
 		return void this.channel.send('**A sor jelenleg üres.**');
 	const embed = commonEmbed.call(this);
-	const queueLines = queue.map(elem => `${getEmoji(elem.type)} ${elem.name} (Hossz: ${hourMinSec(elem.lengthSeconds)}; Kérte: ${elem.requester})`);
+	const queueLines = queue.map(elem => `${getEmoji(elem.type)} ${elem.name}\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}; Kérte: ${elem.requester})`);
 	await useScrollableEmbed(this, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}`, queueLines);
 });
 actions.set('fallback', async function (param) {
