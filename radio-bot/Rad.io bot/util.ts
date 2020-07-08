@@ -95,7 +95,9 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 		try {
 			currentPage = await scrollRequest(ctx, message, currentPage, maxPage);
 		}
-		catch (ex) {
+		catch (e) {
+			if (typeof e != 'string')
+				console.error(e);
 			break;
 		}
 		const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
