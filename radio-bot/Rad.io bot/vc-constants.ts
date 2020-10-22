@@ -67,7 +67,7 @@ const radios = {
 	},
 	'klasszik': {
 		name: 'Klasszik Rádió',
-		url: 'http://online.klasszikradio.hu/stream/3/#.mp3',
+		url: 'http://s04.diazol.hu:9600/live.mp3',
 		cult: 'hun'
 	},
 	'sunshine': {
@@ -85,24 +85,14 @@ const radios = {
 		url: 'http://stream.webthings.hu:8000/fm95-x-128.mp3',
 		cult: 'hun'
 	},
-	'gold': {
-		name: 'Gold Rádió',
-		url: 'https://stream1.virtualisan.net:6202/live.mp3',
-		cult: 'hun'
-	},
 	'maxiradio': {
 		name: 'MaxiRádió',
-		url: 'http://37.221.209.189:9560',
+		url: 'http://46.107.212.101:9240/live',
 		cult: 'hun'
 	},
 	'radio88': {
 		name: 'Rádió88',
 		url: 'http://stream.radio88.hu:8000/;stream.nsv#.mp3',
-		cult: 'hun'
-	},
-	'partyradio': {
-		name: 'All In PartyRádió',
-		url: 'http://adas3.allinparty.hu:8430/hq#.mp3',
 		cult: 'hun'
 	},
 	'mercy': {
@@ -127,12 +117,12 @@ const radios = {
 	},
 	'jazzy': {
 		name: 'Jazzy Rádió',
-		url: 'http://94.199.183.186/jazzy.mp3',
+		url: 'https://s04.diazol.hu:9502/live.mp3',
 		cult: 'hun'
 	},
 	'rock': {
-		name: 'Rádió Rock',
-		url: 'http://cloudfront44.lexanetwork.com/cdn/cloudstream4151.mp3',
+		name: 'Rocker Rádió',
+		url: 'https://stream.diazol.hu:35202/live',
 		cult: 'hun'
 	},
 	'mez': {
@@ -157,12 +147,12 @@ const radios = {
 	},
 	'halas': {
 		name: 'Halas Rádió Kiskunhalas',
-		url: 'http://92.61.114.195:8110/stream',
+		url: 'https://eapps-cs.herokuapp.com/92.61.114.191:8110/stream',
 		cult: 'hun'
 	},
 	'buddhafm': {
 		name: 'Buddha FM',
-		url: 'http://server.tkbf.hu:4000/buddhafm',
+		url: 'https://eapps-cs.herokuapp.com/92.61.114.191:8110/stream',
 		cult: 'hun'
 	},
 	'city': {
@@ -217,7 +207,7 @@ const radios = {
 	},
 	'yammatfm': {
 		name: 'Yammat FM (Pop Rock)',
-		url: 'http://192.240.102.133:12430/;stream/1',
+		url: 'https://streaming.radio.co/s5ad4b474a/listen',
 		cult: 'eng'
 	},
 	'rockfm': {
@@ -232,7 +222,7 @@ const radios = {
 	},
 	'rainbow': {
 		name: 'Rainbow Sound UK (Oldies)',
-		url: 'http://uk5.internet-radio.com:8163/;stream',
+		url: 'https://stream.radio.co/s82994a596/listen',
 		cult: 'eng'
 	},
 	'jewishhits': {
@@ -252,12 +242,12 @@ const radios = {
 	},
 	'abc50s': {
 		name: 'ABC 50s (50s)',
-		url: 'http://144.217.253.136:8582/;stream/1',
+		url: 'https://igor.torontocast.com:1875/stream',
 		cult: 'eng'
 	},
 	'iluminafm': {
 		name: 'Ilumina fm (Christian)',
-		url: 'http://174.142.111.104:9996/;stream/1',
+		url: 'https://ss.redradios.net:8026/stream',
 		cult: 'eng'
 	},
 	'sunshinelive': {
@@ -312,7 +302,7 @@ const radios = {
 	},
 	'fajn': {
 		name: 'Fajn radio',
-		url: 'https://20853.live.streamtheworld.com/FAJN_RADIO_128.mp3',
+		url: 'https://20423.live.streamtheworld.com/FAJN_RADIO_128.mp3',
 		cult: 'eng'
 	},
 	'hot108': {
