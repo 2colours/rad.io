@@ -35,6 +35,11 @@ const radios = {
 		url: 'http://stream.lazaradio.com/live.mp3',
 		cult: 'hun'
 	},
+	'laza2': {
+		name: 'Laza Rádió (mulatós verzió)',
+		url: 'http://stream.lazaradio.com/mulatos.mp3',
+		cult: 'hun'
+	},
 	'retrobp': {
 		name: 'Retro Rádió Budapest',
 		url: 'http://stream.retroradio.hu/mid.mp3',
@@ -168,6 +173,11 @@ const radios = {
 	'radioop': {
 		name: 'Radio OP',
 		url: 'https://server4.streamserver24.com:26250/stream',
+		cult: 'hun'
+	},
+	'sepsi': {
+		name: 'Sepsi Rádió',
+		url: 'https://stream.sepsiradio.ro:8001/SepsiRadio',
 		cult: 'hun'
 	},
 	'therapmixx': {
