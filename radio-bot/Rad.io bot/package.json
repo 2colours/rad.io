@@ -4,14 +4,15 @@
     "start": "concurrently --kill-others \"node keepalive.js\" \"node main.js\""
   },
   "dependencies": {
+    "@discordjs/opus": "^0.3.2",
     "@types/node": "^14.0.14",
+    "@types/ws": "^7.4.0",
     "axios": "^0.19.2",
     "concurrently": "^5.2.0",
     "discord.js": "12.2.0",
     "dotenv": "^8.2.0",
     "moment": "^2.27.0",
     "node-gyp": "^6.1.0",
-    "@discordjs/opus": "^0.3.2",
     "pastebin-js": "^1.0.4",
     "popyt": "^4.1.0",
     "scanf": "^1.1.1",
