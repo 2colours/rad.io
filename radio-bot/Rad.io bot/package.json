@@ -1,14 +1,14 @@
 {
   "scripts": {
     "build": "",
-    "start": "node main.js"
+    "start": "node -r dotenv/config main.js"
   },
   "dependencies": {
     "@discordjs/opus": "^0.3.2",
     "@types/node": "^14.0.14",
     "@types/ws": "^7.4.0",
     "axios": "^0.21.0",
-    "discord.js": "^12.5.0",
+    "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "moment": "^2.29.1",
     "node-gyp": "^6.1.0",
