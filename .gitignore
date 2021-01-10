@@ -1,6 +1,7 @@
 ﻿/radio-bot/Rad.io bot/*.js
 /radio-bot/Rad.io bot/*.d.ts
 /radio-bot/Rad.io bot/node_modules
+/radio-bot/Rad.io bot/data
 /radio-bot/Rad.io bot/*.log
 /radio-bot/Rad.io bot/radio.sqlite
 /.vs
