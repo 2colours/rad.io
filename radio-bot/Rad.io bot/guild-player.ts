@@ -164,15 +164,19 @@ export class GuildPlayer {
 		else
 			this.currentPlay.askRepeat = repeatCounter(maxTimes);
 	}
+	autoSkip() {
+		return this.fallbackPlayed || !this.currentPlay || !this.currentPlay.isDefinite() && this.queue.length == 0;
+	}
 	schedule(musicData: MusicData) {
+		const autoSkip = this.autoSkip();
 		this.queue.push(musicData);
-		if (!this.currentPlay.isDefinite() && this.queue.length == 1) //azért a length==1, mert különben nem arra lépnénk át, amit pont most raktunk be - kicsit furcsa
+		if (autoSkip)
 			this.skip();
 		else
 			this.announcementChannel.send(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
 	bulkSchedule(musicDatas: MusicData[]) {
-		const autoSkip = !this.currentPlay || !this.currentPlay.isDefinite() && this.queue.length == 0;
+		const autoSkip = this.autoSkip();
 		for (const musicData of musicDatas)
 			this.queue.push(musicData);
 		if (autoSkip)
