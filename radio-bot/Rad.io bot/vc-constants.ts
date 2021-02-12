@@ -145,6 +145,11 @@ const radios = {
 		url: 'http://stream1.bestfmnyiregyhaza.hu/szolnok.mp3',
 		cult: 'hun'
 	},
+	'klub': {
+		name: 'Klubrádió',
+		url: 'http://hu-stream02.klubradio.hu:8080/bpstream',
+		cult: 'hun'
+	},
 	'radiom': {
 		name: 'Rádió M',
 		url: 'http://hosting2.42netmedia.com:10060/;stream.mp3',
