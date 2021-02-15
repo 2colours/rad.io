@@ -117,14 +117,13 @@ export class GuildPlayer {
 						});
 					var shouldRepeat = this.currentPlay.askRepeat();
 				} while (!forcedOver && shouldRepeat);
+				this.playingElement = null;
+				this.currentPlay = null;
 				if (this.queue.length != 0) {
 					this.playingElement = this.queue.shift();
 					this.fallbackPlayed = false;
 				}
-				else if (this.fallbackPlayed) {
-					this.playingElement = null;
-				}
-				else
+				else if (!this.fallbackPlayed)
 					await this.fallbackMode();
 			}
 		}
@@ -220,11 +219,9 @@ export class GuildPlayer {
 				this.fallbackPlayed = true;
 				break;
 			case 'leave':
-				this.playingElement = null;
 				this.leave();
 				break;
 			case 'silence':
-				this.playingElement = null;
 				this.fallbackPlayed = true;
 				break;
 		}
