@@ -55,7 +55,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	if (!guildPlayer)
 		return;
 	if (oldState.member?.user == client.user) {
-		if (!newState.channel) {//ha a botot elküldik - régen ilyen nem volt :))
+		if (!newState.channel) {//ha a bot szabályosan kilép VAGY elküldik - régen ilyen nem volt :))
 			console.log('kthxbye');
 			guildPlayer.leave();
 			guildPlayers.set(id, undefined);
