@@ -220,7 +220,9 @@ export class GuildPlayer {
 				this.fallbackPlayed = true;
 				break;
 			case 'leave':
+				this.playingElement = null;
 				this.leave();
+				break;
 			case 'silence':
 				this.playingElement = null;
 				this.fallbackPlayed = true;
