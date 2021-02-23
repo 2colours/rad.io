@@ -31,9 +31,6 @@ const radios = {
         cult: 'hun'
     },
     'bocskai': {
-        cult: 'hun', url: 'http://streaming.jcu.edu:8000/wjcu-aac-hi', name: 'Bocskai Rádió (Cleveland)'
-    },
-    'bocskai': {
         cult: 'hun',
         url: 'http://streaming.jcu.edu:8000/wjcu-aac-hi',
         name: 'Bocskai Rádió (Cleveland)'
