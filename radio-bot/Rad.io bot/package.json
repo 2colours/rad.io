@@ -13,11 +13,11 @@
     "moment": "^2.29.1",
     "node-gyp": "^6.1.0",
     "pastebin-js": "^1.0.6",
-    "popyt": "^4.2.0",
-    "scanf": "^1.1.2",
-    "sqlite": "^3.0.3",
+    "popyt": "^4",
+    "scanf": "^1",
+    "sqlite": "^3",
     "typescript": "^3.9.5",
-    "ytdl-core": "^4.4.2"
+    "ytdl-core": "^4"
   },
   "engines": {
     "node": "^14"
