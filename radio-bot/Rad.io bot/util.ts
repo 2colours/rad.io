@@ -37,7 +37,7 @@ export async function sendGuild(guild: Guild, content: StringResolvable, options
 			await channel.send(content, options);
 			break;
 		}
-		catch (ex) {
+		catch (e) {
 		}
 	}
 }
