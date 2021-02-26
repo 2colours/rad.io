@@ -436,6 +436,7 @@ async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): P
 	try {
 		const ytPlaylist = await youtube.getPlaylist(url);
 		const videos = await ytPlaylist.fetchVideos(maxPlaylistSize);
+                await Promise.all(videos.map(elem => elem.fetch()));
 		return videos.map(elem => Object.assign({}, {
 			name: elem.title,
 			url: elem.url,
