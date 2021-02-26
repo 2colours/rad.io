@@ -1,6 +1,6 @@
 ﻿import * as Discord from 'discord.js';
 import * as moment from 'moment';
-import { randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji, discordEscape } from './internal';
+import { randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji, discordEscape, maxPlaylistSize } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube, Video } from 'popyt';
 import axios from 'axios';
@@ -435,11 +435,13 @@ function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
 async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): Promise<MusicData[]> {
 	try {
 		const ytPlaylist = await youtube.getPlaylist(url);
-		const videos = await ytPlaylist.fetchVideos();
+		const videos = await ytPlaylist.fetchVideos(maxPlaylistSize);
 		return videos.map(elem => Object.assign({}, {
 			name: elem.title,
 			url: elem.url,
-			type: 'yt'
+			type: 'yt',
+                        lengthSeconds: moment.duration(elem._length).asSeconds(),
+                        requester
 		}) as MusicData);
 	}
 	catch (e) {
