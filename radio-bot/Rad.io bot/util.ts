@@ -1,4 +1,4 @@
-﻿import { Snowflake, Guild, TextChannel, StringResolvable, MessageEmbed, MessageAdditions, MessageOptions, Message, MessageReaction, User, VoiceChannel, EmojiIdentifierResolvable } from 'discord.js';
+﻿import { Snowflake, Guild, TextChannel, StringResolvable, MessageEmbed, MessageOptions, Message, MessageReaction, User, VoiceChannel, EmojiIdentifierResolvable } from 'discord.js';
 import { Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData, GuildPlayer, ScrollableEmbedTitleResolver, dbPromise, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from './internal';
 import { Database } from 'sqlite';
 import { ThisBinding } from './common-types';
@@ -29,7 +29,7 @@ export function hourMinSec(seconds: number) {
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
 export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
-export async function sendGuild(guild: Guild, content: StringResolvable, options?: MessageOptions | MessageAdditions) {
+export async function sendGuild(guild: Guild, content: StringResolvable, options?: MessageOptions) {
 	for (const channel of guild.channels.cache.values()) {
 		if (!(channel instanceof TextChannel))
 			continue;
