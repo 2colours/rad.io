@@ -324,6 +324,15 @@ setupCommand({
 });
 
 setupCommand({
+	name: 'seek',
+	aliases: [],
+	params: ['időpont (másodperc)'],
+	descrip: 'Az éppen játszott stream pozíciójának állítása.',
+	type: 'grantable',
+	filters: new Set([Filter.parameterNeeded, Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded]) //TODO: rádiónál lehessen?
+});
+
+setupCommand({
 	name: 'mute',
 	aliases: [],
 	params: [],

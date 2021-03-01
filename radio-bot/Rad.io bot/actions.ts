@@ -2,7 +2,7 @@
 import * as moment from 'moment';
 import { randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji, discordEscape, maxPlaylistSize } from './internal';
 const apiKey = process.env.youtubeApiKey;
-import { YouTube, Video } from 'popyt';
+import { YouTube } from 'popyt';
 import axios from 'axios';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
@@ -370,6 +370,12 @@ actions.set('volume', function (param) {
 	if (vol > 10)
 		this.channel.send('**Figyelem: erősítést alkalmaztál, a hangban torzítás léphet fel.**');
 	this.guildPlayer.setVolume(vol / 10);
+	this.react(tickEmoji);
+});
+actions.set('seek', function (param) {
+	const seconds = sscanf(param, '%d');
+	//TODO: érvényes lehet-e az időpont?
+	this.guildPlayer.seek(seconds);
 	this.react(tickEmoji);
 });
 actions.set('mute', function (_) {

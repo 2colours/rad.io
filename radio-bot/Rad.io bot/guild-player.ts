@@ -15,6 +15,11 @@ class Playable {
 	pause: PlayableCallbackBoolean;
 	resume: PlayableCallbackBoolean;
 	playingSeconds: PlayableCallbackNumber;
+	private offsetSeconds: number = 0;
+	private voiceConnection: Discord.VoiceConnection;
+	private dispatcher: Discord.StreamDispatcher;
+	private resolve: (forceSkip:boolean) => void;
+	private reject: (reason:string) => void;
 	constructor(readonly data: PlayableData) {
 	}
 	isDefinite() {
@@ -24,11 +29,21 @@ class Playable {
 	askRepeat() {
 		return false;
 	}
+	private newDispatcherHere(stream: any, seekTime: number, volume: number) {
+		this.dispatcher = this.voiceConnection.play(stream, { seek: seekTime, volume });
+			this.dispatcher.on('finish', () => this.resolve(false)); //nem volt forced, hanem magától
+			this.dispatcher.on('error', () => {
+				console.log('Futott az error handler.');
+				this.reject('error'); //hiba jelentése - kezelni kell
+			});
+	}
 	play(voiceConnection: Discord.VoiceConnection, vol: number): Promise<boolean> {
 		return new Promise((resolve, reject) => {
+			this.resolve = resolve;
+			this.reject = reject;
 			if (!this.data) {
-				this.skip = () => resolve(true);
-				this.halt = () => reject('leave');
+				this.skip = () => this.resolve(true);
+				this.halt = () => this.reject('leave');
 				this.pause = () => false;
 				this.resume = () => false;
 				this.playingSeconds = () => undefined;
@@ -36,31 +51,34 @@ class Playable {
 			}
 			const stream = downloadMethods.get(this.data.type)(this.data.url);
 			const seekTime = parseInt(new URL(this.data.url).searchParams.get('t')) || 0;
-			const dispatcher = voiceConnection.play(stream, { seek: seekTime });
-			dispatcher.setVolume(vol);
-			dispatcher.on('finish', () => resolve(false)); //nem volt forced, hanem magától
-			dispatcher.on('error', () => {
-				console.log('Futott az error handler.');
-				reject('error'); //hiba jelentése - kezelni kell
-			});
+			this.offsetSeconds = seekTime;
+			this.voiceConnection = voiceConnection;
+			this.newDispatcherHere(stream, seekTime, vol);
 			this.skip = () => {
-				resolve(true);
-				dispatcher.end();
+				this.resolve(true);
+				this.dispatcher.end();
 			};
 			this.halt = () => {
-				reject('leave');
-				dispatcher.end();
+				this.reject('leave');
+				this.dispatcher.end();
 			};
 			this.pause = () => {
-				return !dispatcher.paused && (dispatcher.pause(), true);
+				return !this.dispatcher.paused && (this.dispatcher.pause(), true);
 			};
 			this.resume = () => {
-				return dispatcher.paused && (dispatcher.resume(), true);
+				return this.dispatcher.paused && (this.dispatcher.resume(), true);
 			};
 			this.playingSeconds = () => {
-				return Math.floor(dispatcher.streamTime / 1000);
+				return this.offsetSeconds + Math.floor(this.dispatcher.streamTime / 1000);
 			};
 		});
+	}
+	seek(seconds: number) {
+		this.offsetSeconds = seconds;
+		this.dispatcher.removeAllListeners();
+		const vol = this.dispatcher.volume;
+		const stream = downloadMethods.get(this.data.type)(this.data.url);
+		this.newDispatcherHere(stream, seconds, vol);
 	}
 }
 class VoiceHandler {
@@ -149,6 +167,9 @@ export class GuildPlayer {
 			throw 'Semmi nincs lejátszás alatt.';
 		this.ownerGuild.voice.connection.dispatcher.setVolume(vol);
 		this.volume = vol;
+	}
+	seek(seconds: number) {
+		this.currentPlay.seek(seconds);
 	}
 	skip() {
 		if (this.currentPlay)
