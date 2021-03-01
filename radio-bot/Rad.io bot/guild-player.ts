@@ -35,7 +35,8 @@ class Playable {
 				return;
 			}
 			const stream = downloadMethods.get(this.data.type)(this.data.url);
-			const dispatcher = voiceConnection.play(stream, { seek: 0 });
+			const seekTime = parseInt(new URL(this.data.url).searchParams.get('t')) || 0;
+			const dispatcher = voiceConnection.play(stream, { seek: seekTime });
 			dispatcher.setVolume(vol);
 			dispatcher.on('finish', () => resolve(false)); //nem volt forced, hanem magától
 			dispatcher.on('error', () => {
