@@ -2,9 +2,8 @@
 import { Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData, GuildPlayer, ScrollableEmbedTitleResolver, dbPromise, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from './internal';
 import { Database } from 'sqlite';
 import { ThisBinding } from './common-types';
-const PastebinAPI = require('pastebin-ts');
-import { PastebinAPI as TPastebinAPI} from 'pastebin-ts';
-const pastebin: TPastebinAPI = new PastebinAPI(process.env.pastebin);
+import { default as PasteClient } from 'pastebin-api';
+const pastebin = new PasteClient(process.env.pastebin);
 let database: Database;
 dbPromise.then(db => database = db);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
@@ -127,7 +126,7 @@ export const saveRow = {
 	}
 };
 export async function createPastebin(title: string, content: string): Promise<string> {
-	let paste: string = await pastebin.createPaste({ text: content, title }) as string;
+	let paste: string = await pastebin.createPaste({ code: content, name: title });
 	return paste;
 }
 export function isLink(text: string) {

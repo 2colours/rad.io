@@ -12,7 +12,7 @@
     "dotenv": "^8.2.0",
     "moment": "^2.29.1",
     "node-gyp": "^6.1.0",
-    "pastebin-ts": "^1.2.0",
+    "pastebin-api": "^1.0.0",
     "popyt": "^4",
     "scanf": "^1",
     "sqlite": "^3",
