@@ -360,8 +360,7 @@ actions.set('nowplaying', function (_) {
 		return void this.channel.send('**CSEND**');
 	const embed = commonEmbed.call(this)
 		.setTitle('❯ Épp játszott stream')
-		.setDescription(`${getEmoji(nowPlayingData.type)} ${nowPlayingData.name}\n${hourMinSec(nowPlayingData.playingSeconds)}/${hourMinSec(nowPlayingData.lengthSeconds)}`)
-                .setURL(`${nowPlayingData.url}`);
+		.setDescription(`${getEmoji(nowPlayingData.type)} [${nowPlayingData.name}](${nowPlayingData.url})\n${hourMinSec(nowPlayingData.playingSeconds)}/${hourMinSec(nowPlayingData.lengthSeconds)}`);
 	this.channel.send({ embed });
 });
 actions.set('volume', function (param) {
