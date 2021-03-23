@@ -103,11 +103,12 @@ interface HelpInfo {
 	ownDescription: string;
 }
 export class Creator {
-	constructor(readonly id: Snowflake, private alias: string) {
+	constructor(readonly id: Snowflake, private alias: string, private link?: string) {
 	}
-	resolve() {
+	resolveMarkdown() {
 		const user = client.users.resolve(this.id);
-		return user ? user.tag : this.alias;
+		const text = user ? user.tag : this.alias;
+		return this.link != undefined ? `[${text}](${this.link})` : text;
 	}
 }
 export interface SearchResultView {

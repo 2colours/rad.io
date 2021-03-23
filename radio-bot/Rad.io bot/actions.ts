@@ -218,7 +218,7 @@ actions.set('help', function (param) {
 			.addField('❯ Részletes leírás', `\`${prefix}help <command>\``)
 			.addField('❯ Egyéb információk', `RAD.io meghívása saját szerverre: [Ide kattintva](https://discordapp.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot)
 Meghívó a RAD.io Development szerverre: [discord.gg/C83h4Sk](https://discord.gg/C83h4Sk)
-A bot fejlesztői: ${creators.map(creator => creator.resolve()).join(', ')}`);
+A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`);
 		return void this.channel.send({ embed });
 	}
 	helpCommand = translateAlias(helpCommand);
