@@ -190,11 +190,6 @@ const radios = {
         url: 'http://aktivradio.hu:8000/aktiv.mp3',
         cult: 'hun'
     },
-    'amadeus': {
-        name: 'Amadeus Rádió',
-        url: 'http://stream1.bestfmnyiregyhaza.hu/szolnok.mp3',
-        cult: 'hun'
-    },
     'klub': {
         name: 'Klubrádió',
         url: 'http://hu-stream02.klubradio.hu:8080/bpstream',
