@@ -217,7 +217,7 @@ const radios = {
     },
     'triofm': {
         name: 'Trio FM',
-        url: 'http://vps1.innobrand.hu:9090//stream',
+        url: 'http://92.119.123.141:9090/stream',
         cult: 'hun'
     },
     'radioop': {
@@ -237,7 +237,7 @@ const radios = {
     },
     'wefunk': {
         name: 'WEFUNK Radio (Classic HipHop)',
-        url: 'http://s-00.wefunkradio.com:81/wefunk64.mp3/',
+        url: 'https://s-00.wefunkradio.com:8443/wefunk64.mp3',
         cult: 'eng'
     },
     '181fm': {
@@ -372,7 +372,7 @@ const radios = {
     },
     'fimbul': {
         name: 'Fimbul Radio',
-        url: 'http://radio.fimbulrecords.com:8000/stream?icy=http',
+        url: 'http://s4.radio.co/sdda8682fb/listen',
         cult: 'eng'
     }
 };
