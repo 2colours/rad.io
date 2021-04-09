@@ -152,12 +152,7 @@ const radios = {
     },
     'mercy': {
         name: 'Mercy Mulatós Rádió',
-        url: 'http://stream.mercyradio.eu/mulatos.mp3',
-        cult: 'hun'
-    },
-    'romungro': {
-        name: 'Románo Ungriko Discoso Rádiovo',
-        url: 'http://stream.mercyradio.eu/roma.mp3',
+        url: 'http://stream.mercyradio.eu/mercyradio.mp3',
         cult: 'hun'
     },
     'folkradio': {
