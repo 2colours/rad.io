@@ -7,4 +7,7 @@
 /radio-bot/Rad.io bot/*-lock.json
 /radio-bot/Rad.io bot/*.lock
 *.env
-/nbproject/private/
+/nbproject/
+/.vscode/
+/.settings/
+/.project
