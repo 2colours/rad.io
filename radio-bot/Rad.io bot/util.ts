@@ -1,7 +1,7 @@
 ﻿import { Snowflake, Guild, TextChannel, StringResolvable, MessageEmbed, MessageOptions, Message, MessageReaction, User, VoiceChannel, EmojiIdentifierResolvable } from 'discord.js';
 import { Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData, GuildPlayer, ScrollableEmbedTitleResolver, dbPromise, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from './internal';
 import { Database } from 'sqlite';
-import { ThisBinding } from './common-types';
+import { ThisBinding, PlayableData } from './common-types';
 import { default as PasteClient } from 'pastebin-api';
 const pastebin = new PasteClient(process.env.pastebin);
 let database: Database;
@@ -135,4 +135,7 @@ export function isLink(text: string) {
 
 export function discordEscape(text: string) {
 	return text.replace(/\|/g, '\\|');
+}
+export function starterSeconds(data: PlayableData):number {
+    return parseInt(new URL(data.url).searchParams.get('t')) || 0
 }

@@ -1,7 +1,6 @@
 import * as Discord from 'discord.js';
 import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import { getEmoji, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode, getFallbackChannel, PlayableCallbackNumber } from './internal';
-import { PlayingData } from './common-types';
+import { getEmoji, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode, getFallbackChannel, PlayableCallbackNumber, PlayingData, starterSeconds } from './internal';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const clientId = process.env.soundcloudClientId;
 const downloadMethods = new Map<StreamType, any>([
@@ -30,12 +29,12 @@ class Playable {
 		return false;
 	}
 	private newDispatcherHere(stream: any, seekTime: number, volume: number) {
-		this.dispatcher = this.voiceConnection.play(stream, { seek: seekTime, volume });
-			this.dispatcher.on('finish', () => this.resolve(false)); //nem volt forced, hanem magától
-			this.dispatcher.on('error', () => {
+		this.dispatcher = this.voiceConnection.play(stream, { seek: seekTime, volume })
+                    .on('finish', () => this.resolve(false)) //nem volt forced, hanem magától
+                    .on('error', () => {
 				console.log('Futott az error handler.');
 				this.reject('error'); //hiba jelentése - kezelni kell
-			});
+                    });
 	}
 	play(voiceConnection: Discord.VoiceConnection, vol: number): Promise<boolean> {
 		return new Promise((resolve, reject) => {
@@ -50,7 +49,7 @@ class Playable {
 				return;
 			}
 			const stream = downloadMethods.get(this.data.type)(this.data.url);
-			const seekTime = parseInt(new URL(this.data.url).searchParams.get('t')) || 0;
+			const seekTime = starterSeconds(this.data);
 			this.offsetSeconds = seekTime;
 			this.voiceConnection = voiceConnection;
 			this.newDispatcherHere(stream, seekTime, vol);
