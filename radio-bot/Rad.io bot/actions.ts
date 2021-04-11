@@ -378,7 +378,7 @@ actions.set('seek', function (param) {
 		return void this.reply('**paraméterként pozitív szám elvárt.**');    
 	const maxSeconds = this.guildPlayer.nowPlaying()?.lengthSeconds;
         if (seconds > maxSeconds)
-		return void this.reply(`**a paraméter nem lehet nagyobb a szám hosszánál. ${maxSeconds}**`)
+		return void this.reply(`**a paraméter nem lehet nagyobb a szám hosszánál. (${maxSeconds})**`)
 	//TODO: érvényes lehet-e a típus?
 	this.guildPlayer.seek(seconds);
 	this.react(tickEmoji);
