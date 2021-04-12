@@ -135,6 +135,11 @@ const radios = {
         url: 'http://katolikusradio.hu:9000/live_low.mp3',
         cult: 'hun'
     },
+    'maria': {
+        name: 'Mária Rádió',
+        url: 'https://stream.mariaradio.hu:8000/mr',
+        cult: 'hun'	    
+    },
     'bestfm': {
         name: 'BEST FM',
         url: 'http://stream.webthings.hu:8000/fm95-x-128.mp3',
