@@ -1,5 +1,5 @@
 import * as Discord from 'discord.js';
-import * as yd from 'ytdl-core'; //Nem illik közvetlenül hívni
+import * as yd from 'ytdl-core-discord'; //Nem illik közvetlenül hívni
 import { getEmoji, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode, getFallbackChannel, PlayableCallbackNumber, PlayingData, starterSeconds } from './internal';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const clientId = process.env.soundcloudClientId;
@@ -37,7 +37,7 @@ class Playable {
                     });
 	}
 	play(voiceConnection: Discord.VoiceConnection, vol: number): Promise<boolean> {
-		return new Promise((resolve, reject) => {
+		return new Promise(async (resolve, reject) => {
 			this.resolve = resolve;
 			this.reject = reject;
 			if (!this.data) {
@@ -48,7 +48,7 @@ class Playable {
 				this.playingSeconds = () => undefined;
 				return;
 			}
-			const stream = downloadMethods.get(this.data.type)(this.data.url);
+			const stream = await Promise.resolve(downloadMethods.get(this.data.type)(this.data.url));
 			const seekTime = starterSeconds(this.data);
 			this.offsetSeconds = seekTime;
 			this.voiceConnection = voiceConnection;
@@ -72,11 +72,11 @@ class Playable {
 			};
 		});
 	}
-	seek(seconds: number) {
+	async seek(seconds: number) {
 		this.offsetSeconds = seconds;
 		this.dispatcher.removeAllListeners();
 		const vol = this.dispatcher.volume;
-		const stream = downloadMethods.get(this.data.type)(this.data.url);
+		const stream = await Promise.resolve(downloadMethods.get(this.data.type)(this.data.url));
 		this.newDispatcherHere(stream, seconds, vol);
 	}
 }
