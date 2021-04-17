@@ -1,6 +1,6 @@
 import * as Discord from 'discord.js';
 import { Readable } from 'node:stream';
-import yd from 'ytdl-core-discord'; //Nem illik közvetlenül hívni
+import yd from 'ytdl-core'; //Nem illik közvetlenül hívni
 import { getEmoji, MusicData, StreamType, StreamProvider, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode, getFallbackChannel, PlayableCallbackNumber, PlayingData, starterSeconds } from './internal';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const clientId = process.env.soundcloudClientId;
@@ -30,7 +30,7 @@ class Playable {
 		return false;
 	}
 	private newDispatcherHere(stream: string | Readable, seekTime: number, volume: number) {
-		this.dispatcher = this.voiceConnection.play(stream, { seek: seekTime, volume, type: 'opus' })
+		this.dispatcher = this.voiceConnection.play(stream, { seek: seekTime, volume })
                     .on('finish', () => this.resolve(false)) //nem volt forced, hanem magától
                     .on('error', () => {
 				console.log('Futott az error handler.');
