@@ -372,7 +372,7 @@ actions.set('volume', function (param) {
 	this.guildPlayer.setVolume(vol / 10);
 	this.react(tickEmoji);
 });
-actions.set('seek', function (param) {
+actions.set('seek', async function (param) {
 	const seconds = sscanf(param, '%d');
 	if (seconds == undefined || seconds <= 0)
 		return void this.reply('**paraméterként pozitív szám elvárt.**');    
@@ -380,7 +380,7 @@ actions.set('seek', function (param) {
         if (seconds > maxSeconds)
 		return void this.reply(`**a paraméter nem lehet nagyobb a szám hosszánál. (${maxSeconds})**`)
 	//TODO: érvényes lehet-e a típus?
-	this.guildPlayer.seek(seconds);
+	await this.guildPlayer.seek(seconds);
 	this.react(tickEmoji);
 });
 actions.set('mute', function (_) {

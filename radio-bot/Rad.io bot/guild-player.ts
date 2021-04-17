@@ -1,9 +1,10 @@
 import * as Discord from 'discord.js';
-import * as yd from 'ytdl-core-discord'; //Nem illik közvetlenül hívni
-import { getEmoji, MusicData, StreamType, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode, getFallbackChannel, PlayableCallbackNumber, PlayingData, starterSeconds } from './internal';
+import { Readable } from 'node:stream';
+import yd from 'ytdl-core-discord'; //Nem illik közvetlenül hívni
+import { getEmoji, MusicData, StreamType, StreamProvider, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode, getFallbackChannel, PlayableCallbackNumber, PlayingData, starterSeconds } from './internal';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const clientId = process.env.soundcloudClientId;
-const downloadMethods = new Map<StreamType, any>([
+const downloadMethods = new Map<StreamType, StreamProvider>([
 	['yt', ytdl],
 	['custom', (url: string) => url],
 	['radio', (url: string) => url],
@@ -28,7 +29,7 @@ class Playable {
 	askRepeat() {
 		return false;
 	}
-	private newDispatcherHere(stream: any, seekTime: number, volume: number) {
+	private newDispatcherHere(stream: string | Readable, seekTime: number, volume: number) {
 		this.dispatcher = this.voiceConnection.play(stream, { seek: seekTime, volume })
                     .on('finish', () => this.resolve(false)) //nem volt forced, hanem magától
                     .on('error', () => {
@@ -167,8 +168,8 @@ export class GuildPlayer {
 		this.ownerGuild.voice.connection.dispatcher.setVolume(vol);
 		this.volume = vol;
 	}
-	seek(seconds: number) {
-		this.currentPlay.seek(seconds);
+	async seek(seconds: number) {
+		await this.currentPlay.seek(seconds);
 	}
 	skip() {
 		if (this.currentPlay)

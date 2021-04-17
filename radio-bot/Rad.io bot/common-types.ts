@@ -1,4 +1,5 @@
 import { Snowflake, Message, User, TextChannel, GuildMember, DMChannel, NewsChannel } from 'discord.js';
+import { Readable } from 'node:stream';
 import { GuildPlayer, Filter, aggregateDecorators, client } from './internal';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
@@ -14,6 +15,7 @@ export type ScrollableEmbedTitleResolver = (currentPage: number, maxPage: number
 export type PlayableCallbackVoid = () => void;
 export type PlayableCallbackBoolean = () => boolean;
 export type PlayableCallbackNumber = () => number;
+export type StreamProvider = (url:string) => Resolvable<string | Readable>;
 export interface PackedMessage extends Message {
 	cmdName:string;
 }
