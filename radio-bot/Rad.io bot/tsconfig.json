@@ -12,10 +12,11 @@
     "removeComments": false,
     "sourceMap": false,
     "strictNullChecks": false,
-    "target": "ES2017",
+    "target": "ES2019",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true
   },
 	"compileOnSave": true,
 	"exclude": ["**/*.spec.ts","node_modules"]
