@@ -2,7 +2,7 @@
 const token = process.env.radioToken;
 
 import { configPromise, client, PackedMessage, ThisBinding, actions, GuildPlayer, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix } from './internal';
-import * as moment from 'moment';
+import moment from 'moment';
 const help = actions.get('help');
 
 const devChannel = () => client.channels.resolve(devChanId);
