@@ -30,7 +30,7 @@ class Playable {
 		return false;
 	}
 	private newDispatcherHere(stream: string | Readable, seekTime: number, volume: number) {
-		this.dispatcher = this.voiceConnection.play(stream, { seek: seekTime, volume })
+		this.dispatcher = this.voiceConnection.play(stream, { seek: seekTime, volume, type: 'opus' })
                     .on('finish', () => this.resolve(false)) //nem volt forced, hanem magától
                     .on('error', () => {
 				console.log('Futott az error handler.');
