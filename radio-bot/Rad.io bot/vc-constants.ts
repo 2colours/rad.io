@@ -350,6 +350,11 @@ const radios = {
         url: 'http://streaming11.tdiradio.com:8000/hit',
         cult: 'eng'
     },
+    'asfm': {
+	name: 'AS FM',
+	url: 'https://mastermedia.shoutca.st/proxy/radioasfm64?mp=/stream',
+	cult: 'eng'
+    },
     'r101': {
         name: 'R101 radio',
         url: 'https://icecast.unitedradio.it/r101_mp3',
