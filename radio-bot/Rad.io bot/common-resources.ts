@@ -40,7 +40,7 @@ const umzug = new Umzug({
 		{
 			name: '00-initial',
 			async up({ context }) {
-				/*await context.createTable('prefix', {
+				await context.createTable('prefix', {
 					guildID: {
 						type: Sequelize.STRING,
 						allowNull: false,
@@ -97,7 +97,7 @@ const umzug = new Umzug({
 				});
 				await context.addConstraint('role', ['guildID', 'roleID'], {
 					type: 'primary key',
-				});*/
+				});
 			},
 			async down({ context }) {
 				await context.dropAllTables();
