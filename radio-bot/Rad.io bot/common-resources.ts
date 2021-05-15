@@ -106,7 +106,7 @@ const umzug = new Umzug({
 		{
 			name: '01-fallback-data-fix',
 			async up({ context }) {
-				const users = await context.sequelize.query("SELECT * FROM `fallbackData`", { type: QueryTypes.SELECT });
+				//const users = await context.sequelize.query("SELECT * FROM `fallbackData`", { type: QueryTypes.SELECT });
 			},
 			async down() {
 
