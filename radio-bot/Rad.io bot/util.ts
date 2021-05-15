@@ -1,11 +1,8 @@
 ﻿import { Snowflake, Guild, TextChannel, StringResolvable, MessageEmbed, MessageOptions, Message, MessageReaction, User, VoiceChannel, EmojiIdentifierResolvable } from 'discord.js';
-import { Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData, GuildPlayer, ScrollableEmbedTitleResolver, dbPromise, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from './internal';
-import { Database } from 'sqlite';
+import { sequelize, Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData, GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from './internal';
 import { ThisBinding, PlayableData } from './common-types';
-import { default as PasteClient } from 'pastebin-api';
+import PasteClient from 'pastebin-api';
 const pastebin = new PasteClient(process.env.pastebin);
-let database: Database;
-dbPromise.then(db => database = db);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
 	baseDict = baseDict.get(guildId) ? baseDict : baseDict.set(guildId, defaultValue);
 	return baseDict.get(guildId);
@@ -109,20 +106,44 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 }
 export const saveRow = {
 	async prefix(rowObj: PrefixTableData) {
-		await database.run(`DELETE FROM prefix WHERE guildID = ?`, rowObj.guildID);
-		await database.run(`INSERT INTO prefix (guildID, prefix) VALUES (?, ?)`, [rowObj.guildID, rowObj.prefix]);
+		await sequelize.query(`DELETE FROM prefix WHERE guildID = $1`, {
+			type: sequelize.QueryTypes.DELETE,
+			bind: [rowObj.guildID]
+		});
+		await sequelize.query(`INSERT INTO prefix (guildID, prefix) VALUES ($1, $2)`, {
+			type: sequelize.QueryTypes.INSERT,
+			bind: [rowObj.guildID, rowObj.prefix]
+		});
 	},
 	async fallbackModes(rowObj: FallbackModesTableData) {
-		await database.run(`DELETE FROM fallbackModes WHERE guildID = ?`, rowObj.guildID);
-		await database.run(`INSERT INTO fallbackModes (guildID, type) VALUES (?, ?)`, [rowObj.guildID, rowObj.type]);
+		await sequelize.query(`DELETE FROM fallbackModes WHERE guildID = $1`, {
+			type: sequelize.QueryTypes.DELETE,
+			bind: [rowObj.guildID]
+		});
+		await sequelize.query(`INSERT INTO fallbackModes (guildID, type) VALUES ($1, $2)`, {
+			type: sequelize.QueryTypes.INSERT,
+			bind: [rowObj.guildID, rowObj.type]
+		});
 	},
 	async fallbackData(rowObj: FallbackDataTableData) {
-		await database.run(`DELETE FROM fallbackData WHERE guildID = ?`, rowObj.guildID);
-		await database.run(`INSERT INTO fallbackData (guildID, type, name, url) VALUES (?, ?, ?, ?)`, [rowObj.guildID, rowObj.type, rowObj.name, rowObj.url]);
+		await sequelize.query(`DELETE FROM fallbackData WHERE guildID = $1`, {
+			type: sequelize.QueryTypes.DELETE,
+			bind: [rowObj.guildID]
+		});
+		await sequelize.query(`INSERT INTO fallbackData (guildID, type, name, url) VALUES ($1, $2, $3, $4)`, {
+			type: sequelize.QueryTypes.INSERT,
+			bind: [rowObj.guildID, rowObj.type, rowObj.name, rowObj.url]
+		});
 	},
 	async role(rowObj: RoleTableData) {
-		await database.run(`DELETE FROM role WHERE (guildID = ?) AND (roleID = ?)`, [rowObj.guildID, rowObj.roleID]);
-		await database.run(`INSERT INTO role (guildID, roleID, commands) VALUES (?, ?, ?)`, [rowObj.guildID, rowObj.roleID, rowObj.commands]);
+		await sequelize.query(`DELETE FROM role WHERE (guildID = $1) AND (roleID = $2)`, {
+			type: sequelize.QueryTypes.DELETE,
+			bind: [rowObj.guildID, rowObj.roleID]
+		});
+		await sequelize.query(`INSERT INTO role (guildID, roleID, commands) VALUES ($1, $2, $3)`, {
+			type: sequelize.QueryTypes.INSERT,
+			bind: [rowObj.guildID, rowObj.roleID, rowObj.commands]
+		});
 	}
 };
 export async function createPastebin(title: string, content: string): Promise<string> {
@@ -136,6 +157,6 @@ export function isLink(text: string) {
 export function discordEscape(text: string) {
 	return text.replace(/\|/g, '\\|');
 }
-export function starterSeconds(data: PlayableData):number {
-    return parseInt(new URL(data.url).searchParams.get('t')) || 0
+export function starterSeconds(data: PlayableData): number {
+	return parseInt(new URL(data.url).searchParams.get('t')) || 0
 }

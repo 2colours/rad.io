@@ -1,5 +1,5 @@
 ﻿import * as Discord from 'discord.js';
-import * as moment from 'moment';
+import moment from 'moment';
 import { randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji, discordEscape, maxPlaylistSize } from './internal';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';

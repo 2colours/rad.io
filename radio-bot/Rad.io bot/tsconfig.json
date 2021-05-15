@@ -4,7 +4,7 @@
     "declaration": true,
     "emitDecoratorMetadata": false,
     "experimentalDecorators": false,
-    "module": "commonjs",
+    "module": "ESNext",
     "moduleResolution": "node",
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": true,
