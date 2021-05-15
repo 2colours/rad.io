@@ -1,13 +1,13 @@
 ﻿import * as Discord from 'discord.js';
 import moment from 'moment';
-import { randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji, discordEscape, maxPlaylistSize } from './internal';
+import { randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, Action, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji, discordEscape, maxPlaylistSize } from './internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
 import axios from 'axios';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
-import { getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe } from './config-manager';
-import { ThisBinding } from './common-types';
+import { getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe } from './config-manager.js';
+import { ThisBinding } from './common-types.js';
 export const actions: Map<string, Action> = new Map();
 actions.set('setprefix', async function (param) {
 	if (!param)
