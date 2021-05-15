@@ -7,6 +7,7 @@
   "dependencies": {
     "@discordjs/opus": "^0.3.2",
     "@types/node": "^14.0.14",
+    "@types/sequelize": "^4.28.9",
     "@types/umzug": "^2.3.0",
     "@types/ws": "^7.4.0",
     "axios": "^0.21.0",
@@ -14,9 +15,10 @@
     "dotenv": "^8.2.0",
     "moment": "^2.29.1",
     "node-gyp": "^6.1.0",
-    "pastebin-api": "^1.0.1",
+    "pastebin-api": "^2.0.1",
     "popyt": "^4",
     "scanf": "^1",
+    "sequelize": "^4.44.4",
     "typescript": "^3.9.5",
     "umzug": "^3.0.0-beta.15",
     "ytdl-core": "^4.5.0"
