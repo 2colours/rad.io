@@ -383,6 +383,7 @@ const radios = {
 };
 const r: Map<string, RadioConstantData> = new Map(Object.entries(radios));
 export { r as radios };
+export const defaultRadio = 'kossuth';
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;

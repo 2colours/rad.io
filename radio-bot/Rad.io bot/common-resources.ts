@@ -1,5 +1,5 @@
 import { Snowflake, Client } from 'discord.js';
-import { attach, FallbackType, MusicData, Config, radios } from './internal.js';
+import { attach, FallbackType, MusicData, Config, radios, defaultRadio } from './internal.js';
 import { Umzug, SequelizeStorage } from 'umzug';
 import Sequelize from 'sequelize';
 export const client = new Client();
@@ -125,8 +125,24 @@ const umzug = new Umzug({
 				await context.bulkDelete('fallbackData', {});
 				await context.bulkInsert('fallbackData', fbdRows);
 			},
-			async down() {
-
+			async down({ context }) {
+				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: sequelize.QueryTypes.SELECT }))[0];
+				await context.renameColumn('fallbackData', 'data', 'url');
+				fbdRows.forEach((fbdRow: any) => {
+					fbdRow.url = fbdRow.data;
+					delete fbdRow.data;
+					if (fbdRow.type != 'radio')
+						return;
+					const urlById = radios.get(fbdRow.url)?.url;
+					if (urlById) {
+						fbdRow.url = urlById;
+						return;
+					}
+					fbdRow.name = radios.get(defaultRadio).name;
+					fbdRow.url = radios.get(defaultRadio).url;
+				});
+				await context.bulkDelete('fallbackData', {});
+				await context.bulkInsert('fallbackData', fbdRows);
 			}
 		}
 	],
@@ -135,7 +151,5 @@ const umzug = new Umzug({
 	logger: console,
 });
 
-await umzug.down({
-	to: '01-fallback-data-fix'
-});
+await umzug.up();
 export const config = await loadCFG();
