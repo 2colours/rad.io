@@ -128,7 +128,7 @@ const umzug = new Umzug({
 			async down({ context }) {
 				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: context.sequelize.QueryTypes.SELECT }));
 				await context.renameColumn('fallbackData', 'data', 'url');
-				/*fbdRows.forEach((fbdRow: any) => {
+				fbdRows.forEach((fbdRow: any) => {
 					fbdRow.url = fbdRow.data;
 					delete fbdRow.data;
 					if (fbdRow.type != 'radio')
@@ -142,7 +142,7 @@ const umzug = new Umzug({
 					fbdRow.url = radios.get(defaultRadio).url;
 				});
 				await context.bulkDelete('fallbackData', {});
-				await context.bulkInsert('fallbackData', fbdRows);*/
+				await context.bulkInsert('fallbackData', fbdRows);
 			}
 		}
 	],
@@ -151,7 +151,5 @@ const umzug = new Umzug({
 	logger: console,
 });
 
-await umzug.down({
-	to: '01-fallback-data-fix'
-});
+await umzug.up();
 export const config = await loadCFG();
