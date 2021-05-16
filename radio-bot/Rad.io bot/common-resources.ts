@@ -15,10 +15,10 @@ async function loadCFG(): Promise<Config> {
 	const fallbackData: Map<Snowflake, MusicData> = new Map();
 	const roles: Map<Snowflake, Map<Snowflake, string[]>> = new Map();
 	const selectPromises: Promise<void>[] = [
-		sequelize.query('SELECT * FROM prefix').then(([prefixRows, _]) => prefixRows.forEach((prefixRow: any) => prefixes.set(prefixRow.guildID, prefixRow.prefix))),
-		sequelize.query('SELECT * FROM fallbackModes').then(([fbmRows, _]) => fbmRows.forEach((fbmRow: any) => fallbackModes.set(fbmRow.guildID, fbmRow.type))),
-		sequelize.query('SELECT * FROM fallbackData').then(([fbdRows, _]) => fbdRows.forEach((fbdRow: any) => fallbackData.set(fbdRow.guildID, { type: fbdRow.type, name: fbdRow.name, url: fbdRow.url, lengthSeconds: undefined, requester: undefined }))),
-		sequelize.query('SELECT * FROM role').then(([roleRows, _]) => roleRows.forEach((roleRow: any) => roles.set(roleRow.guildID, new Map([...attach(roles, roleRow.guildID, new Map()), [roleRow.roleID, roleRow.commands != '' ? roleRow.commands.split('|') : []]]))))
+		sequelize.query('SELECT * FROM prefix', { type: sequelize.QueryTypes.SELECT }).then(prefixRows => prefixRows.forEach((prefixRow: any) => prefixes.set(prefixRow.guildID, prefixRow.prefix))),
+		sequelize.query('SELECT * FROM fallbackModes', { type: sequelize.QueryTypes.SELECT }).then(fbmRows => fbmRows.forEach((fbmRow: any) => fallbackModes.set(fbmRow.guildID, fbmRow.type))),
+		sequelize.query('SELECT * FROM fallbackData', { type: sequelize.QueryTypes.SELECT }).then(fbdRows => fbdRows.forEach((fbdRow: any) => fallbackData.set(fbdRow.guildID, { type: fbdRow.type, name: fbdRow.name, url: fbdRow.url, lengthSeconds: undefined, requester: undefined }))),
+		sequelize.query('SELECT * FROM role', { type: sequelize.QueryTypes.SELECT }).then(roleRows => roleRows.forEach((roleRow: any) => roles.set(roleRow.guildID, new Map([...attach(roles, roleRow.guildID, new Map()), [roleRow.roleID, roleRow.commands != '' ? roleRow.commands.split('|') : []]]))))
 	];
 	await Promise.all(selectPromises);
 
@@ -102,7 +102,7 @@ const umzug = new Umzug({
 		{
 			name: '01-fallback-data-fix',
 			async up({ context }) {
-				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: sequelize.QueryTypes.SELECT }))[0];
+				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: context.sequelize.QueryTypes.SELECT }));
 				await context.renameColumn('fallbackData', 'url', 'data');
 				fbdRows.forEach((fbdRow: any) => {
 					fbdRow.data = fbdRow.url;
@@ -126,9 +126,9 @@ const umzug = new Umzug({
 				await context.bulkInsert('fallbackData', fbdRows);
 			},
 			async down({ context }) {
-				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: sequelize.QueryTypes.SELECT }))[0];
+				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: context.sequelize.QueryTypes.SELECT }));
 				await context.renameColumn('fallbackData', 'data', 'url');
-				fbdRows.forEach((fbdRow: any) => {
+				/*fbdRows.forEach((fbdRow: any) => {
 					fbdRow.url = fbdRow.data;
 					delete fbdRow.data;
 					if (fbdRow.type != 'radio')
@@ -142,7 +142,7 @@ const umzug = new Umzug({
 					fbdRow.url = radios.get(defaultRadio).url;
 				});
 				await context.bulkDelete('fallbackData', {});
-				await context.bulkInsert('fallbackData', fbdRows);
+				await context.bulkInsert('fallbackData', fbdRows);*/
 			}
 		}
 	],
@@ -151,5 +151,7 @@ const umzug = new Umzug({
 	logger: console,
 });
 
-await umzug.up();
+await umzug.down({
+	to: '01-fallback-data-fix'
+});
 export const config = await loadCFG();
