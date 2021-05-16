@@ -1,5 +1,5 @@
 import { Snowflake, Client } from 'discord.js';
-import { attach, FallbackType, MusicData, Config } from './internal.js';
+import { attach, FallbackType, MusicData, Config, radios } from './internal.js';
 import { Umzug, SequelizeStorage } from 'umzug';
 import Sequelize from 'sequelize';
 export const client = new Client();
@@ -10,10 +10,6 @@ export const sequelize = new Sequelize({
 });
 
 async function loadCFG(): Promise<Config> {
-	//await db.run('CREATE TABLE IF NOT EXISTS prefix (guildID TEXT, prefix TEXT)').catch(console.error);
-	//await db.run('CREATE TABLE IF NOT EXISTS fallbackModes (guildID TEXT, type TEXT)').catch(console.error);
-	//await db.run('CREATE TABLE IF NOT EXISTS fallbackData (guildID TEXT, type TEXT, name TEXT, url TEXT)').catch(console.error);
-	//await db.run('CREATE TABLE IF NOT EXISTS role (guildID TEXT, roleID TEXT, commands TEXT)').catch(console.error);
 	const prefixes: Map<Snowflake, string> = new Map();
 	const fallbackModes: Map<Snowflake, FallbackType> = new Map();
 	const fallbackData: Map<Snowflake, MusicData> = new Map();
@@ -106,7 +102,28 @@ const umzug = new Umzug({
 		{
 			name: '01-fallback-data-fix',
 			async up({ context }) {
-				//const users = await context.sequelize.query("SELECT * FROM `fallbackData`", { type: QueryTypes.SELECT });
+				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: sequelize.QueryTypes.SELECT }))[0];
+				await context.renameColumn('fallbackData', 'url', 'data');
+				fbdRows.forEach((fbdRow: any) => {
+					fbdRow.data = fbdRow.url;
+					delete fbdRow.url;
+					if (fbdRow.type != 'radio')
+						return;
+					const idByName = [...radios.entries()].find(([_, data]) => data.name == fbdRow.name)[0];
+					if (idByName) {
+						fbdRow.data = idByName;
+						return;
+					}
+					const idByUrl = [...radios.entries()].find(([_, data]) => data.url == fbdRow.data)[0];
+					if (idByUrl) {
+						fbdRow.data = idByUrl;
+						return;
+					}
+					fbdRow.type = 'custom';
+					fbdRow.name = fbdRow.data;
+				});
+				await context.bulkDelete('fallbackData', {});
+				await context.bulkInsert('fallbackData', fbdRows);
 			},
 			async down() {
 
@@ -118,5 +135,7 @@ const umzug = new Umzug({
 	logger: console,
 });
 
-await umzug.up();
+await umzug.down({
+	to: '01-fallback-data-fix'
+});
 export const config = await loadCFG();
