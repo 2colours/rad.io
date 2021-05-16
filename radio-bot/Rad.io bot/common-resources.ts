@@ -1,5 +1,5 @@
 import { Snowflake, Client } from 'discord.js';
-import { attach, FallbackType, MusicData, Config, radios, defaultRadio } from './internal.js';
+import { attach, FallbackType, Config, radios, defaultRadio, MusicData } from './internal.js';
 import { Umzug, SequelizeStorage } from 'umzug';
 import Sequelize from 'sequelize';
 export const client = new Client();
@@ -17,7 +17,13 @@ async function loadCFG(): Promise<Config> {
 	const selectPromises: Promise<void>[] = [
 		sequelize.query('SELECT * FROM prefix', { type: sequelize.QueryTypes.SELECT }).then(prefixRows => prefixRows.forEach((prefixRow: any) => prefixes.set(prefixRow.guildID, prefixRow.prefix))),
 		sequelize.query('SELECT * FROM fallbackModes', { type: sequelize.QueryTypes.SELECT }).then(fbmRows => fbmRows.forEach((fbmRow: any) => fallbackModes.set(fbmRow.guildID, fbmRow.type))),
-		sequelize.query('SELECT * FROM fallbackData', { type: sequelize.QueryTypes.SELECT }).then(fbdRows => fbdRows.forEach((fbdRow: any) => fallbackData.set(fbdRow.guildID, { type: fbdRow.type, name: fbdRow.name, url: fbdRow.url, lengthSeconds: undefined, requester: undefined }))),
+		sequelize.query('SELECT * FROM fallbackData', { type: sequelize.QueryTypes.SELECT }).then(fbdRows => fbdRows.forEach((fbdRow: any) => fallbackData.set(fbdRow.guildID, {
+			type: fbdRow.type,
+			name: fbdRow.name,
+			lengthSeconds: undefined,
+			requester: undefined,
+			url: fbdRow.type == 'radio' ? radios.get(fbdRow.data).url : fbdRow.data
+		}))),
 		sequelize.query('SELECT * FROM role', { type: sequelize.QueryTypes.SELECT }).then(roleRows => roleRows.forEach((roleRow: any) => roles.set(roleRow.guildID, new Map([...attach(roles, roleRow.guildID, new Map()), [roleRow.roleID, roleRow.commands != '' ? roleRow.commands.split('|') : []]]))))
 	];
 	await Promise.all(selectPromises);
