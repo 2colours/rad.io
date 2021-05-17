@@ -143,6 +143,15 @@ setupCommand({
 });
 
 setupCommand({
+	name: 'perms',
+	aliases: ['powers'],
+	params: [],
+	descrip: 'A parancsot kiadó felhasználó jogosultságainak listázása.',
+	type: 'unlimited',
+	filters: new Set()
+});
+
+setupCommand({
 	name: 'guilds',
 	aliases: [],
 	params: [],

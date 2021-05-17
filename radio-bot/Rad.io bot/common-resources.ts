@@ -115,12 +115,12 @@ const umzug = new Umzug({
 					delete fbdRow.url;
 					if (fbdRow.type != 'radio')
 						return;
-					const idByName = [...radios.entries()].find(([_, data]) => data.name == fbdRow.name)[0];
+					const idByName = [...radios].find(([_, data]) => data.name == fbdRow.name)[0];
 					if (idByName) {
 						fbdRow.data = idByName;
 						return;
 					}
-					const idByUrl = [...radios.entries()].find(([_, data]) => data.url == fbdRow.data)[0];
+					const idByUrl = [...radios].find(([_, data]) => data.url == fbdRow.data)[0];
 					if (idByUrl) {
 						fbdRow.data = idByUrl;
 						return;

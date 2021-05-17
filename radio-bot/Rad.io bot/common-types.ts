@@ -78,7 +78,7 @@ export interface CommandExtraData {
 interface CommandRawData extends CommandExtraData {
 	action: Action;
 }
-type CommandType = 'unlimited' | 'adminOnly' | 'grantable' | 'creatorsOnly';
+export type CommandType = 'unlimited' | 'adminOnly' | 'grantable' | 'creatorsOnly';
 export class Command {
 	readonly decoratedAction: Action;
 	readonly aliases: string[];

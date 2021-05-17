@@ -1,5 +1,5 @@
 ﻿import { Snowflake, Guild, TextChannel, StringResolvable, MessageEmbed, MessageOptions, Message, MessageReaction, User, VoiceChannel, EmojiIdentifierResolvable } from 'discord.js';
-import { PlayableData, ThisBinding, sequelize, Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData, GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from './internal.js';
+import { Command, CommandType, PlayableData, ThisBinding, sequelize, Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData, GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from './internal.js';
 import PasteClient from 'pastebin-api';
 const pastebin = new PasteClient(process.env.pastebin);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
@@ -158,4 +158,8 @@ export function discordEscape(text: string) {
 }
 export function starterSeconds(data: PlayableData): number {
 	return parseInt(new URL(data.url).searchParams.get('t')) || 0
+}
+
+export function commandNamesByTypes(commandMap: Map<string, Command>, ...types: CommandType[]) {
+	return [...commandMap].filter(([_, command]) => types.includes(command.type)).map(([name, _]) => name);
 }
