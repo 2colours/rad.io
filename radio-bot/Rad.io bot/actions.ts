@@ -365,7 +365,7 @@ actions.set('nowplaying', function(_) {
 });
 actions.set('perms', async function(_) {
 	const adminRight = await Promise.resolve(isAdmin(this));
-	const adminCommands = commandNamesByTypes(commands, 'adminOnly');
+	const adminCommands = commandNamesByTypes(commands, 'adminOnly', 'grantable');
 	adminCommands.sort();
 	const unlimitedCommands = commandNamesByTypes(commands, 'unlimited');
 	const grantedPerms = getRoles(this.guild.id).filter(([roleName, _]) => this.member.roles.cache.has(roleName));
