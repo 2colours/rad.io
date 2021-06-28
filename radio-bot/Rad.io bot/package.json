@@ -17,7 +17,7 @@
     "scanf": "^1",
     "sqlite": "^3",
     "typescript": "^3.9.5",
-    "ytdl-core": "^4.5.0"
+    "ytdl-core": "^4"
   },
   "engines": {
     "node": "^14"
