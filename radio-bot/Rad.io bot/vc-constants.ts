@@ -379,6 +379,11 @@ const radios = {
 		name: 'Fimbul Radio',
 		url: 'http://s4.radio.co/sdda8682fb/listen',
 		cult: 'eng'
+	},
+	"nano": {
+		name: 'Radio Nano',
+		url: 'http://s2.yesstreaming.net:7157/stream',
+		cult: 'eng'
 	}
 };
 const r: Map<string, RadioConstantData> = new Map(Object.entries(radios));
