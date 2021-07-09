@@ -447,13 +447,13 @@ async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): P
 	try {
 		const ytPlaylist = await youtube.getPlaylist(url);
 		const videos = await ytPlaylist.fetchVideos(maxPlaylistSize);
-        await Promise.all(videos.map(elem => elem.fetch()));
-		return videos.map(elem => Object.assign({}, {
+		const fetchedVideos = (await Promise.all(videos.map(elem => elem.fetch().catch(_ => null)))).filter(x => x);
+		return fetchedVideos.map(elem => Object.assign({}, {
 			name: elem.title,
 			url: elem.url,
 			type: 'yt',
-                        lengthSeconds: moment.duration(elem._length).asSeconds(),
-                        requester
+			lengthSeconds: moment.duration(elem._length).asSeconds(),
+			requester
 		}) as MusicData);
 	}
 	catch (e) {
