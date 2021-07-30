@@ -27,7 +27,7 @@ const radios = {
 	},
 	'csango': {
 		name: 'Csángó Rádió',
-		url: 'http://94.24.49.48:7300/stream',
+		url: 'http://roservers.ro:8018/stream',
 		cult: 'hun'
 	},
 	'bocskai': {
@@ -207,7 +207,7 @@ const radios = {
 	},
 	'buddhafm': {
 		name: 'Buddha FM',
-		url: 'https://eapps-cs.herokuapp.com/92.61.114.191:8110/stream',
+		url: 'http://libretime.buddhafm.hu:4000/buddhafm',
 		cult: 'hun'
 	},
 	'city': {
@@ -252,7 +252,7 @@ const radios = {
 	},
 	'boxuk': {
 		name: 'Box UK Radio (80\'s music)',
-		url: 'http://uk7.internet-radio.com:8226/;stream',
+		url: 'https://boxstream.danceradiouk.com/stream',
 		cult: 'eng'
 	},
 	'virginom': {
@@ -283,11 +283,6 @@ const radios = {
 	'rainbow': {
 		name: 'Rainbow Sound UK (Oldies)',
 		url: 'https://stream.radio.co/s82994a596/listen',
-		cult: 'eng'
-	},
-	'jewishhits': {
-		name: 'Jewishhits.com',
-		url: 'http://198.178.123.8:7246/;stream/1',
 		cult: 'eng'
 	},
 	'kissfm': {
@@ -332,7 +327,7 @@ const radios = {
 	},
 	'actualitati': {
 		name: 'Radio România Actualități',
-		url: 'http://89.238.227.6:8002/;time1578665093598',
+		url: 'http://89.238.227.6:8008/',
 		cult: 'eng'
 	},
 	'digifm': {
@@ -388,6 +383,7 @@ const radios = {
 };
 const r: Map<string, RadioConstantData> = new Map(Object.entries(radios));
 export { r as radios };
+export const defaultRadio = 'kossuth';
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;
@@ -403,7 +399,7 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	return emojis.get(type);
 }
 export const tickEmoji = '☑';
-export const maxPlaylistSize = 50;
+export const maxPlaylistSize = 100;
 export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800')];
 export const dedicatedClientId = '430326522146979861';
 export const guildsChanId = '470522240551616523';

@@ -1,8 +1,5 @@
 import { Snowflake } from "discord.js";
-import { configPromise, Config, defaultConfig, attach } from "./internal";
-import { FallbackType, MusicData } from "./common-types";
-let config: Config;
-configPromise.then(cfg => config = cfg);
+import { config, defaultConfig, attach, FallbackType, MusicData} from "./internal.js";
 export function getPrefix(id: Snowflake) {
 	return config.prefixes.get(id) ?? defaultConfig.prefix;
 }

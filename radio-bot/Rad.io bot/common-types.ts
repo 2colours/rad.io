@@ -1,6 +1,6 @@
 import { Snowflake, Message, User, TextChannel, GuildMember, DMChannel, NewsChannel } from 'discord.js';
-import { Readable } from 'node:stream';
-import { GuildPlayer, Filter, aggregateDecorators, client } from './internal';
+import { Readable } from 'stream';
+import { GuildPlayer, Filter, aggregateDecorators, client } from './internal.js';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, FallbackType>;
@@ -16,6 +16,9 @@ export type PlayableCallbackVoid = () => void;
 export type PlayableCallbackBoolean = () => boolean;
 export type PlayableCallbackNumber = () => number;
 export type StreamProvider = (url:string) => Resolvable<string | Readable>;
+export interface Actions {
+	[name: string]: Action;
+}
 export interface PackedMessage extends Message {
 	cmdName:string;
 }
@@ -78,7 +81,7 @@ export interface CommandExtraData {
 interface CommandRawData extends CommandExtraData {
 	action: Action;
 }
-type CommandType = 'unlimited' | 'adminOnly' | 'grantable' | 'creatorsOnly';
+export type CommandType = 'unlimited' | 'adminOnly' | 'grantable' | 'creatorsOnly';
 export class Command {
 	readonly decoratedAction: Action;
 	readonly aliases: string[];

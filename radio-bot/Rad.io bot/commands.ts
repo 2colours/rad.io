@@ -1,4 +1,4 @@
-﻿import { actions, CommandExtraData, Command, Filter } from './internal';
+﻿import { actions, CommandExtraData, Command, Filter } from './internal.js';
 
 const aliases: Map<string, string> = new Map();
 export const commands: Map<string, Command> = new Map();
@@ -11,7 +11,7 @@ function setupCommand(commandData: CommandExtraData): void {
 	for (const alias of commandData.aliases)
 		aliases.set(alias, cmdName);
 	commands.set(cmdName, new Command(Object.assign({
-		action: actions.get(cmdName)
+		action: actions[cmdName]
 	}, commandData)));
 }
 
@@ -138,6 +138,15 @@ setupCommand({
 	aliases: ['h'],
 	params: ['parancs (opcionális)'],
 	descrip: 'A bot általános tudnivalóinak megjelenítése. Parancsnév megadása esetén a megadott parancsról részletesebb ismertetés.',
+	type: 'unlimited',
+	filters: new Set()
+});
+
+setupCommand({
+	name: 'perms',
+	aliases: ['powers'],
+	params: [],
+	descrip: 'A parancsot kiadó felhasználó jogosultságainak listázása.',
 	type: 'unlimited',
 	filters: new Set()
 });

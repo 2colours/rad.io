@@ -1,6 +1,6 @@
-﻿import { aggregateDecorators, Predicate, Action, Decorator, ThisBinding, creators, actions, getRoles, getFallbackMode } from './internal';
+﻿import { aggregateDecorators, Predicate, Action, Decorator, ThisBinding, creators, actions, getRoles, getFallbackMode } from './internal.js';
 import { sscanf } from 'scanf';
-const isAdmin: Predicate = ctx => ctx.member.permissions.has('ADMINISTRATOR');
+export const isAdmin: Predicate = ctx => ctx.member.permissions.has('ADMINISTRATOR');
 const isVcUser: Predicate = ctx => !!ctx.member.voice.channel;
 const isDifferentVc: Predicate = ctx => ctx.guild.voice?.channel != ctx.member.voice.channel;
 const isVcBot: Predicate = ctx => !!ctx.guild.voice?.connection;
@@ -10,7 +10,7 @@ currentDecorator(action).call(this,param);
 };
 const hasPermission: Predicate = ctx => {
 	const guildRoles = getRoles(ctx.guild.id);
-	return guildRoles.some(roleData => ctx.member.roles.cache.has(roleData[0]) && roleData[1].includes(ctx.cmdName));
+	return guildRoles.some(([roleName, relatedPerms]) => ctx.member.roles.cache.has(roleName) && relatedPerms.includes(ctx.cmdName));
 }
 const hasVcPermission: Predicate = ctx => ctx.member.voice.channel.joinable;
 const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.author.id);
@@ -43,7 +43,7 @@ const parameterNeeded: Decorator = action => function (param) {
 	if (!sscanf(param, '%S')) {
 		const originalName = this.cmdName;
 		this.cmdName = 'help';
-		actions.get('help').call(this, originalName);
+		actions['help'].call(this, originalName);
 	}
 	else
 		action.call(this, param);

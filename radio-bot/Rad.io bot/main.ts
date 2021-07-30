@@ -1,9 +1,9 @@
 ﻿import * as Discord from 'discord.js';
 const token = process.env.radioToken;
 
-import { configPromise, client, PackedMessage, ThisBinding, actions, GuildPlayer, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix } from './internal';
+import { client, PackedMessage, ThisBinding, actions, GuildPlayer, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix } from './internal.js';
 import moment from 'moment';
-const help = actions.get('help');
+const help = actions['help'];
 
 const devChannel = () => client.channels.resolve(devChanId);
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
@@ -133,4 +133,4 @@ function updateStatusChannels() {
 	guildsChan.setName(`RAD.io (${client.guilds.cache.size}) szerveren`);
 	usersChan.setName(`RAD.io (${client.users.cache.size}) felhasználóval`);
 };
-configPromise.then(_ => forceLogin()).then(_ => setInterval(setPStatus, 60000 * 5));
+forceLogin().then(_ => setInterval(setPStatus, 60000 * 5));
