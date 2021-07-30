@@ -43,7 +43,7 @@ const parameterNeeded: Decorator = action => function (param) {
 	if (!sscanf(param, '%S')) {
 		const originalName = this.cmdName;
 		this.cmdName = 'help';
-		actions.get('help').call(this, originalName);
+		actions['help'].call(this, originalName);
 	}
 	else
 		action.call(this, param);

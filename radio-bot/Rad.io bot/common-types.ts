@@ -16,6 +16,9 @@ export type PlayableCallbackVoid = () => void;
 export type PlayableCallbackBoolean = () => boolean;
 export type PlayableCallbackNumber = () => number;
 export type StreamProvider = (url:string) => Resolvable<string | Readable>;
+export interface Actions {
+	[name: string]: Action;
+}
 export interface PackedMessage extends Message {
 	cmdName:string;
 }

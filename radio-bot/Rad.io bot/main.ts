@@ -3,7 +3,7 @@ const token = process.env.radioToken;
 
 import { client, PackedMessage, ThisBinding, actions, GuildPlayer, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix } from './internal.js';
 import moment from 'moment';
-const help = actions.get('help');
+const help = actions['help'];
 
 const devChannel = () => client.channels.resolve(devChanId);
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();

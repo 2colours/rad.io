@@ -11,7 +11,7 @@ function setupCommand(commandData: CommandExtraData): void {
 	for (const alias of commandData.aliases)
 		aliases.set(alias, cmdName);
 	commands.set(cmdName, new Command(Object.assign({
-		action: actions.get(cmdName)
+		action: actions[cmdName]
 	}, commandData)));
 }
 
