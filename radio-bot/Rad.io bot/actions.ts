@@ -355,7 +355,7 @@ async queue(_) {
 		const adminCommands = commandNamesByTypes(commands, 'adminOnly', 'grantable');
 		adminCommands.sort();
 		const unlimitedCommands = commandNamesByTypes(commands, 'unlimited');
-		const grantedPerms = getRoles(this.guild.id).filter(([roleName, _]) => this.member.roles.cache.has(roleName));
+		const grantedPerms = getRoles(this.guild.id).filter(([roleID, _]) => this.member.roles.cache.has(roleID));
 		grantedPerms.sort(([roleA, _commandsA], [roleB, _commandsB]) => roleA.localeCompare(roleB));
 		grantedPerms.forEach(([_, commands]) => commands.sort());
 		const allPerms = adminRight ? [...adminCommands] : [];
@@ -365,8 +365,8 @@ async queue(_) {
 		embed = embed.addField('❯ Összes jogosultság', allPerms.map(cmd => `\`${cmd}\``).join(' '));
 		if (adminRight)
 			embed = embed.addField('❯ Adminisztrátor jog', adminCommands.map(cmd => `\`${cmd}\``).join(' '));
-		embed = embed.addFields(grantedPerms.map(([roleName, commands]) => Object.assign({}, {
-			name: `❯ _${roleName}_ rang`,
+		embed = embed.addFields(grantedPerms.map(([roleID, commands]) => Object.assign({}, {
+			name: `❯ _${this.guild.roles.resolve(roleID).name}_ rang`,
 			value: commands.map(cmd => `\`${cmd}\``).join(' ')
 		})));
 		this.channel.send({ embed });
