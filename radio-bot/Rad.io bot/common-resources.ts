@@ -115,18 +115,15 @@ const umzug = new Umzug({
 					delete fbdRow.url;
 					if (fbdRow.type != 'radio')
 						return;
-					const idByName = [...radios].find(([_, data]) => data.name == fbdRow.name)[0];
-					if (idByName) {
-						fbdRow.data = idByName;
+					const entryByName = [...radios].find(([_, data]) => data.name == fbdRow.name);
+					const entryByUrl = [...radios].find(([_, data]) => data.url == fbdRow.data);
+					if (!entryByName && !entryByUrl) {
+						fbdRow.type = 'custom';
+						fbdRow.name = fbdRow.data;
 						return;
 					}
-					const idByUrl = [...radios].find(([_, data]) => data.url == fbdRow.data)[0];
-					if (idByUrl) {
-						fbdRow.data = idByUrl;
-						return;
-					}
-					fbdRow.type = 'custom';
-					fbdRow.name = fbdRow.data;
+					const foundId = entryByName ? entryByName[0] : entryByUrl[0];
+					fbdRow.data = foundId;				
 				});
 				await context.bulkDelete('fallbackData', {});
 				await context.bulkInsert('fallbackData', fbdRows);
