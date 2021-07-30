@@ -367,7 +367,7 @@ async queue(_) {
 			embed = embed.addField('❯ Adminisztrátor jog', adminCommands.map(cmd => `\`${cmd}\``).join(' '));
 		embed = embed.addFields(grantedPerms.map(([roleID, commands]) => Object.assign({}, {
 			name: `❯ _${this.guild.roles.resolve(roleID).name}_ rang`,
-			value: commands.map(cmd => `\`${cmd}\``).join(' ')
+			value: commands.length == 0 ? '-' : commands.map(cmd => `\`${cmd}\``).join(' ')
 		})));
 		this.channel.send({ embed });
 	},
