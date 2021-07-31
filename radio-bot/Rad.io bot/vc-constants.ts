@@ -399,7 +399,7 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	return emojis.get(type);
 }
 export const tickEmoji = '☑';
-export const maxPlaylistSize = 100;
+export const maxPlaylistSize = 50;
 export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800')];
 export const dedicatedClientId = '430326522146979861';
 export const guildsChanId = '470522240551616523';
