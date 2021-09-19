@@ -12,7 +12,7 @@ const radios = {
 	},
 	'radio1': {
 		name: 'Rádió 1',
-		url: 'http://stream9.radio1.hu/mid.mp3',
+		url: 'https://icast.connectmedia.hu/5201/live.mp3',
 		cult: 'hun'
 	},
 	'petofi': {
@@ -92,7 +92,7 @@ const radios = {
 	},
 	'retrobp': {
 		name: 'Retro Rádió Budapest',
-		url: 'http://stream.retroradio.hu/mid.mp3',
+		url: 'https://icast.connectmedia.hu/5002/live.mp3',
 		cult: 'hun'
 	},
 	'danko': {
