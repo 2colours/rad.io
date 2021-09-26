@@ -387,7 +387,7 @@ export const defaultRadio = 'kossuth';
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;
-const youtubeEmoji = '<:youtube:506897247145951233>';
+const youtubeEmoji = '<:youtube:891634390675898398>';
 const soundcloudEmoji = '<:sc:595619676827025408>';
 export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	const emojis: Map<StreamType, EmojiIdentifierResolvable> = new Map<StreamType, EmojiIdentifierResolvable>([
@@ -400,7 +400,7 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 }
 export const tickEmoji = '☑';
 export const maxPlaylistSize = 0; //Workaround a popyt 4-hez
-export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800')];
+export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800'),new Creator('236922361918652416','Peketr#4324')];
 export const dedicatedClientId = '430326522146979861';
 export const guildsChanId = '470522240551616523';
 export const usersChanId = '470522309132943360';

@@ -301,8 +301,17 @@ async queue(_) {
 			this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
 		}
 	},
-	skip(_) {
+	skip(param) {
+		const toskip = sscanf(param, '%d');
+		if (toskip == undefined || toskip <= 0 || toskip > this.guildPlayer.queue.length){
+			this.guildPlayer.skip();
+			return
+		}
+		for (let i = 1; i < toskip; i++) {
+			this.guildPlayer.remove(1);
+		}
 		this.guildPlayer.skip();
+			
 	},
 	pause(_) {
 		this.guildPlayer.pause();
