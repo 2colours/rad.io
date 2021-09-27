@@ -302,15 +302,10 @@ async queue(_) {
 		}
 	},
 	skip(param) {
-		const toskip = sscanf(param, '%d');
-		if (toskip == undefined || toskip <= 0 || toskip > this.guildPlayer.queue.length){
-			this.guildPlayer.skip();
-			return
-		}
-		for (let i = 1; i < toskip; i++) {
-			this.guildPlayer.remove(1);
-		}
-		this.guildPlayer.skip();
+		var amountToSkip : number = sscanf(param, '%d') ?? 0;
+		if (amountToSkip<=0)
+			amountToSkip=1;
+		this.guildPlayer.skip(amountToSkip);
 			
 	},
 	pause(_) {

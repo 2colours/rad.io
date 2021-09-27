@@ -171,7 +171,11 @@ export class GuildPlayer {
 	async seek(seconds: number) {
 		await this.currentPlay.seek(seconds);
 	}
-	skip() {
+	skip(amount: number = 1) {
+		if (amount<=this.queue.length)
+			this.queue.splice(0,amount-1);
+		else 
+			this.clear();
 		if (this.currentPlay)
 			this.currentPlay.skip();
 		else 
