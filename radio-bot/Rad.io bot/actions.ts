@@ -302,7 +302,7 @@ async queue(_) {
 		}
 	},
 	skip(param) {
-		var amountToSkip : number = sscanf(param, '%d') ?? 0;
+		let amountToSkip : number = sscanf(param, '%d') ?? 0;
 		if (amountToSkip<=0)
 			amountToSkip=1;
 		this.guildPlayer.skip(amountToSkip);

@@ -179,7 +179,7 @@ export class GuildPlayer {
 		if (this.currentPlay)
 			this.currentPlay.skip();
 		else 
-			this.playingElement = this.queue.shift();
+			this.playingElement = this.queue.shift() ?? null;
 	}
 	repeat(maxTimes?: number) {
 		if (!this.currentPlay.isDefinite())

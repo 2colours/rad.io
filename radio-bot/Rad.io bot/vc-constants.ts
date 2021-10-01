@@ -387,7 +387,7 @@ export const defaultRadio = 'kossuth';
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;
-const youtubeEmoji = '<:youtube:891634390675898398>';
+const youtubeEmoji = '<:youtube:506897247145951233>';
 const soundcloudEmoji = '<:sc:595619676827025408>';
 export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	const emojis: Map<StreamType, EmojiIdentifierResolvable> = new Map<StreamType, EmojiIdentifierResolvable>([
