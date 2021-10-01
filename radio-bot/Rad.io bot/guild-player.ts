@@ -171,11 +171,15 @@ export class GuildPlayer {
 	async seek(seconds: number) {
 		await this.currentPlay.seek(seconds);
 	}
-	skip() {
+	skip(amount: number = 1) {
+		if (amount<=this.queue.length)
+			this.queue.splice(0,amount-1);
+		else 
+			this.clear();
 		if (this.currentPlay)
 			this.currentPlay.skip();
 		else 
-			this.playingElement = this.queue.shift();
+			this.playingElement = this.queue.shift() ?? null;
 	}
 	repeat(maxTimes?: number) {
 		if (!this.currentPlay.isDefinite())

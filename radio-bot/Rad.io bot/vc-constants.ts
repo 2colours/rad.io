@@ -400,7 +400,7 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 }
 export const tickEmoji = '☑';
 export const maxPlaylistSize = 0; //Workaround a popyt 4-hez
-export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800')];
+export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800'),new Creator('236922361918652416','Peketr#4324')];
 export const dedicatedClientId = '430326522146979861';
 export const guildsChanId = '470522240551616523';
 export const usersChanId = '470522309132943360';
