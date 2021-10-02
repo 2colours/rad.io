@@ -41,7 +41,7 @@ client.on('message', async (message) => {
 		const thisBinding: ThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
 			get: () => guildPlayers.get(packedMessage.guild.id),
 			set: value => guildPlayers.set(packedMessage.guild.id, value)
-		});
+		}) as ThisBinding;
 		await Promise.resolve(commandFunction.call(thisBinding, param ?? ''));
 	}
 	catch (ex) {
