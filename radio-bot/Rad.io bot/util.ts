@@ -129,9 +129,9 @@ export const saveRow = {
 			type: sequelize.QueryTypes.DELETE,
 			bind: [rowObj.guildID]
 		});
-		await sequelize.query(`INSERT INTO fallbackData (guildID, type, name, url) VALUES ($1, $2, $3, $4)`, {
+		await sequelize.query(`INSERT INTO fallbackData (guildID, type, name, data) VALUES ($1, $2, $3, $4)`, {
 			type: sequelize.QueryTypes.INSERT,
-			bind: [rowObj.guildID, rowObj.type, rowObj.name, rowObj.url]
+			bind: [rowObj.guildID, rowObj.type, rowObj.name, rowObj.data]
 		});
 	},
 	async role(rowObj: RoleTableData) {
