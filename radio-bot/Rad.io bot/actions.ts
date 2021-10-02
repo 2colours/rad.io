@@ -294,7 +294,7 @@ async queue(_) {
 		setFallbackChannel(this.guild.id, fr);
 		this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`);
 		try {
-			await saveRow.fallbackData({ guildID: this.guild.id, type: fr.type, name: fr.name, url: fr.url });
+			await saveRow.fallbackData({ guildID: this.guild.id, type: fr.type, name: fr.name, data: (fr.type=='radio')?given:fr.url });
 		}
 		catch (e) {
 			console.error(e);
