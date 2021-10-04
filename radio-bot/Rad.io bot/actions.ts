@@ -260,7 +260,7 @@ async queue(_) {
 		const aliases = new Map([['r', 'radio'], ['s', 'silence'], ['l', 'leave']]);
 		let mode = sscanf(param, '%s') ?? '';
 		mode = aliases.get(mode) ?? mode;
-		if (!<FallbackType>mode)
+		if (!(new Set(aliases.values())).has(mode))
 			return void this.reply('**ilyen fallback mód nem létezik.**');
 		setFallbackMode(this.guild.id, <FallbackType>mode);
 		this.channel.send(`**Új fallback: ${mode}. **`);
