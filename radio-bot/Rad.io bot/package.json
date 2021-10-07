@@ -7,7 +7,6 @@
   "dependencies": {
     "@discordjs/opus": "^0.3.2",
     "@types/node": "^14.0.14",
-    "@types/sequelize": "^4.28.9",
     "@types/umzug": "^2.3.0",
     "@types/ws": "^7.4.0",
     "axios": "^0.21.0",
