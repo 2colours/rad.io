@@ -1,10 +1,11 @@
 import { Snowflake, Client } from 'discord.js';
 import { attach, FallbackType, Config, radios, defaultRadio, MusicData } from './internal.js';
 import { Umzug, SequelizeStorage } from 'umzug';
-import Sequelize from 'sequelize';
+import sequelize from 'sequelize';
+const { Sequelize, QueryTypes, DataTypes } = sequelize; //Workaround (CommonJS -> ES modul)
 export const client = new Client();
 
-export const sequelize = new Sequelize({
+export const database = new Sequelize({
 	dialect: 'sqlite',
 	storage: './data/radio.sqlite'
 });
@@ -15,16 +16,16 @@ async function loadCFG(): Promise<Config> {
 	const fallbackData: Map<Snowflake, MusicData> = new Map();
 	const roles: Map<Snowflake, Map<Snowflake, string[]>> = new Map();
 	const selectPromises: Promise<void>[] = [
-		sequelize.query('SELECT * FROM prefix', { type: sequelize.QueryTypes.SELECT }).then(prefixRows => prefixRows.forEach((prefixRow: any) => prefixes.set(prefixRow.guildID, prefixRow.prefix))),
-		sequelize.query('SELECT * FROM fallbackModes', { type: sequelize.QueryTypes.SELECT }).then(fbmRows => fbmRows.forEach((fbmRow: any) => fallbackModes.set(fbmRow.guildID, fbmRow.type))),
-		sequelize.query('SELECT * FROM fallbackData', { type: sequelize.QueryTypes.SELECT }).then(fbdRows => fbdRows.forEach((fbdRow: any) => fallbackData.set(fbdRow.guildID, {
+		database.query('SELECT * FROM prefix', { type: QueryTypes.SELECT }).then(prefixRows => prefixRows.forEach((prefixRow: any) => prefixes.set(prefixRow.guildID, prefixRow.prefix))),
+		database.query('SELECT * FROM fallbackModes', { type: QueryTypes.SELECT }).then(fbmRows => fbmRows.forEach((fbmRow: any) => fallbackModes.set(fbmRow.guildID, fbmRow.type))),
+		database.query('SELECT * FROM fallbackData', { type: QueryTypes.SELECT }).then(fbdRows => fbdRows.forEach((fbdRow: any) => fallbackData.set(fbdRow.guildID, {
 			type: fbdRow.type,
 			name: fbdRow.name,
 			lengthSeconds: undefined,
 			requester: undefined,
 			url: fbdRow.type == 'radio' ? radios.get(fbdRow.data).url : fbdRow.data
 		}))),
-		sequelize.query('SELECT * FROM role', { type: sequelize.QueryTypes.SELECT }).then(roleRows => roleRows.forEach((roleRow: any) => roles.set(roleRow.guildID, new Map([...attach(roles, roleRow.guildID, new Map()), [roleRow.roleID, roleRow.commands != '' ? roleRow.commands.split('|') : []]]))))
+		database.query('SELECT * FROM role', { type: QueryTypes.SELECT }).then(roleRows => roleRows.forEach((roleRow: any) => roles.set(roleRow.guildID, new Map([...attach(roles, roleRow.guildID, new Map()), [roleRow.roleID, roleRow.commands != '' ? roleRow.commands.split('|') : []]]))))
 	];
 	await Promise.all(selectPromises);
 
@@ -44,61 +45,62 @@ const umzug = new Umzug({
 			async up({ context }) {
 				await context.createTable('prefix', {
 					guildID: {
-						type: Sequelize.STRING,
+						type: DataTypes.STRING,
 						allowNull: false,
 						primaryKey: true
 					},
 					prefix: {
-						type: Sequelize.STRING,
+						type: DataTypes.STRING,
 						allowNull: false
 					}
 				});
 				await context.createTable('fallbackModes', {
 					guildID: {
-						type: Sequelize.STRING,
+						type: DataTypes.STRING,
 						allowNull: false,
 						primaryKey: true
 					},
 					type: {
-						type: Sequelize.STRING,
+						type: DataTypes.STRING,
 						allowNull: false
 					}
 				});
 				await context.createTable('fallbackData', {
 					guildID: {
-						type: Sequelize.STRING,
+						type: DataTypes.STRING,
 						allowNull: false,
 						primaryKey: true
 					},
 					type: {
-						type: Sequelize.STRING,
+						type: DataTypes.STRING,
 						allowNull: false
 					},
 					name: {
-						type: Sequelize.STRING,
+						type: DataTypes.STRING,
 						allowNull: false
 					},
 					url: {
-						type: Sequelize.STRING,
+						type: DataTypes.STRING,
 						allowNull: false
 					}
 				});
 				await context.createTable('role', {
 					guildID: {
-						type: Sequelize.STRING,
+						type: DataTypes.STRING,
 						allowNull: false
 					},
 					roleID: {
-						type: Sequelize.STRING,
+						type: DataTypes.STRING,
 						allowNull: false
 					},
 					commands: {
-						type: Sequelize.STRING,
+						type: DataTypes.STRING,
 						allowNull: false
 					}
 				});
-				await context.addConstraint('role', ['guildID', 'roleID'], {
-					type: 'primary key',
+				await context.addConstraint('role', {
+					fields: ['guildID', 'roleID'], 
+					type: 'primary key'
 				});
 			},
 			async down({ context }) {
@@ -108,7 +110,7 @@ const umzug = new Umzug({
 		{
 			name: '01-fallback-data-fix',
 			async up({ context }) {
-				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: context.sequelize.QueryTypes.SELECT }));
+				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: QueryTypes.SELECT }));
 				await context.renameColumn('fallbackData', 'url', 'data');
 				fbdRows.forEach((fbdRow: any) => {
 					fbdRow.data = fbdRow.url;
@@ -130,7 +132,7 @@ const umzug = new Umzug({
 					await context.bulkInsert('fallbackData', fbdRows);
 			},
 			async down({ context }) {
-				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: context.sequelize.QueryTypes.SELECT }));
+				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: QueryTypes.SELECT }));
 				await context.renameColumn('fallbackData', 'data', 'url');
 				fbdRows.forEach((fbdRow: any) => {
 					fbdRow.url = fbdRow.data;
@@ -151,8 +153,8 @@ const umzug = new Umzug({
 			}
 		}
 	],
-	context: sequelize.getQueryInterface(),
-	storage: new SequelizeStorage({ sequelize }),
+	context: database.getQueryInterface(),
+	storage: new SequelizeStorage({ sequelize: database }),
 	logger: console,
 });
 

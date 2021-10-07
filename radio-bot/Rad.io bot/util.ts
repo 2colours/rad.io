@@ -1,5 +1,7 @@
 ﻿import { Snowflake, Guild, TextChannel, StringResolvable, MessageEmbed, MessageOptions, Message, MessageReaction, User, VoiceChannel, EmojiIdentifierResolvable } from 'discord.js';
-import { Command, CommandType, PlayableData, ThisBinding, sequelize, Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData, GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from './internal.js';
+import { Command, CommandType, PlayableData, ThisBinding, database, Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData, GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from './internal.js';
+import sequelize from 'sequelize';
+const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import PasteClient from 'pastebin-api';
 const pastebin = new PasteClient(process.env.pastebin);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
@@ -105,42 +107,42 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 }
 export const saveRow = {
 	async prefix(rowObj: PrefixTableData) {
-		await sequelize.query(`DELETE FROM prefix WHERE guildID = $1`, {
-			type: sequelize.QueryTypes.DELETE,
+		await database.query(`DELETE FROM prefix WHERE guildID = $1`, {
+			type: QueryTypes.DELETE,
 			bind: [rowObj.guildID]
 		});
-		await sequelize.query(`INSERT INTO prefix (guildID, prefix) VALUES ($1, $2)`, {
-			type: sequelize.QueryTypes.INSERT,
+		await database.query(`INSERT INTO prefix (guildID, prefix) VALUES ($1, $2)`, {
+			type: QueryTypes.INSERT,
 			bind: [rowObj.guildID, rowObj.prefix]
 		});
 	},
 	async fallbackModes(rowObj: FallbackModesTableData) {
-		await sequelize.query(`DELETE FROM fallbackModes WHERE guildID = $1`, {
-			type: sequelize.QueryTypes.DELETE,
+		await database.query(`DELETE FROM fallbackModes WHERE guildID = $1`, {
+			type: QueryTypes.DELETE,
 			bind: [rowObj.guildID]
 		});
-		await sequelize.query(`INSERT INTO fallbackModes (guildID, type) VALUES ($1, $2)`, {
-			type: sequelize.QueryTypes.INSERT,
+		await database.query(`INSERT INTO fallbackModes (guildID, type) VALUES ($1, $2)`, {
+			type: QueryTypes.INSERT,
 			bind: [rowObj.guildID, rowObj.type]
 		});
 	},
 	async fallbackData(rowObj: FallbackDataTableData) {
-		await sequelize.query(`DELETE FROM fallbackData WHERE guildID = $1`, {
-			type: sequelize.QueryTypes.DELETE,
+		await database.query(`DELETE FROM fallbackData WHERE guildID = $1`, {
+			type: QueryTypes.DELETE,
 			bind: [rowObj.guildID]
 		});
-		await sequelize.query(`INSERT INTO fallbackData (guildID, type, name, data) VALUES ($1, $2, $3, $4)`, {
-			type: sequelize.QueryTypes.INSERT,
+		await database.query(`INSERT INTO fallbackData (guildID, type, name, data) VALUES ($1, $2, $3, $4)`, {
+			type: QueryTypes.INSERT,
 			bind: [rowObj.guildID, rowObj.type, rowObj.name, rowObj.data]
 		});
 	},
 	async role(rowObj: RoleTableData) {
-		await sequelize.query(`DELETE FROM role WHERE (guildID = $1) AND (roleID = $2)`, {
-			type: sequelize.QueryTypes.DELETE,
+		await database.query(`DELETE FROM role WHERE (guildID = $1) AND (roleID = $2)`, {
+			type: QueryTypes.DELETE,
 			bind: [rowObj.guildID, rowObj.roleID]
 		});
-		await sequelize.query(`INSERT INTO role (guildID, roleID, commands) VALUES ($1, $2, $3)`, {
-			type: sequelize.QueryTypes.INSERT,
+		await database.query(`INSERT INTO role (guildID, roleID, commands) VALUES ($1, $2, $3)`, {
+			type: QueryTypes.INSERT,
 			bind: [rowObj.guildID, rowObj.roleID, rowObj.commands]
 		});
 	}
