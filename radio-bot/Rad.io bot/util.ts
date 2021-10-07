@@ -1,6 +1,7 @@
 ﻿import { Snowflake, Guild, TextChannel, StringResolvable, MessageEmbed, MessageOptions, Message, MessageReaction, User, VoiceChannel, EmojiIdentifierResolvable } from 'discord.js';
 import { Command, CommandType, PlayableData, ThisBinding, database, Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData, GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from './internal.js';
-import { QueryTypes } from 'sequelize';
+import sequelize from 'sequelize';
+const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import PasteClient from 'pastebin-api';
 const pastebin = new PasteClient(process.env.pastebin);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {

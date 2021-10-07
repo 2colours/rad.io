@@ -1,7 +1,8 @@
 import { Snowflake, Client } from 'discord.js';
 import { attach, FallbackType, Config, radios, defaultRadio, MusicData } from './internal.js';
 import { Umzug, SequelizeStorage } from 'umzug';
-import { Sequelize, QueryTypes, DataTypes } from 'sequelize';
+import sequelize from 'sequelize';
+const { Sequelize, QueryTypes, DataTypes } = sequelize; //Workaround (CommonJS -> ES modul)
 export const client = new Client();
 
 export const database = new Sequelize({
