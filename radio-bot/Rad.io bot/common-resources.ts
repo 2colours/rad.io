@@ -126,7 +126,8 @@ const umzug = new Umzug({
 					fbdRow.data = foundId;				
 				});
 				await context.bulkDelete('fallbackData', {});
-				await context.bulkInsert('fallbackData', fbdRows);
+				if (fbdRows.length > 0)
+					await context.bulkInsert('fallbackData', fbdRows);
 			},
 			async down({ context }) {
 				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: context.sequelize.QueryTypes.SELECT }));
@@ -145,7 +146,8 @@ const umzug = new Umzug({
 					fbdRow.url = radios.get(defaultRadio).url;
 				});
 				await context.bulkDelete('fallbackData', {});
-				await context.bulkInsert('fallbackData', fbdRows);
+				if (fbdRows.length > 0)
+					await context.bulkInsert('fallbackData', fbdRows);
 			}
 		}
 	],

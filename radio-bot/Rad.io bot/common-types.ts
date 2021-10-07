@@ -45,7 +45,7 @@ export interface FallbackDataTableData {
 	guildID: Snowflake;
 	type: StreamType;
 	name: string;
-	url: string;
+	data: string;
 }
 export interface RoleTableData {
 	guildID: Snowflake;
