@@ -1,12 +1,12 @@
-﻿/radio-bot/Rad.io bot/*.js
-/radio-bot/Rad.io bot/*.cjs
-/radio-bot/Rad.io bot/*.d.ts
-/radio-bot/Rad.io bot/node_modules
-/radio-bot/Rad.io bot/data
-/radio-bot/Rad.io bot/*.log
+﻿*.js
+*.cjs
+*.d.ts
+node_modules
+data
+*.log
 /.vs
-/radio-bot/Rad.io bot/*-lock.json
-/radio-bot/Rad.io bot/*.lock
+*-lock.json
+*.lock
 *.env
 /nbproject/
 /.vscode/
