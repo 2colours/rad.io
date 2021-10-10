@@ -248,12 +248,12 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	voicecount(_) {
 		this.channel.send(`:information_source: ${client.voice.connections.size} voice connection(s) right now.`);
 	},
-async queue(_) {
+	async queue(_) {
 		const queue: MusicData[] = this.guildPlayer.queue;
 		if (queue.length == 0)
 			return void this.channel.send('**A sor jelenleg üres.**');
 		const embed = commonEmbed.call(this);
-		const queueLines = queue.map(elem => `${getEmoji(elem.type)} [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}; Kérte: ${elem.requester})`);
+		const queueLines = queue.map((elem,index) => `${getEmoji(elem.type)} ${index+1}. \t [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}; Kérte: ${elem.requester})`);
 		await useScrollableEmbed(this, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}`, queueLines);
 	},
 	async fallback(param) {
