@@ -100,7 +100,7 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 		}
 		const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
 		completeEmbed = baseEmbed
-			.setTitle(`Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}`)
+			.setTitle(titleResolver(currentPage, maxPage))
 			.setDescription(currentDescription);
 		await message.edit({ embed: completeEmbed });
 	}
