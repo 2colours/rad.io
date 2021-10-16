@@ -1,7 +1,8 @@
 import * as Discord from 'discord.js';
 import { Readable } from 'stream';
 import yd from 'ytdl-core'; //Nem illik közvetlenül hívni
-import { getEmoji, MusicData, StreamType, StreamProvider, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode, getFallbackChannel, PlayableCallbackNumber, PlayingData, starterSeconds } from './internal.js';
+import { getEmoji, MusicData, StreamType, StreamProvider, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode,
+	getFallbackChannel, PlayableCallbackNumber, PlayingData, starterSeconds } from '../internal.js';
 const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio' });
 const clientId = process.env.soundcloudClientId;
 const downloadMethods = new Map<StreamType, StreamProvider>([

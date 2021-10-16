@@ -1,4 +1,4 @@
-﻿import { FallbackType, StreamType, Creator, RadioConstantData } from './internal.js';
+﻿import { FallbackType, StreamType, Creator, RadioConstantData } from '../internal.js';
 import { WebhookClient, EmojiIdentifierResolvable } from 'discord.js';
 export const defaultConfig = {
 	prefix: '.',

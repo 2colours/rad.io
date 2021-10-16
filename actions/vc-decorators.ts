@@ -1,4 +1,4 @@
-﻿import { aggregateDecorators, Predicate, Action, Decorator, ThisBinding, creators, actions, getRoles, getFallbackMode } from './internal.js';
+﻿import { aggregateDecorators, Predicate, Action, Decorator, ThisBinding, creators, actions, getRoles, getFallbackMode } from '../internal.js';
 import { sscanf } from 'scanf';
 export const isAdmin: Predicate = ctx => ctx.member.permissions.has('ADMINISTRATOR');
 const isVcUser: Predicate = ctx => !!ctx.member.voice.channel;
