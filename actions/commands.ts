@@ -1,4 +1,4 @@
-﻿import { actions, CommandExtraData, Command, Filter } from './internal.js';
+﻿import { actions, CommandExtraData, Command, Filter } from '../internal.js';
 
 const aliases: Map<string, string> = new Map();
 export const commands: Map<string, Command> = new Map();

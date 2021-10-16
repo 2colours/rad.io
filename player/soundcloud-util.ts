@@ -1,4 +1,4 @@
-﻿import { SoundcloudResult } from "./internal.js";
+﻿import { SoundcloudResult } from '../internal.js';
 import axios from 'axios';
 const clientId = process.env.soundcloudClientId;
 export async function soundcloudSearch(keywords: string, amount: number): Promise<SoundcloudResult[]> {

@@ -1,6 +1,6 @@
 import { Snowflake, Message, User, TextChannel, GuildMember, DMChannel, NewsChannel } from 'discord.js';
 import { Readable } from 'stream';
-import { GuildPlayer, Filter, aggregateDecorators, client } from './internal.js';
+import { GuildPlayer, Filter, aggregateDecorators, client } from '../internal.js';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, FallbackType>;
