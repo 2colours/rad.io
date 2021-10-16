@@ -268,10 +268,11 @@ export class GuildPlayer {
 		if (!this.currentPlay.resume())
 			throw 'Ez a stream nem folytatható. (Nincs leállítva?)';
 	}
-	nowPlaying() {
-		return this.playingElement && Object.defineProperty(this.playingElement, 'playingSeconds', {
+	nowPlaying(): PlayingData {
+		const playingSecondsMixin = Object.defineProperty({}, 'playingSeconds', {
 			get: this.currentPlay.playingSeconds
-		}) as PlayingData;
+		});
+		return this.playingElement && Object.assign(playingSecondsMixin, this.playingElement);
 	}
 }
 function repeatCounter(nTimes: number) {
