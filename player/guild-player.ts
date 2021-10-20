@@ -273,7 +273,7 @@ export class GuildPlayer {
 		const playingSecondsMixin = Object.defineProperty({}, 'playingSeconds', {
 			get: this.currentPlay.playingSeconds
 		});
-		return this.playingElement && Object.assign(playingSecondsMixin, this.playingElement);
+		return this.playingElement && Object.assign(playingSecondsMixin, this.playingElement) as PlayingData;
 	}
 }
 function repeatCounter(nTimes: number) {
