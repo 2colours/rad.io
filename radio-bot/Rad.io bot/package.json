@@ -17,14 +17,16 @@
     "node-gyp": "^6.1.0",
     "pastebin-api": "^2.0.1",
     "popyt": "^4",
+    "play-dl": "^1.2.8",
     "scanf": "^1",
     "sequelize": "^4.44.4",
     "sqlite3": "^5.0.2",
     "typescript": "^3.9.5",
     "umzug": "^3.0.0-beta.15",
-    "ytdl-core": "^4.9.1"
+    "typescript": "^4.4.4",
+    "umzug": "^3.0.0-beta.15"
   },
   "engines": {
-    "node": "^14"
+    "node": "^16"
   }
 }
