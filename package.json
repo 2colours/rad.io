@@ -17,13 +17,13 @@
     "moment": "^2.29.1",
     "node-gyp": "^6.1.0",
     "pastebin-api": "^2.0.1",
+    "play-dl": "^1.2.8",
     "popyt": "^5",
     "scanf": "^1",
     "sequelize": "^6.6.5",
     "sqlite3": "^5.0.2",
     "typescript": "^4.4.4",
-    "umzug": "^3.0.0-beta.15",
-    "ytdl-core": "^4.9.1"
+    "umzug": "^3.0.0-beta.15"
   },
   "engines": {
     "node": "^16"

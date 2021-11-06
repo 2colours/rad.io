@@ -1,9 +1,9 @@
 import * as Discord from 'discord.js';
 import { Readable } from 'stream';
-import yd from 'ytdl-core'; //Nem illik közvetlenül hívni
+import * as play from 'play-dl'; //Nem illik közvetlenül hívni
 import { getEmoji, MusicData, StreamType, StreamProvider, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode,
 	getFallbackChannel, PlayableCallbackNumber, PlayingData, starterSeconds } from '../internal.js';
-const ytdl = (url: string) => yd(url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1 << 25 });
+const ytdl = async (url: string) => (await play.stream(url)).stream;
 const clientId = process.env.soundcloudClientId;
 const downloadMethods = new Map<StreamType, StreamProvider>([
 	['yt', ytdl],
