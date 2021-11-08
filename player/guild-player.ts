@@ -35,7 +35,7 @@ class Playable {
                     .on('finish', () => this.resolve(false)) //nem volt forced, hanem magától
                     .on('error', () => {
 				console.log('Futott az error handler.');
-				this.reject('error'); //hiba jelentése - kezelni kell
+				this.reject('errorWhilePlaying'); //hiba jelentése - kezelni kell
                     });
 	}
 	play(voiceConnection: Discord.VoiceConnection, vol: number): Promise<boolean> {
@@ -50,7 +50,12 @@ class Playable {
 				this.playingSeconds = () => undefined;
 				return;
 			}
-			const stream = await Promise.resolve(downloadMethods.get(this.data.type)(this.data.url));
+			try {
+				var stream = await Promise.resolve(downloadMethods.get(this.data.type)(this.data.url));
+			}
+			catch (e) {
+				reject('errorAtStarting');
+			}
 			const seekTime = starterSeconds(this.data);
 			this.offsetSeconds = seekTime;
 			this.voiceConnection = voiceConnection;
@@ -129,9 +134,13 @@ export class GuildPlayer {
 						this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``).catch();
 					var forcedOver = await this.currentPlay.play(this.ownerGuild.voice.connection, this.volume)
 						.catch(e => {
-							if (e == 'error') {
-								this.announcementChannel.send('**Az aktuális stream hiba miatt megszakadt.**').catch();
-								return true;
+							switch (e) {
+								case 'errorWhilePlaying':
+									this.announcementChannel.send('**Az aktuális stream hiba miatt megszakadt.**').catch();
+									return true;
+								case 'errorAtStarting':
+									this.announcementChannel.send('**A streamet nem lehetett elindítani.**').catch();
+									return true;
 							}
 							throw e;
 						});
