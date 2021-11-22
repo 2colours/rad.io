@@ -15,7 +15,7 @@
     "dotenv": "^10.0.0",
     "ffmpeg-static": "^4.4.0",
     "moment": "^2.29.1",
-    "node-gyp": "^6.1.0",
+    "node-gyp": "^8.4.1",
     "pastebin-api": "^2.0.1",
     "play-dl": "^1.2.8",
     "popyt": "^5",
