@@ -1,4 +1,4 @@
-﻿import { actions, CommandExtraData, Command, Filter } from './internal.js';
+﻿import { actions, CommandExtraData, Command, Filter } from '../internal.js';
 
 const aliases: Map<string, string> = new Map();
 export const commands: Map<string, Command> = new Map();
@@ -245,8 +245,8 @@ setupCommand({
 setupCommand({
 	name: 'skip',
 	aliases: ['s'],
-	params: [],
-	descrip: 'Az aktuálisan játszott stream átugrása. Ha ez a sor utolsó száma volt, fallback üzemmódba kerülünk.',
+	params: ['n (opcionális)'],
+	descrip: 'Az aktuálisan játszott stream (vagy azt is beleértve az n soron következő stream) átugrása. Ha a sor végére érnénk, fallback üzemmódba kerülünk.',
 	type: 'grantable',
 	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.nonSilenceNeded])
 });

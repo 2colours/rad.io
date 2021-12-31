@@ -1,7 +1,8 @@
 import * as Discord from 'discord.js';
 import { Readable } from 'stream';
 import * as play from 'play-dl'; //Nem illik közvetlenül hívni
-import { getEmoji, MusicData, StreamType, StreamProvider, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode, getFallbackChannel, PlayableCallbackNumber, PlayingData, starterSeconds } from './internal.js';
+import { getEmoji, MusicData, StreamType, StreamProvider, shuffle, PlayableCallbackVoid, PlayableCallbackBoolean, PlayableData, getFallbackMode,
+	getFallbackChannel, PlayableCallbackNumber, PlayingData, starterSeconds } from '../internal.js';
 const ytdl = async (url: string) => (await play.stream(url)).stream;
 const clientId = process.env.soundcloudClientId;
 const downloadMethods = new Map<StreamType, StreamProvider>([
@@ -180,11 +181,12 @@ export class GuildPlayer {
 	async seek(seconds: number) {
 		await this.currentPlay.seek(seconds);
 	}
-	skip() {
+	skip(amount: number = 1) {
+		this.queue.splice(0,(amount<=this.queue.length)?amount-1:this.queue.length);
 		if (this.currentPlay)
 			this.currentPlay.skip();
 		else 
-			this.playingElement = this.queue.shift();
+			this.playingElement = this.queue.shift() ?? null;
 	}
 	repeat(maxTimes?: number) {
 		if (!this.currentPlay.isDefinite())
@@ -276,10 +278,11 @@ export class GuildPlayer {
 		if (!this.currentPlay.resume())
 			throw 'Ez a stream nem folytatható. (Nincs leállítva?)';
 	}
-	nowPlaying() {
-		return this.playingElement && Object.defineProperty(this.playingElement, 'playingSeconds', {
+	nowPlaying(): PlayingData {
+		const playingSecondsMixin = Object.defineProperty({}, 'playingSeconds', {
 			get: this.currentPlay.playingSeconds
-		}) as PlayingData;
+		});
+		return this.playingElement && Object.assign(playingSecondsMixin, this.playingElement) as PlayingData;
 	}
 }
 function repeatCounter(nTimes: number) {

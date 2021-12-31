@@ -1,13 +1,15 @@
 import * as Discord from 'discord.js';
 import moment from 'moment';
-import { commandNamesByTypes, isAdmin, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData, client, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule, commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch, SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji, discordEscape, maxPlaylistSize } from './internal.js';
+import { commandNamesByTypes, isAdmin, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
+	client, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule,
+	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch,
+	SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji,
+	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
 import axios from 'axios';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
-import { getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles } from './config-manager.js';
-import { ThisBinding, Actions } from './common-types.js';
 export const actions: Actions = {
 	async setprefix(param) {
 		if (!param)
@@ -248,13 +250,13 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	voicecount(_) {
 		this.channel.send(`:information_source: ${client.voice.connections.size} voice connection(s) right now.`);
 	},
-async queue(_) {
+	async queue(_) {
 		const queue: MusicData[] = this.guildPlayer.queue;
 		if (queue.length == 0)
 			return void this.channel.send('**A sor jelenleg üres.**');
 		const embed = commonEmbed.call(this);
-		const queueLines = queue.map(elem => `${getEmoji(elem.type)} [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}; Kérte: ${elem.requester})`);
-		await useScrollableEmbed(this, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}`, queueLines);
+		const queueLines = queue.map((elem,index) => `${getEmoji(elem.type)} **${index+1}.** \t [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}; Kérte: ${elem.requester})`);
+		await useScrollableEmbed(this, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}, Összesen ${queue.length} elem`, queueLines);
 	},
 	async fallback(param) {
 		const aliases = new Map([['r', 'radio'], ['s', 'silence'], ['l', 'leave']]);
@@ -301,8 +303,12 @@ async queue(_) {
 			this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
 		}
 	},
-	skip(_) {
-		this.guildPlayer.skip();
+	skip(param) {
+		let amountToSkip : number = sscanf(param, '%d') ?? 0;
+		if (amountToSkip<=0)
+			amountToSkip=1;
+		this.guildPlayer.skip(amountToSkip);
+			
 	},
 	pause(_) {
 		this.guildPlayer.pause();
