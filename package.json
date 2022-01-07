@@ -6,8 +6,8 @@
     "start": "node -r dotenv/config main.js"
   },
   "dependencies": {
-    "@discordjs/opus": "^0.3.2",
-    "@types/node": "^16.10.4",
+    "@discordjs/opus": "^0.7.0",
+    "@types/node": "^17.0.8",
     "@types/umzug": "^2.3.0",
     "@types/ws": "^7.4.0",
     "axios": "^0.23.0",
