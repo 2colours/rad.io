@@ -9,7 +9,7 @@
     "@discordjs/opus": "^0.7.0",
     "@types/node": "^16.10.4",
     "@types/umzug": "^2.3.0",
-    "@types/ws": "^7.4.0",
+    "@types/ws": "^8.2.2",
     "axios": "^0.23.0",
     "discord.js": "^12.5.1",
     "dotenv": "^10.0.0",
