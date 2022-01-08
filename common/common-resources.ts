@@ -1,9 +1,9 @@
-import { Snowflake, Client } from 'discord.js';
+import { Snowflake, Client, Intents } from 'discord.js';
 import { attach, FallbackType, Config, radios, defaultRadio, MusicData } from '../internal.js';
 import { Umzug, SequelizeStorage } from 'umzug';
 import sequelize from 'sequelize';
 const { Sequelize, QueryTypes, DataTypes } = sequelize; //Workaround (CommonJS -> ES modul)
-export const client = new Client();
+export const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES] });
 
 export const database = new Sequelize({
 	dialect: 'sqlite',
