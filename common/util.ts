@@ -61,7 +61,7 @@ export function commonEmbed(this: ThisBinding, additional: string = '') { //TODO
 	const prefix = getPrefix(this.guild.id);
 	return new MessageEmbed()
 		.setColor(embedC)
-		.setFooter(`${prefix}${this.cmdName}${additional} - ${client.user.username}`, client.user.avatarURL())
+		.setFooter({ text: `${prefix}${this.cmdName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
 };
 function scrollRequest(context: AuthorHolder, message: Message, currentPage: number, allPages: number) {
