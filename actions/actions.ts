@@ -167,10 +167,8 @@ export const actions: Actions = {
 		await this.channel.send({
 			embeds: [baseEmbed
 				.setTitle('❯ Magyar rádiók')
-				.setDescription(listRadios('hun'))]
-		});
-		this.channel.send({
-			embeds: [baseEmbed
+				.setDescription(listRadios('hun')),
+				baseEmbed
 				.setTitle('❯ Külföldi rádiók')
 				.setDescription(listRadios('eng'))]
 		});
