@@ -66,7 +66,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	}
 	if (oldState.member?.user.bot) //innen csak nem botokra figyelünk
 		return;
-	if ([oldState.channel.id, newState.channel.id].includes(getVoiceConnection(guildPlayer.ownerGuild.id).joinConfig.channelId))
+	if ([oldState.channel?.id, newState.channel?.id].includes(getVoiceConnection(guildPlayer.ownerGuild.id).joinConfig.channelId))
 		guildPlayer.handler.eventTriggered();
 });
 
