@@ -497,7 +497,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 		const embed = commonEmbed.call(this)
 			.setTitle("❯ Találatok")
 			.setDescription(results.map(elem => `__${counter++}.__ - ${discordEscape(elem.title)} \`(${hourMinSec(elem.duration)})\``).join('\n'));
-		const message: Discord.Message = await this.channel.send(embed);
+		const message: Discord.Message = await this.channel.send({ embeds: [embed] });
 		const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
 		const selectionPromise: Promise<number> = new Promise(async (resolve, reject) => {
 			const collector = message.createReactionCollector({filter, maxEmojis: 1, time: 30000 });
