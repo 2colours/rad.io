@@ -122,7 +122,7 @@ export class GuildPlayer {
 			return await this.fallbackMode();
 	}
 	repeat(maxTimes?: number) {
-		if (isDefinite(this.playingElement))
+		if (!isDefinite(this.playingElement))
 			throw 'Végtelen streameket nem lehet loopoltatni.';
 		if (!maxTimes)
 			this.currentPlay.askRepeat = () => true;
