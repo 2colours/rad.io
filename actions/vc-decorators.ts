@@ -4,7 +4,7 @@ import { sscanf } from 'scanf';
 import { VoiceBasedChannel } from 'discord.js';
 export const isAdmin: Predicate = ctx => ctx.member.permissions.has('ADMINISTRATOR');
 const isVcUser: Predicate = ctx => !!ctx.member.voice.channel;
-const isDifferentVc: Predicate = ctx => client.channels.resolve(getVoiceConnection(ctx.guildId).joinConfig.channelId) != ctx.member.voice.channel;
+const isDifferentVc: Predicate = ctx => client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) != ctx.member.voice.channel;
 const isVcBot: Predicate = ctx => !!getVoiceConnection(ctx.guildId);
 const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (param: string) {
 	const currentDecorator = await Promise.resolve(pred(this)) ? dec1 : dec2;
@@ -16,8 +16,8 @@ const hasPermission: Predicate = ctx => {
 }
 const hasVcPermission: Predicate = ctx => ctx.member.voice.channel.joinable;
 const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.author.id);
-const isAloneUser: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId).joinConfig.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot && member != ctx.member);
-const isAloneBot: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId).joinConfig.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot);
+const isAloneUser: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot && member != ctx.member);
+const isAloneBot: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
 const rejectReply=(replyMessage:string)=>(_:Action)=>function(_:string) {
 this.reply(`**${replyMessage}**`);
