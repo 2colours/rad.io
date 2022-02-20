@@ -197,7 +197,7 @@ export class GuildPlayer {
 		this.engine.stop();
 		if (!getVoiceConnection(this.ownerGuild.id))
 			return;
-		getVoiceConnection(this.ownerGuild.id).disconnect(); //KÉRDÉSES!
+		getVoiceConnection(this.ownerGuild.id).destroy(); //KÉRDÉSES!
 		this.handler.destroy();
 		delete this.ownerGuild;
 	}

@@ -69,6 +69,7 @@ export const actions: Actions = {
 				var index: number = await searchPick.call(this, resultsView);
 			}
 			catch (e) {
+				console.log('Hiba a keresés közben: ', e);
 				return;
 			}
 			const selectedResult = results[index];
