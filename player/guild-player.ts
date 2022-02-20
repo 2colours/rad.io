@@ -21,7 +21,7 @@ class Playable {
 		return false;
 	}
 	playingSeconds() {
-		return this.resource.playbackDuration * 1000;
+		return Math.round(this.resource.playbackDuration / 1000);
 	}
 }
 class VoiceHandler {
