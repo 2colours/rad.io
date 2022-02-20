@@ -552,7 +552,7 @@ async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
 function sendToPartnerHook(link: string, content: string, username: string, serverName: string): void {
 	const embed = new Discord.MessageEmbed();
 	embed.setColor(webhookC);
-	embed.setFooter(serverName);
+	embed.setFooter({ text: serverName });
 	embed.setDescription(content);
 	partnerHook.send({ content: link, embeds: [embed], username, avatarURL }).catch(console.error);
 }
