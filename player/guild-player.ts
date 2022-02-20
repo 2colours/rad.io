@@ -212,7 +212,7 @@ export class GuildPlayer {
 	}
 	nowPlaying(): PlayingData {
 		const playingSecondsMixin = Object.defineProperty({}, 'playingSeconds', {
-			get: this.currentPlay.playingSeconds
+			get: () => this.currentPlay.playingSeconds()
 		});
 		return this.playingElement && Object.assign(playingSecondsMixin, this.playingElement) as PlayingData;
 	}
