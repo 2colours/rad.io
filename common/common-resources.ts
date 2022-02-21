@@ -3,7 +3,7 @@ import { attach, FallbackType, Config, radios, defaultRadio, MusicData } from '.
 import { Umzug, SequelizeStorage } from 'umzug';
 import sequelize from 'sequelize';
 const { Sequelize, QueryTypes, DataTypes } = sequelize; //Workaround (CommonJS -> ES modul)
-export const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES] });
+export const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
 
 export const database = new Sequelize({
 	dialect: 'sqlite',
