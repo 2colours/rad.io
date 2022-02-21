@@ -143,7 +143,7 @@ export class GuildPlayer {
 		const autoSkip = this.autoSkip();
 		this.queue.push(musicData);
 		if (autoSkip)
-			this.skip();
+			this.startNext();
 		else
 			this.announcementChannel.send(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
@@ -152,7 +152,7 @@ export class GuildPlayer {
 		for (const musicData of musicDatas)
 			this.queue.push(musicData);
 		if (autoSkip)
-			this.skip();
+			this.startNext();
 	}
 	shuffle() {
 		if (this.queue.length >= 2)
