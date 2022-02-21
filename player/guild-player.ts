@@ -69,7 +69,6 @@ export class GuildPlayer {
 	public handler: VoiceHandler;
 	private volume: number;
 	private oldVolume?: number;
-	private i: number = 0;
 	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay: MusicData[]) {
 		this.announcementChannel = textChannel;
 		this.fallbackPlayed = false;
