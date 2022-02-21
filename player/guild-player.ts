@@ -193,7 +193,7 @@ export class GuildPlayer {
 		}
 	}
 	leave() {
-		this.engine.removeAllListeners();
+		this.engine.removeAllListeners(AudioPlayerStatus.Idle);
 		this.engine.stop();
 		if (!getVoiceConnection(this.ownerGuild.id))
 			return;
