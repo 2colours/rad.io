@@ -166,10 +166,10 @@ export const actions: Actions = {
 		const prefix = getPrefix(this.guild.id);
 		const baseEmbed: Discord.MessageEmbed = commonEmbed.call(this).addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
 		await this.channel.send({
-			embeds: [{...baseEmbed}
+			embeds: [Object.assign({}, baseEmbed)
 				.setTitle('❯ Magyar rádiók')
 				.setDescription(listRadios('hun')),
-				{...baseEmbed}
+				Object.assign({}, baseEmbed)
 				.setTitle('❯ Külföldi rádiók')
 				.setDescription(listRadios('eng'))]
 		});
