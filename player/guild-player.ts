@@ -69,6 +69,7 @@ export class GuildPlayer {
 	public handler: VoiceHandler;
 	private volume: number;
 	private oldVolume?: number;
+	private i: number = 0;
 	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay: MusicData[]) {
 		this.announcementChannel = textChannel;
 		this.fallbackPlayed = false;
@@ -118,8 +119,14 @@ export class GuildPlayer {
 	}
 	private async startNext() {
 		this.playingElement = this.queue.shift() ?? null;
-		if (!this.playingElement) 
-			return await this.fallbackMode();
+		if (!this.fallbackPlayed){
+			if (!this.playingElement) {
+				this.fallbackPlayed = true
+				return await this.fallbackMode();
+			}
+		}
+		else if (this.playingElement)
+			this.fallbackPlayed = false
 	}
 	repeat(maxTimes?: number) {
 		if (!isDefinite(this.playingElement))
@@ -182,13 +189,11 @@ export class GuildPlayer {
 				if (!fallbackMusic)
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
 				this.playingElement = fallbackMusic;
-				this.fallbackPlayed = true;
 				break;
 			case 'leave':
 				this.leave();
 				break;
 			case 'silence':
-				this.fallbackPlayed = true;
 				break;
 		}
 	}
