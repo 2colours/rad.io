@@ -1,15 +1,17 @@
 import * as Discord from 'discord.js';
 import { AudioPlayer, AudioPlayerPlayingState, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, getVoiceConnection, VoiceConnectionReadyState } from '@discordjs/voice';
+import { Readable } from 'stream';
 import * as play from 'play-dl'; //Nem illik közvetlenül hívni
 import { getEmoji, MusicData, StreamType, StreamProvider, shuffle, getFallbackMode,
 	getFallbackChannel, PlayingData } from '../internal.js';
 import { Collection, GuildMember, VoiceChannel } from 'discord.js';
+import axios from 'axios'
 const ytdl = async (url: string) => (await play.stream(url)).stream;
 const clientId = process.env.soundcloudClientId;
 const downloadMethods = new Map<StreamType, StreamProvider>([
 	['yt', ytdl],
-	['custom', (url: string) => url],
-	['radio', (url: string) => url],
+	['custom', async (url: string) => (await axios.get(url, { timeout: 5000, responseType: 'stream' })).data as Readable],
+	['radio', async (url: string) => (await axios.get(url, { timeout: 5000, responseType: 'stream' })).data as Readable],
 	['sc', (url: string) => `${url}?client_id=${clientId}`]]);
 function isDefinite(data:MusicData) {
 	const definiteTypes: StreamType[] = ['yt', 'custom', 'sc'];
