@@ -32,8 +32,8 @@ class VoiceHandler {
 	}
 	eventTriggered() {
 		const client = this.controlledPlayer.ownerGuild.client;
-		const botChannel = this.controlledPlayer.ownerGuild.channels.cache.find(channel => (channel as VoiceChannel)?.members.map(member => member.user).includes(client.user));
-		const voiceEmpty = ! (botChannel.members as Collection<string, GuildMember>)?.some(member => !member.user.bot);
+		const botChannel = this.controlledPlayer.ownerGuild.channels.cache.find(channel => channel instanceof VoiceChannel && channel?.members.map(member => member.user).includes(client.user));
+		const voiceEmpty = !(botChannel.members as Collection<string, GuildMember>)?.some(member => !member.user.bot);
 		if (voiceEmpty && !this.timeoutId)
 			this.timeoutId = global.setTimeout(() => {try{this.controlledPlayer.leave()} catch(e){console.log(e);}}, 60000 * 5);
 		if (!voiceEmpty && this.timeoutId) {
