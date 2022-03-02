@@ -1,4 +1,4 @@
-import { Snowflake, Message, User, TextChannel, GuildMember, DMChannel, NewsChannel } from 'discord.js';
+import { Snowflake, Message, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel } from 'discord.js';
 import { Readable } from 'stream';
 import { GuildPlayer, Filter, aggregateDecorators, client } from '../internal.js';
 export interface Config {
@@ -7,6 +7,7 @@ export interface Config {
 	fallbackChannels: Map<Snowflake, MusicData>;
 	roles: Map<Snowflake, Map<Snowflake,string[]>>; //TODO az a string[] specifikusan parancsnév a debatedCommands-ból
 }
+type TextBasedChannels = DMChannel | TextChannel | NewsChannel | ThreadChannel;
 type Resolvable<T> = T | Promise<T>;
 export type Action = (this:ThisBinding,param:string) => Resolvable<void>;
 export type Decorator = (toDecorate:Action) => Action;
@@ -29,7 +30,7 @@ export interface AuthorHolder {
 	author: User;
 }
 export interface TextChannelHolder {
-	channel: TextChannel | DMChannel | NewsChannel;
+	channel: TextBasedChannels | PartialDMChannel;
 }
 export interface ThisBinding extends PackedMessage, GuildPlayerHolder { }
 export type FallbackType = 'leave' | 'radio' | 'silence';

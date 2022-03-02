@@ -1,4 +1,5 @@
-﻿import { Snowflake, Guild, TextChannel, StringResolvable, MessageEmbed, MessageOptions, Message, MessageReaction, User, VoiceChannel, EmojiIdentifierResolvable } from 'discord.js';
+﻿import { Snowflake, Guild, TextChannel, MessageEmbed, MessageOptions, Message, MessageReaction, User, EmojiIdentifierResolvable, BaseGuildVoiceChannel } from 'discord.js';
+import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { Command, CommandType, PlayableData, ThisBinding, database, Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
 	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from '../internal.js';
 import sequelize from 'sequelize';
@@ -28,21 +29,26 @@ export function hourMinSec(seconds: number) {
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
 export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
-export async function sendGuild(guild: Guild, content: StringResolvable, options?: MessageOptions) {
+export async function sendGuild(guild: Guild, content: string, options?: MessageOptions) {
 	for (const channel of guild.channels.cache.values()) {
 		if (!(channel instanceof TextChannel))
 			continue;
 		try {
-			await channel.send(content, options);
+			await channel.send({ content, options });
 			break;
 		}
 		catch (e) {
 		}
 	}
 }
-export async function forceSchedule(textChannel: TextChannel, voiceChannel: VoiceChannel, holder: GuildPlayerHolder, playableData: MusicData[]) {
-	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !voiceChannel.guild.voice?.connection) {
-		await voiceChannel.join();
+export async function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildVoiceChannel, holder: GuildPlayerHolder, playableData: MusicData[]) {
+	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
+		joinVoiceChannel({
+			channelId: voiceChannel.id,
+			guildId: voiceChannel.guildId,
+			//@ts-ignore
+			adapterCreator: voiceChannel.guild.voiceAdapterCreator
+		});
 		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
 		return;
 	}
@@ -55,7 +61,7 @@ export function commonEmbed(this: ThisBinding, additional: string = '') { //TODO
 	const prefix = getPrefix(this.guild.id);
 	return new MessageEmbed()
 		.setColor(embedC)
-		.setFooter(`${prefix}${this.cmdName}${additional} - ${client.user.username}`, client.user.avatarURL())
+		.setFooter({ text: `${prefix}${this.cmdName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
 };
 function scrollRequest(context: AuthorHolder, message: Message, currentPage: number, allPages: number) {
@@ -66,7 +72,7 @@ function scrollRequest(context: AuthorHolder, message: Message, currentPage: num
 		if (currentPage < allPages)
 			emojis.push('▶');
 		const filter = (reaction: MessageReaction, user: User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == context.author.id;
-		const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 10000 });
+		const collector = message.createReactionCollector({filter,  maxEmojis: 1, time: 10000 });
 		collector.on('collect', r => {
 			resolve(r.emoji.name == '◀' ? currentPage - 1 : currentPage + 1);
 			collector.stop();
@@ -89,7 +95,7 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 	let completeEmbed = baseEmbed
 		.setTitle(titleResolver(currentPage, maxPage))
 		.setDescription(currentDescription);
-	const message = await ctx.channel.send({ embed: completeEmbed }) as Message;
+	const message = await ctx.channel.send({ embeds: [completeEmbed] }) as Message;
 	while (true) {
 		try {
 			currentPage = await scrollRequest(ctx, message, currentPage, maxPage);
@@ -103,7 +109,7 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 		completeEmbed = baseEmbed
 			.setTitle(titleResolver(currentPage, maxPage))
 			.setDescription(currentDescription);
-		await message.edit({ embed: completeEmbed });
+		await message.edit({ embeds: [completeEmbed] });
 	}
 }
 export const saveRow = {

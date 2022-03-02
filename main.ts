@@ -1,4 +1,5 @@
 ﻿import * as Discord from 'discord.js';
+import { getVoiceConnection } from '@discordjs/voice';
 const token = process.env.radioToken;
 
 import { client, PackedMessage, ThisBinding, actions, GuildPlayer, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix } from './internal.js';
@@ -9,17 +10,17 @@ const devChannel = () => client.channels.resolve(devChanId);
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
 client.on('ready', async () => {
-	client.guilds.cache.forEach(guild => {
+	/*client.guilds.cache.forEach(guild => {
 		if (guild.voice?.channel)
 			guild.voice.channel.leave();
-	});
+	}); Discord.js v12 legacy*/
 	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();
 });
 
 
-client.on('message', async (message) => {
+client.on('messageCreate', async (message) => {
 	if (message.guild == null) return;
 	const prefix = getPrefix(message.guild.id);
 	if (message.mentions.users.has(client.user.id))
@@ -44,8 +45,8 @@ client.on('message', async (message) => {
 		}) as ThisBinding;
 		await Promise.resolve(commandFunction.call(thisBinding, param ?? ''));
 	}
-	catch (ex) {
-		console.log(ex);
+	catch (e) {
+		console.error(e);
 	}
 });
 
@@ -65,7 +66,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	}
 	if (oldState.member?.user.bot) //innen csak nem botokra figyelünk
 		return;
-	if ([oldState.channel, newState.channel].includes(guildPlayer.ownerGuild.voice?.channel))
+	if ([oldState.channel?.id, newState.channel?.id].includes(getVoiceConnection(guildPlayer.ownerGuild.id).joinConfig.channelId))
 		guildPlayer.handler.eventTriggered();
 });
 
@@ -95,10 +96,10 @@ function logGuildJoin(guild: Discord.Guild) {
 	const embed = new Discord.MessageEmbed()
 		.setDescription(`ID: ${guild.id}
 Members: ${guild.memberCount}
-Owner: ${guild.owner ? guild.owner.user.tag : 'unable to fetch'}
+Owner: ${guild.members.resolve(guild.ownerId)?.user?.tag ?? 'unable to fetch'}
 Created At: ${created}
 Icon: [Link](${guild.iconURL() ? guild.iconURL() : client.user.displayAvatarURL()})`);
-	(devChannel() as Discord.TextChannel).send(`**${client.user.tag}** joined \`${guild.name}\``, { embed: embed });
+	(devChannel() as Discord.TextChannel).send({ content: `**${client.user.tag}** joined \`${guild.name}\``, embeds: [embed] });
 }
 
 async function sendWelcome(guild: Discord.Guild) {
@@ -109,7 +110,7 @@ async function sendWelcome(guild: Discord.Guild) {
 		.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${debatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
 		.setColor(embedC)
 		.setTimestamp();
-	sendGuild(guild, devServerInvite, { embed });
+	sendGuild(guild, devServerInvite, { embeds: [embed] });
 }
 
 function forceLogin(): Promise<any> {
@@ -123,7 +124,7 @@ function setPStatus() {
 	const presenceEndings = [`G: ${client.guilds.cache.size}`, `Rádiók száma: ${channels.length} `, `@${client.user.username}`, `U: ${client.users.cache.size}`];
 	const randomRadioName = radios.get(randomElement(channels)).name;
 	const presence = `${randomRadioName} | ${randomElement(presenceEndings)}`;
-	client.user.setPresence({ activity: { name: presence, type: 'LISTENING' } });
+	client.user.setPresence({ activities: [{ name: presence, type: 'LISTENING' }] });
 };
 
 function updateStatusChannels() {
