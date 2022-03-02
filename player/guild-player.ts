@@ -71,6 +71,7 @@ export class GuildPlayer {
 	public handler: VoiceHandler;
 	private volume: number;
 	private oldVolume?: number;
+	private destroyed: boolean = false;
 	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay: MusicData[]) {
 		this.announcementChannel = textChannel;
 		this.fallbackPlayed = false;
@@ -199,13 +200,14 @@ export class GuildPlayer {
 		}
 	}
 	leave() {
+		if (this.destroyed)
+			return;
 		this.engine.removeAllListeners(AudioPlayerStatus.Idle);
 		this.engine.stop();
-		if (!getVoiceConnection(this.ownerGuild.id))
-			return;
 		getVoiceConnection(this.ownerGuild.id).destroy(); //KÉRDÉSES!
 		this.handler.destroy();
 		delete this.ownerGuild;
+		this.destroyed = true;
 	}
 	pause() {
 		if (this.engine.state.status != AudioPlayerStatus.Playing)
