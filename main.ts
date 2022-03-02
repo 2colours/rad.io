@@ -45,8 +45,8 @@ client.on('messageCreate', async (message) => {
 		}) as ThisBinding;
 		await Promise.resolve(commandFunction.call(thisBinding, param ?? ''));
 	}
-	catch (ex) {
-		console.log(ex);
+	catch (e) {
+		console.error(e);
 	}
 });
 

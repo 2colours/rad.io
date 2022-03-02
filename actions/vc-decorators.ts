@@ -62,10 +62,10 @@ const naturalErrors: Decorator = action => async function (param) {
 	try {
 		await Promise.resolve(action.call(this, param));
 	}
-	catch (ex) {
-		if (typeof ex == 'string')
-			return void this.reply(`**hiba - ${ex}**`);
-		console.error(ex);
+	catch (e) {
+		if (typeof e == 'string')
+			return void this.reply(`**hiba - ${e}**`);
+		console.error(e);
 	}
 };
 
