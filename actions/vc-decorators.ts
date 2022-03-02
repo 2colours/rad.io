@@ -25,13 +25,13 @@ this.reply(`**${replyMessage}**`);
 const nop:Decorator=_=>_=>{};
 const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
 const not=(pred:Predicate)=>(ctx:ThisBinding)=>!pred(ctx);
-const adminNeeded:Decorator=choiceFilter(isAdmin,pass,rejectReply('ezt a parancsot csak adminisztrátorok használhatják.'));
-const vcUserNeeded:Decorator=choiceFilter(isVcUser,pass,rejectReply('nem vagy voice csatornán.'));
-const sameVcNeeded:Decorator=choiceFilter(not(isDifferentVc),pass,rejectReply('nem vagyunk közös voice csatornán.')); //átengedi azt, ha egyik sincs vojszban!
-const vcBotNeeded:Decorator=choiceFilter(isVcBot,pass,rejectReply('nem vagyok voice csatornán.'));
-const noBotVcNeeded:Decorator=choiceFilter(isVcBot,rejectReply('már voice csatornán vagyok'),pass);
-const sameOrNoBotVcNeeded:Decorator=choiceFilter(any(not(isVcBot),not(isDifferentVc)),pass,rejectReply('már másik voice csatornán vagyok.'));
-const permissionNeeded:Decorator=choiceFilter(hasPermission,pass,rejectReply('nincs jogod a parancs használatához.'));
+const adminNeeded:Decorator=choiceFilter(isAdmin,pass,rejectReply('Ezt a parancsot csak adminisztrátorok használhatják.'));
+const vcUserNeeded:Decorator=choiceFilter(isVcUser,pass,rejectReply('Nem vagy voice csatornán.'));
+const sameVcNeeded:Decorator=choiceFilter(not(isDifferentVc),pass,rejectReply('Nem vagyunk közös voice csatornán.')); //átengedi azt, ha egyik sincs vojszban!
+const vcBotNeeded:Decorator=choiceFilter(isVcBot,pass,rejectReply('Nem vagyok voice csatornán.'));
+const noBotVcNeeded:Decorator=choiceFilter(isVcBot,rejectReply('Már voice csatornán vagyok'),pass);
+const sameOrNoBotVcNeeded:Decorator=choiceFilter(any(not(isVcBot),not(isDifferentVc)),pass,rejectReply('Már másik voice csatornán vagyok.'));
+const permissionNeeded:Decorator=choiceFilter(hasPermission,pass,rejectReply('Nincs jogod a parancs használatához.'));
 const adminOrPermissionNeeded:Decorator=choiceFilter(isAdmin,pass,permissionNeeded);
 const creatorNeeded:Decorator=choiceFilter(isCreator,pass,nop);
 const vcPermissionNeeded:Decorator=action=>function(param) {
@@ -53,11 +53,11 @@ const parameterNeeded: Decorator = action => function (param) {
 const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
 const isFallback: Predicate = ctx => ctx.guildPlayer.fallbackPlayed;
 const isSilence: Predicate = ctx => !ctx.guildPlayer.nowPlaying();
-const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
-const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('ez a parancs nem használható, amikor semmi nem szól (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
+const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('Ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
+const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('Ez a parancs nem használható, amikor semmi nem szól (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));
 const isPlayingFallbackSet: Predicate = ctx => getFallbackMode(ctx.guild.id) == 'radio';
-const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('ez a parancs nem használható a jelenlegi fallback beállítással.'));
+const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('Ez a parancs nem használható a jelenlegi fallback beállítással.'));
 const naturalErrors: Decorator = action => async function (param) {
 	try {
 		await Promise.resolve(action.call(this, param));

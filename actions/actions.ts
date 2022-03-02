@@ -14,7 +14,7 @@ import { sscanf } from 'scanf';
 export const actions: Actions = {
 	async setprefix(param) {
 		if (!param)
-			return void this.reply('ez nem lehet prefix!');
+			return void this.reply('**Ez nem lehet prefix!**');
 		const newPrefix = param.toLowerCase();
 		setPrefix(this.guild.id, newPrefix);
 		try {
@@ -151,7 +151,7 @@ export const actions: Actions = {
 	repeat(param) {
 		const count = sscanf(param, '%d');
 		if (count <= 0 && count != null)
-			return void this.reply('pozitív számot kell megadni.');
+			return void this.reply('**Pozitív számot kell megadni.**');
 		this.guildPlayer.repeat(count);
 		this.channel.send('**Ismétlés felülírva.**');
 	},
@@ -189,7 +189,7 @@ export const actions: Actions = {
 	remove(param) {
 		const queuePosition = sscanf(param, '%d');
 		if (queuePosition == undefined)
-			return void this.reply('**paraméterként szám elvárt.**');
+			return void this.reply('**Paraméterként szám elvárt.**');
 		this.guildPlayer.remove(queuePosition);
 		this.react(tickEmoji);
 	},
@@ -223,7 +223,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 				.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
 			return void this.channel.send({ embeds: [embed] });
 		}
-		this.reply('nincs ilyen nevű parancs.');
+		this.reply('**Nincs ilyen nevű parancs.**');
 	},
 	async guilds(_) {
 		const guildLines = client.guilds.cache.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
@@ -263,7 +263,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		let mode = sscanf(param, '%s') ?? '';
 		mode = aliases.get(mode) ?? mode;
 		if (!(new Set(aliases.values())).has(mode))
-			return void this.reply('**ilyen fallback mód nem létezik.**');
+			return void this.reply('**Ilyen fallback mód nem létezik.**');
 		setFallbackMode(this.guild.id, <FallbackType>mode);
 		this.channel.send(`**Új fallback: ${mode}. **`);
 		try {
@@ -292,7 +292,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 				requester: undefined
 			};
 		else
-			return void this.reply('érvénytelen rádióadó.');
+			return void this.reply('**Érvénytelen rádióadó.**');
 		setFallbackChannel(this.guild.id, fr);
 		this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`);
 		try {
@@ -380,7 +380,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	volume(param) {
 		const vol = sscanf(param, '%d');
 		if (vol == undefined || vol <= 0 || vol > 15)
-			return void this.reply('**paraméterként szám elvárt. (1-15)**');
+			return void this.reply('**Paraméterként szám elvárt. (1-15)**');
 		if (vol > 10)
 			this.channel.send('**Figyelem: erősítést alkalmaztál, a hangban torzítás léphet fel.**');
 		this.guildPlayer.setVolume(vol / 10);
@@ -389,7 +389,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	async seek(param) {
 		const seconds = sscanf(param, '%d');
 		if (seconds == undefined || seconds <= 0)
-			return void this.reply('**paraméterként pozitív szám elvárt.**');
+			return void this.reply('**Paraméterként pozitív szám elvárt.**');
 		const maxSeconds = this.guildPlayer.nowPlaying()?.lengthSeconds;
 		if (seconds > maxSeconds)
 			return void this.reply(`**a paraméter nem lehet nagyobb a szám hosszánál. (${maxSeconds})**`)
@@ -425,10 +425,10 @@ async function permissionReused(this: ThisBinding, param: string, filler: (affec
 	}
 	catch (e) {
 		//Nem nyertünk ki értelmeset
-		return void this.reply('**nem megfelelő formátum.**');
+		return void this.reply('**Nem megfelelő formátum.**');
 	}
 	if (!permCommands)
-		return void this.reply('**az első paraméter üres.**');
+		return void this.reply('**Az első paraméter üres.**');
 	const commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|').map(translateAlias);
 	const firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
