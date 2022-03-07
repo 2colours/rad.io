@@ -69,7 +69,8 @@ export const actions: Actions = {
 				var index: number = await searchPick.call(this, resultsView);
 			}
 			catch (e) {
-				console.error('Hiba a keresés közben: ', e);
+				if (e != 'timeout')
+					console.error('Hiba a keresés közben: ', e);
 				return;
 			}
 			const selectedResult = results[index];
@@ -515,10 +516,12 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 		return +(selectInteraction as Discord.SelectMenuInteraction).values[0];
 	}
 	catch (e) {
-		console.log(e);
-		embed.setTitle(`❯ Találatok - ${e}`); //Lejárt a választási idő TODO
-		message.edit({embeds: [embed]});
-		throw e;
+		const timeouted = e.message.endsWith('ending with reason: time');
+		if (timeouted)
+			embed.setTitle(`❯ Találatok - Lejárt a választási idő`);
+		row.components[0].setDisabled(true);
+		message.edit({embeds: [embed], components: [row] });
+		throw timeouted ? 'timeout' : e;
 	}
 }
 
