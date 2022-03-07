@@ -510,12 +510,14 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 	};
 	try {
 		const selectInteraction = await message.awaitMessageComponent({filter, time: 30000 });
+		row.components[0].setDisabled(true);
+		message.edit({ components: [row] });
 		return +(selectInteraction as Discord.SelectMenuInteraction).values[0];
 	}
 	catch (e) {
 		console.log(e);
 		embed.setTitle(`❯ Találatok - ${e}`); //Lejárt a választási idő TODO
-		message.edit(embed);
+		message.edit({embeds: [embed]});
 		throw e;
 	}
 }
