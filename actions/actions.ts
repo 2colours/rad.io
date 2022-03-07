@@ -69,7 +69,7 @@ export const actions: Actions = {
 				var index: number = await searchPick.call(this, resultsView);
 			}
 			catch (e) {
-				console.log('Hiba a keresés közben: ', e);
+				console.error('Hiba a keresés közben: ', e);
 				return;
 			}
 			const selectedResult = results[index];
@@ -487,45 +487,36 @@ async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): P
 async function searchPick(this: ThisBinding, results: SearchResultView[]): Promise<number> {
 	if (results.length == 1)
 		return 0;
-	else if (!this.guild.members.resolve(client.user).permissions.has('ADD_REACTIONS')) {
-		this.channel.send('**Az opciók közüli választáshoz a botnak **`ADD_REACTIONS`** jogosultságra van szüksége.\nAutomatikusan az első opció kiválasztva.**');
-		return 0;
+	const topResults = results.map((elem, index) => `__${index+1}.__ - ${discordEscape(elem.title)} \`(${hourMinSec(elem.duration)})\``);
+	const embed = commonEmbed.call(this)
+		.setTitle("❯ Találatok")
+		.setDescription(topResults.join('\n'));
+	const row = new Discord.MessageActionRow().addComponents(
+		new Discord.MessageSelectMenu()
+			.setCustomId('select')
+			.setPlaceholder('Válassz egy videót')
+			.setMinValues(1)
+			.setMaxValues(1)
+			.addOptions(topResults.map((resultLine, index) => Object.assign({}, {
+				label: resultLine,
+				value: index.toString(),
+				description: 'ÉS IDE MI KERÜLJÖN?'
+			})))
+	);
+	const message = await this.channel.send({ embeds: [embed], components: [row] });
+	const filter = (i: Discord.SelectMenuInteraction) => {
+		i.deferUpdate();
+		return i.user.id == this.author.id;
+	};
+	try {
+		const selectInteraction = await message.awaitMessageComponent({filter, time: 30000 });
+		return +(selectInteraction as Discord.SelectMenuInteraction).values[0];
 	}
-	else {
-		const emojis = ['1⃣', '2⃣', '3⃣', '4⃣', '5⃣'].slice(0, results.length);
-		let counter = 1;
-		const embed = commonEmbed.call(this)
-			.setTitle("❯ Találatok")
-			.setDescription(results.map(elem => `__${counter++}.__ - ${discordEscape(elem.title)} \`(${hourMinSec(elem.duration)})\``).join('\n'));
-		const message: Discord.Message = await this.channel.send({ embeds: [embed] });
-		const filter = (reaction: Discord.MessageReaction, user: Discord.User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == this.author.id;
-		const selectionPromise: Promise<number> = new Promise(async (resolve, reject) => {
-			const collector = message.createReactionCollector({filter, maxEmojis: 1, time: 30000 });
-			collector.on('collect', (r: Discord.MessageReaction) => {
-				const index = emojis.indexOf(r.emoji.name);
-				resolve(index);
-				collector.stop();
-			});
-			collector.on('end', (_: any) => reject('Lejárt a választási idő.'));
-			for (const emoji of emojis) {
-				const reaction = await message.react(emoji);
-				selectionPromise.then(_ => reaction.users.remove(client.user), _ => reaction.users.remove(client.user));
-			}
-
-		});
-		try {
-			const which = await selectionPromise;
-			return which;
-		}
-		catch (err) {
-			if (typeof err != 'string')
-				console.log(err);
-			else {
-				embed.setTitle(`❯ Találatok - ${err}`);
-				message.edit(embed);
-			}
-			throw err;
-		}
+	catch (e) {
+		console.log(e);
+		embed.setTitle(`❯ Találatok - ${e}`); //Lejárt a választási idő TODO
+		message.edit(embed);
+		throw e;
 	}
 }
 
