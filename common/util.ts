@@ -1,4 +1,4 @@
-﻿import { Snowflake, Guild, TextChannel, MessageEmbed, MessageOptions, Message, MessageReaction, User, EmojiIdentifierResolvable, BaseGuildVoiceChannel, MessageComponentInteraction, MessageActionRow, MessageSelectMenu, MessageButton } from 'discord.js';
+﻿import { Snowflake, Guild, TextChannel, MessageEmbed, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, MessageActionRow, MessageButton } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { Command, CommandType, PlayableData, ThisBinding, database, Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
 	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from '../internal.js';
@@ -68,17 +68,19 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 	let currentPage = 1;
 	const maxPage = Math.ceil(linesForDescription.length / elementsPerPage);
 	const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
-	let completeEmbed = baseEmbed
+	const completeEmbed = baseEmbed
 		.setTitle(titleResolver(currentPage, maxPage))
 		.setDescription(currentDescription);
 	const prevButton = new MessageButton()
 		.setCustomId('previous')
 		.setLabel('Előző')
-		.setStyle('PRIMARY');
+		.setStyle('PRIMARY')
+		.setEmoji('◀️');
 	const nextButton = new MessageButton()
 		.setCustomId('next')
 		.setLabel('Következő')
-		.setStyle('PRIMARY');
+		.setStyle('PRIMARY')
+		.setEmoji('▶️');
 	function setButtonsDisabled() {
 		prevButton.setDisabled(currentPage <= 1);
 		nextButton.setDisabled(currentPage >= maxPage)
@@ -87,16 +89,19 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 	const row = new MessageActionRow().addComponents(prevButton, nextButton);
 	const message = await ctx.channel.send({ embeds: [completeEmbed], components: [row] }) as Message;
 	const filter =  (i: MessageComponentInteraction) => (i.deferUpdate(), ['previous', 'next'].includes(i.customId) && i.user.id == ctx.author.id);
-	const collector = message.createMessageComponentCollector({filter, time: 10000 });
+	const collector = message.createMessageComponentCollector({filter, time: 60000 });
 	for await (const i of collector) {
 		currentPage = i.customId == 'previous' ? currentPage - 1 : currentPage + 1;
 		const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
 		setButtonsDisabled();
-		completeEmbed = baseEmbed
+		completeEmbed
 			.setTitle(titleResolver(currentPage, maxPage))
 			.setDescription(currentDescription);
 		await message.edit({ embeds: [completeEmbed], components: [row] });
 	}
+	completeEmbed.setTitle(`**Lejárt az idő** - ${titleResolver(currentPage, maxPage)}`);
+	[prevButton, nextButton].forEach(b => b.setDisabled(true));
+	await message.edit({ embeds: [completeEmbed], components: [row] });	
 }
 export const saveRow = {
 	async prefix(rowObj: PrefixTableData) {
