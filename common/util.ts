@@ -1,4 +1,4 @@
-﻿import { Snowflake, Guild, TextChannel, MessageEmbed, MessageOptions, Message, MessageReaction, User, EmojiIdentifierResolvable, BaseGuildVoiceChannel } from 'discord.js';
+﻿import { Snowflake, Guild, TextChannel, MessageEmbed, MessageOptions, Message, MessageReaction, User, EmojiIdentifierResolvable, BaseGuildVoiceChannel, MessageComponentInteraction, MessageActionRow, MessageSelectMenu, MessageButton } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { Command, CommandType, PlayableData, ThisBinding, database, Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
 	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from '../internal.js';
@@ -63,31 +63,7 @@ export function commonEmbed(this: ThisBinding, additional: string = '') { //TODO
 		.setColor(embedC)
 		.setFooter({ text: `${prefix}${this.cmdName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
-};
-function scrollRequest(context: AuthorHolder, message: Message, currentPage: number, allPages: number) {
-	const res = new Promise<number>(async (resolve, reject) => {
-		const emojis: EmojiIdentifierResolvable[] = [];
-		if (currentPage > 1)
-			emojis.push('◀');
-		if (currentPage < allPages)
-			emojis.push('▶');
-		const filter = (reaction: MessageReaction, user: User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == context.author.id;
-		const collector = message.createReactionCollector({filter,  maxEmojis: 1, time: 10000 });
-		collector.on('collect', r => {
-			resolve(r.emoji.name == '◀' ? currentPage - 1 : currentPage + 1);
-			collector.stop();
-		});
-		collector.on('end', _ => {
-			reject(' lejárt az idő.');
-		});
-		for (const emoji of emojis) {
-			const reaction = await message.react(emoji);
-			res
-				.then(_ => reaction.users.remove(client.user), _ => reaction.users.remove(client.user));
-		}
-	});
-	return res;
-};
+}
 export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, baseEmbed: MessageEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
 	let currentPage = 1;
 	const maxPage = Math.ceil(linesForDescription.length / elementsPerPage);
@@ -95,21 +71,31 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 	let completeEmbed = baseEmbed
 		.setTitle(titleResolver(currentPage, maxPage))
 		.setDescription(currentDescription);
-	const message = await ctx.channel.send({ embeds: [completeEmbed] }) as Message;
-	while (true) {
-		try {
-			currentPage = await scrollRequest(ctx, message, currentPage, maxPage);
-		}
-		catch (e) {
-			if (typeof e != 'string')
-				console.error(e);
-			break;
-		}
+	const prevButton = new MessageButton()
+		.setCustomId('previous')
+		.setLabel('Előző')
+		.setStyle('PRIMARY');
+	const nextButton = new MessageButton()
+		.setCustomId('next')
+		.setLabel('Következő')
+		.setStyle('PRIMARY');
+	function setButtonsDisabled() {
+		prevButton.setDisabled(currentPage <= 1);
+		nextButton.setDisabled(currentPage >= maxPage)
+	}
+	setButtonsDisabled();
+	const row = new MessageActionRow().addComponents(prevButton, nextButton);
+	const message = await ctx.channel.send({ embeds: [completeEmbed], components: [row] }) as Message;
+	const filter =  (i: MessageComponentInteraction) => (i.deferUpdate(), ['previous', 'next'].includes(i.customId) && i.user.id == ctx.author.id);
+	const collector = message.createMessageComponentCollector({filter, time: 10000 });
+	for await (const i of collector) {
+		currentPage = i.customId == 'previous' ? currentPage - 1 : currentPage + 1;
 		const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
+		setButtonsDisabled();
 		completeEmbed = baseEmbed
 			.setTitle(titleResolver(currentPage, maxPage))
 			.setDescription(currentDescription);
-		await message.edit({ embeds: [completeEmbed] });
+		await message.edit({ embeds: [completeEmbed], components: [row] });
 	}
 }
 export const saveRow = {
