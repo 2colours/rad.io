@@ -28,8 +28,8 @@ client.on('interactionCreate', async interaction => {
 	const { decoratedAction: commandFunction } = messageCommands.get('queue');
 	const thisBinding: any = Object.defineProperties(interaction, {
 		'guildPlayer': {
-			get() { guildPlayers.get(this.guild.id) },
-			set(value) { guildPlayers.set(this.guild.id, value) }
+			get() { return guildPlayers.get(this.guild.id); },
+			set(value) { return guildPlayers.set(this.guild.id, value); }
 		},
 		'author': {
 			get() { return this.user; }
