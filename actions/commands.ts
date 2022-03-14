@@ -5,6 +5,7 @@ import { Routes } from 'discord-api-types/v9';
 
 const token = process.env.radioToken;
 const clientId = process.env.botId;
+const guildId = process.env.testServerId;
 
 const aliases: Map<string, string> = new Map();
 export const messageCommands: Map<string, Command> = new Map();
@@ -377,7 +378,8 @@ const commands = [
 const rest = new REST({ version: '9' }).setToken(token);
 
 try {
-	await rest.put(Routes.applicationCommands(clientId), { body: commands })
+	await rest.put(Routes.applicationCommands(clientId), { body: commands });
+	await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
 	console.log('Successfully registered application commands.');
 }
 catch (e) {
