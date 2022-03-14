@@ -2,7 +2,7 @@ import * as Discord from 'discord.js';
 import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
 import moment from 'moment';
 import { commandNamesByTypes, isAdmin, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
-	client, channels, commands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule,
+	client, channels, messageCommands, creators, getEmoji, debatedCommands, radios as radiosList, translateAlias, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch,
 	SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji,
 	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions } from '../internal.js';
@@ -198,9 +198,9 @@ export const actions: Actions = {
 		const prefix = getPrefix(this.guild.id);
 		let helpCommand = sscanf(param, '%s');
 		if (!helpCommand) {
-			const userCommands = commandNamesByTypes(commands, 'grantable', 'unlimited');
+			const userCommands = commandNamesByTypes(messageCommands, 'grantable', 'unlimited');
 			userCommands.sort();
-			const adminCommands = commandNamesByTypes(commands, 'adminOnly');
+			const adminCommands = commandNamesByTypes(messageCommands, 'adminOnly');
 			adminCommands.sort();
 			const embed = commonEmbed.call(this)
 				.addField('❯ Felhasználói parancsok', userCommands.map(cmd => `\`${cmd}\``).join(' '))
@@ -212,8 +212,8 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			return void this.channel.send({ embeds: [embed] });
 		}
 		helpCommand = translateAlias(helpCommand);
-		if (commands.has(helpCommand)) {
-			const currentCommand = commands.get(helpCommand);
+		if (messageCommands.has(helpCommand)) {
+			const currentCommand = messageCommands.get(helpCommand);
 			const currentAliases = currentCommand.aliases;
 			const currentRequirements = currentCommand.helpRelated.requirements;
 			currentAliases.sort();
@@ -359,9 +359,9 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	},
 	async perms(_) {
 		const adminRight = await Promise.resolve(isAdmin(this));
-		const adminCommands = commandNamesByTypes(commands, 'adminOnly', 'grantable');
+		const adminCommands = commandNamesByTypes(messageCommands, 'adminOnly', 'grantable');
 		adminCommands.sort();
-		const unlimitedCommands = commandNamesByTypes(commands, 'unlimited');
+		const unlimitedCommands = commandNamesByTypes(messageCommands, 'unlimited');
 		const grantedPerms = getRoles(this.guild.id).filter(([roleID, _]) => this.member.roles.cache.has(roleID)).filter(([_, commands]) => commands.length > 0);
 		grantedPerms.sort(([roleA, _commandsA], [roleB, _commandsB]) => roleA.localeCompare(roleB));
 		grantedPerms.forEach(([_, commands]) => commands.sort());

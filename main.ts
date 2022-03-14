@@ -2,7 +2,7 @@
 import { getVoiceConnection } from '@discordjs/voice';
 const token = process.env.radioToken;
 
-import { client, PackedMessage, ThisBinding, actions, GuildPlayer, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix } from './internal.js';
+import { client, PackedMessage, ThisBinding, actions, GuildPlayer, translateAlias, messageCommands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix } from './internal.js';
 import moment from 'moment';
 const help = actions['help'];
 
@@ -17,6 +17,25 @@ client.on('ready', async () => {
 	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();
+});
+
+
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand())
+		return;
+	if (interaction.commandName != 'queue')
+		return;
+	const { decoratedAction: commandFunction } = messageCommands.get('queue');
+	const thisBinding: any = Object.defineProperties(interaction, {
+		'guildPlayer': {
+			get() { guildPlayers.get(this.guild.id) },
+			set(value) { guildPlayers.set(this.guild.id, value) }
+		},
+		'author': {
+			get() { return this.user; }
+		}
+	});
+	await Promise.resolve(commandFunction.call(thisBinding));
 });
 
 
@@ -37,7 +56,7 @@ client.on('messageCreate', async (message) => {
 		const param = prefixless.substring(commandTerminator).trim();
 		commandString = commandString.toLowerCase();
 		commandString = translateAlias(commandString);
-		const { decoratedAction: commandFunction = Function.prototype } = commands.get(commandString) ?? {};
+		const { decoratedAction: commandFunction = Function.prototype } = messageCommands.get(commandString) ?? {};
 		const packedMessage: PackedMessage = Object.assign(message, { cmdName: commandString });
 		const thisBinding: ThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
 			get: () => guildPlayers.get(packedMessage.guild.id),

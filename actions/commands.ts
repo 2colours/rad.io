@@ -1,21 +1,27 @@
 ﻿import { actions, CommandExtraData, Command, Filter } from '../internal.js';
+import { SlashCommandBuilder } from '@discordjs/builders';
+import { REST } from '@discordjs/rest';
+import { Routes } from 'discord-api-types/v9';
+
+const token = process.env.radioToken;
+const clientId = process.env.botId;
 
 const aliases: Map<string, string> = new Map();
-export const commands: Map<string, Command> = new Map();
+export const messageCommands: Map<string, Command> = new Map();
 
 export function translateAlias(cmdOrAlias: string): string {
 	return aliases.get(cmdOrAlias) || cmdOrAlias;
 }
-function setupCommand(commandData: CommandExtraData): void {
+function setupMessageCommand(commandData: CommandExtraData): void {
 	const cmdName = commandData.name;
 	for (const alias of commandData.aliases)
 		aliases.set(alias, cmdName);
-	commands.set(cmdName, new Command(Object.assign({
+	messageCommands.set(cmdName, new Command(Object.assign({
 		action: actions[cmdName]
 	}, commandData)));
 }
 
-setupCommand({
+setupMessageCommand({
 	name: 'setprefix',
 	aliases: ['sp'],
 	params: ['prefix'],
@@ -24,7 +30,7 @@ setupCommand({
 	filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'join',
 	aliases: ['j'],
 	params: ['ID (opcionális)'],
@@ -33,7 +39,7 @@ setupCommand({
 	filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.eventualVcBotNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'joinfallback',
 	aliases: ['joinf', 'jf'],
 	params: [],
@@ -42,7 +48,7 @@ setupCommand({
 	filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.playingFallbackNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'yt',
 	aliases: [],
 	params: ['URL / cím'],
@@ -60,7 +66,7 @@ setupCommand({
 	filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
 });*/
 
-setupCommand({
+setupMessageCommand({
 	name: 'custom',
 	aliases: ['c'],
 	params: ['streamURL'],
@@ -69,7 +75,7 @@ setupCommand({
 	filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'leave',
 	aliases: ['l'],
 	params: [],
@@ -78,7 +84,7 @@ setupCommand({
 	filters: new Set([Filter.vcBotNeeded, Filter.leaveCriteria])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'repeat',
 	aliases: [],
 	params: ['max (opcionális)'],
@@ -87,7 +93,7 @@ setupCommand({
 	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'radios',
 	aliases: [],
 	params: [],
@@ -96,7 +102,7 @@ setupCommand({
 	filters: new Set()
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'shuffle',
 	aliases: ['sh'],
 	params: [],
@@ -106,7 +112,7 @@ setupCommand({
 });
 
 
-setupCommand({
+setupMessageCommand({
 	name: 'clear',
 	aliases: ['cl'],
 	params: [],
@@ -115,7 +121,7 @@ setupCommand({
 	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'toplast',
 	aliases: ['top'],
 	params: [],
@@ -124,7 +130,7 @@ setupCommand({
 	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'remove',
 	aliases: ['rm'],
 	params: ['sorszám'],
@@ -133,7 +139,7 @@ setupCommand({
 	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'help',
 	aliases: ['h'],
 	params: ['parancs (opcionális)'],
@@ -142,7 +148,7 @@ setupCommand({
 	filters: new Set()
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'perms',
 	aliases: ['powers'],
 	params: [],
@@ -151,7 +157,7 @@ setupCommand({
 	filters: new Set()
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'guilds',
 	aliases: [],
 	params: [],
@@ -160,7 +166,7 @@ setupCommand({
 	filters: new Set([Filter.creatorNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'connections',
 	aliases: ['conn'],
 	params: [],
@@ -170,7 +176,7 @@ setupCommand({
 });
 
 
-setupCommand({
+setupMessageCommand({
 	name: 'testradios',
 	aliases: ['tr'],
 	params: [],
@@ -179,7 +185,7 @@ setupCommand({
 	filters: new Set([Filter.creatorNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'announce',
 	aliases: ['a'],
 	params: ['ID/all/conn','üzenet JS-sztringként'],
@@ -188,7 +194,7 @@ setupCommand({
 	filters: new Set([Filter.creatorNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'partner',
 	aliases: [],
 	params: ['invite link\\n', 'üzenet JS-sztringként\\n','felhasználónév\\n','szerver neve\\n'],
@@ -197,7 +203,7 @@ setupCommand({
 	filters: new Set([Filter.creatorNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'leaveguild',
 	aliases: ['lg'],
 	params: ['ID'],
@@ -206,7 +212,7 @@ setupCommand({
 	filters: new Set([Filter.creatorNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'voicecount',
 	aliases: ['vc'],
 	params: [],
@@ -215,7 +221,7 @@ setupCommand({
 	filters: new Set([Filter.creatorNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'queue',
 	aliases: ['q'],
 	params: [],
@@ -224,7 +230,7 @@ setupCommand({
 	filters: new Set([Filter.vcBotNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'fallback',
 	aliases: ['f'],
 	params: ['leave/silence/radio'],
@@ -233,7 +239,7 @@ setupCommand({
 	filters: new Set([Filter.dedicationNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'fallbackradio',
 	aliases: ['fr'],
 	params: ['ID / streamURL'],
@@ -242,7 +248,7 @@ setupCommand({
 	filters: new Set([Filter.dedicationNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'skip',
 	aliases: ['s'],
 	params: ['n (opcionális)'],
@@ -251,7 +257,7 @@ setupCommand({
 	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.nonSilenceNeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'pause',
 	aliases: [],
 	params: [],
@@ -260,7 +266,7 @@ setupCommand({
 	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.nonSilenceNeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'resume',
 	aliases: ['r'],
 	params: [],
@@ -269,7 +275,7 @@ setupCommand({
 	filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.nonSilenceNeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'tune',
 	aliases: ['t'],
 	params: ['ID'],
@@ -278,7 +284,7 @@ setupCommand({
 	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'grant',
 	aliases: ['g'],
 	params: ['parancs1|parancs2|... / all', 'role neve'],
@@ -287,7 +293,7 @@ setupCommand({
 	filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'granteveryone',
 	aliases: ['ge'],
 	params: ['parancs1|parancs2|... / all'],
@@ -296,7 +302,7 @@ setupCommand({
 	filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'deny',
 	aliases: ['d'],
 	params: ['parancs1|parancs2|... / all', 'role neve'],
@@ -305,7 +311,7 @@ setupCommand({
 	filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'denyeveryone',
 	aliases: ['de'],
 	params: ['parancs1|parancs2|... / all'],
@@ -314,7 +320,7 @@ setupCommand({
 	filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'nowplaying',
 	aliases: ['np'],
 	params: [],
@@ -323,7 +329,7 @@ setupCommand({
 	filters: new Set([Filter.vcBotNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'volume',
 	aliases: ['vol'],
 	params: ['hangerő (1-15)'],
@@ -332,7 +338,7 @@ setupCommand({
 	filters: new Set([Filter.parameterNeeded, Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'seek',
 	aliases: [],
 	params: ['időpont (másodperc)'],
@@ -341,7 +347,7 @@ setupCommand({
 	filters: new Set([Filter.parameterNeeded, Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded]) //TODO: rádiónál lehessen?
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'mute',
 	aliases: [],
 	params: [],
@@ -350,7 +356,7 @@ setupCommand({
 	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
 });
 
-setupCommand({
+setupMessageCommand({
 	name: 'unmute',
 	aliases: [],
 	params: [],
@@ -359,4 +365,21 @@ setupCommand({
 	filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
 });
 
-export const debatedCommands = [...commands].filter(entry => entry[1].type == 'grantable').map(entry=>entry[0]);
+export const debatedCommands = [...messageCommands].filter(entry => entry[1].type == 'grantable').map(entry=>entry[0]);
+
+
+const commands = [
+	new SlashCommandBuilder()
+		.setName('queue')
+		.setDescription('A várakozási sor tartalmának kiírása.')
+].map(command => command.toJSON());
+
+const rest = new REST({ version: '9' }).setToken(token);
+
+try {
+	await rest.put(Routes.applicationCommands(clientId), { body: commands })
+	console.log('Successfully registered application commands.');
+}
+catch (e) {
+	console.error(e);
+}
