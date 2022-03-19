@@ -123,7 +123,7 @@ Icon: [Link](${guild.iconURL() ? guild.iconURL() : client.user.displayAvatarURL(
 
 async function sendWelcome(guild: Discord.Guild) {
 	const embed = new Discord.MessageEmbed()
-		.setAuthor(client.user.tag, client.user.displayAvatarURL())
+		.setAuthor({ name: client.user.tag, iconURL: client.user.displayAvatarURL() })
 		.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
 		.addField('❯ Néhány szó a botról', 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.')
 		.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${debatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)

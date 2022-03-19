@@ -1,6 +1,6 @@
 ﻿import { Snowflake, Guild, TextChannel, MessageEmbed, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, MessageActionRow, MessageButton } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
-import { Command, CommandType, PlayableData, ThisBinding, database, Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
+import { LegacyCommand, CommandType, PlayableData, LegacyThisBinding, database, LegacyDecorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
 	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from '../internal.js';
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
@@ -28,7 +28,7 @@ export function hourMinSec(seconds: number) {
 	seconds %= 60;
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
-export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
+export const aggregateDecorators: (decorators: LegacyDecorator[]) => LegacyDecorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
 export async function sendGuild(guild: Guild, content: string, options?: MessageOptions) {
 	for (const channel of guild.channels.cache.values()) {
 		if (!(channel instanceof TextChannel))
@@ -57,7 +57,7 @@ export async function forceSchedule(textChannel: TextChannel, voiceChannel: Base
 	else
 		holder.guildPlayer.bulkSchedule(playableData);
 };
-export function commonEmbed(this: ThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
+export function commonEmbed(this: LegacyThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
 	const prefix = getPrefix(this.guild.id);
 	return new MessageEmbed()
 		.setColor(embedC)
@@ -160,6 +160,6 @@ export function starterSeconds(data: PlayableData): number {
 	return parseInt(new URL(data.url).searchParams.get('t')) || 0
 }
 
-export function commandNamesByTypes(commandMap: Map<string, Command>, ...types: CommandType[]) {
+export function commandNamesByTypes(commandMap: Map<string, LegacyCommand>, ...types: CommandType[]) {
 	return [...commandMap].filter(([_, command]) => types.includes(command.type)).map(([name, _]) => name);
 }
