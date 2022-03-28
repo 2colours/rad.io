@@ -1,18 +1,21 @@
 import * as Discord from 'discord.js';
 import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
 import moment from 'moment';
-import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
+import { commandNamesByTypes, legacyIsAdmin, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, legacyCommands, creators, getEmoji, legacyDebatedCommands, radios as radiosList, translateAlias, forceSchedule,
-	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, setPrefix, tickEmoji,
-	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin } from '../internal.js';
+	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch,
+	SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji,
+	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, LegacyActions } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
 import axios from 'axios';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
-export const actions: Actions = {
-	async setprefix(newPrefix) {
-		newPrefix = newPrefix.toLowerCase();
+export const legacyActions: LegacyActions = {
+	async setprefix(param) {
+		if (!param)
+			return void this.reply('**Ez nem lehet prefix!**');
+		const newPrefix = param.toLowerCase();
 		setPrefix(this.guild.id, newPrefix);
 		try {
 			await saveRow.prefix({ guildID: this.guild.id, prefix: newPrefix });
@@ -24,27 +27,27 @@ export const actions: Actions = {
 			this.channel.send(`${newPrefix} **a prefix, de csak leállásig...**`);
 		}
 	},
-	async join(stationId) {
-		const channelToPlay = extractChannel(this, stationId);
+	async join(param) {
+		const channelToPlay = extractChannel(this, param);
 		joinAndStartup.call(this, (gp: GuildPlayer) => {
 			if (channelToPlay)
 				gp.schedule(Object.assign({
 					type: 'radio' as StreamType,
 					lengthSeconds: undefined,
-					requester: this.member as Discord.GuildMember
+					requester: this.member
 				}, radiosList.get(channelToPlay)));
 		});
 	},
-	joinfallback() {
+	joinfallback(_) {
 		joinAndStartup.call(this, (gp: GuildPlayer) => gp.skip());
 	},
 
-	async yt(ytQuery) {
-		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
-		ytQuery = ytQuery.trim();
-		if (isLink(ytQuery)) {
+	async yt(param) {
+		const voiceChannel = this.member.voice.channel;
+		param = param.trim();
+		if (isLink(param)) {
 			try {
-				var toSchedule = await resolveYoutubeUrl(ytQuery, this.member as Discord.GuildMember);
+				var toSchedule = await resolveYoutubeUrl(param, this.member);
 			}
 			catch (e) {
 				return void this.channel.send('**Érvénytelen youtube url.**');
@@ -53,7 +56,7 @@ export const actions: Actions = {
 				this.channel.send(`**${toSchedule.length} elem került a sorba.**`);
 			return void forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
 		}
-		const ytString = sscanf(ytQuery, '%S') ?? '';
+		const ytString = sscanf(param, '%S') ?? '';
 		try {
 			const { results } = await youtube.searchVideos(ytString, 5);
 			if (!results || results.length == 0)
@@ -76,7 +79,7 @@ export const actions: Actions = {
 				url: selectedResult.url,
 				type: 'yt',
 				lengthSeconds: moment.duration(selectedResult._length).asSeconds(),
-				requester: this.member as Discord.GuildMember
+				requester: this.member
 			}]);
 		}
 		catch (e) {
@@ -84,7 +87,6 @@ export const actions: Actions = {
 			this.channel.send('**Hiba a keresés során.**');
 		}
 	},
-	/*
 	async soundcloud(param) {
 		const voiceChannel = this.member.voice.channel;
 		const scString = sscanf(param, '%S') ?? '';
@@ -129,31 +131,32 @@ export const actions: Actions = {
 				this.channel.send('**Hiba a keresés során.**');
 			}
 		}
-	},*/
-	async custom(url) {
-		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
-		url = sscanf(url, '%s') ?? '';
+	},
+	async custom(param) {
+		const voiceChannel = this.member.voice.channel;
+		const url = sscanf(param, '%s') ?? '';
 		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
 			name: 'Custom',
 			url,
 			type: 'custom',
 			lengthSeconds: undefined,
-			requester: this.member as Discord.GuildMember
+			requester: this.member
 		}]);
 	},
-	leave() {
+	leave(_) {
 		const guildPlayer: GuildPlayer = this.guildPlayer;
 		guildPlayer.leave();
 		this.guildPlayer = undefined; //guildPlayer törlése így tehető meg
-		this.reply(tickEmoji);
+		this.react(tickEmoji);
 	},
-	repeat(count) {
+	repeat(param) {
+		const count = sscanf(param, '%d');
 		if (count <= 0 && count != null)
 			return void this.reply('**Pozitív számot kell megadni.**');
 		this.guildPlayer.repeat(count);
 		this.channel.send('**Ismétlés felülírva.**');
 	},
-	async radios() {
+	async radios(_) {
 		function listRadios(lang: string) { //TODO ez is enum: kultkód/nyelvkód
 			return [...radiosList.entries()]
 				.filter(([_key, value]) => value.cult == lang)
@@ -172,24 +175,28 @@ export const actions: Actions = {
 				.setDescription(listRadios('eng'))]
 		});
 	},
-	shuffle() {
+	shuffle(_) {
 		this.guildPlayer.shuffle();
-		this.reply(tickEmoji);
+		this.react(tickEmoji);
 	},
-	clear() {
+	clear(_) {
 		this.guildPlayer.clear();
-		this.reply(tickEmoji);
+		this.react(tickEmoji);
 	},
-	toplast() {
+	toplast(_) {
 		this.guildPlayer.topLast();
-		this.reply(tickEmoji);
+		this.react(tickEmoji);
 	},
-	remove(queuePosition) {
+	remove(param) {
+		const queuePosition = sscanf(param, '%d');
+		if (queuePosition == undefined)
+			return void this.reply('**Paraméterként szám elvárt.**');
 		this.guildPlayer.remove(queuePosition);
-		this.reply(tickEmoji);
+		this.react(tickEmoji);
 	},
-	help(helpCommand) {
+	help(param) {
 		const prefix = getPrefix(this.guild.id);
+		let helpCommand = sscanf(param, '%s');
 		if (!helpCommand) {
 			const userCommands = commandNamesByTypes(legacyCommands, 'grantable', 'unlimited');
 			userCommands.sort();
@@ -219,40 +226,45 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		}
 		this.reply('**Nincs ilyen nevű parancs.**');
 	},
-	async guilds() {
+	async guilds(_) {
 		const guildLines = client.guilds.cache.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
 		createPastebin(`${client.user.username} on ${client.guilds.cache.size} guilds with ${client.users.cache.size} users.`, guildLines.join('\n'))
 			.then(link => this.channel.send(link));
 	},
-	async connections() {
+	async connections(_) {
 		const connectionLines = Array.from(getVoiceConnections().values(), vc => `${client.guilds.resolve(vc.joinConfig.guildId).name} (${vc.joinConfig.guildId}) - ${(client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).name} (${(client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size})`);
 		const usersAffected = Array.from(getVoiceConnections().values(), vc => (client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
 		createPastebin(`${client.user.username} on ${getVoiceConnections().size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
 			.then(link => this.channel.send(link));
 	},
-	async testradios() {
+	async testradios(_) {
 		const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, await axios.get(data.url, { timeout: 5000, responseType: 'stream' }).then(response => response.status == 200, _ => false)]));
 		const offRadios = idAndAvailables.filter(([_, available]) => !available).map(([id, _]) => id);
 		createPastebin(`${offRadios.length} radios went offline`, offRadios.join('\n'))
 			.then(link => this.channel.send(link));
 	},
-	async leaveguild(id) {
+	async leaveguild(param) {
+		const id = sscanf(param, '%s');
 		const guildToLeave = await client.guilds.resolve(id).leave();
 		this.channel.send(`**Szerver elhagyva:** ${guildToLeave.name}`);
 	},
-	voicecount() {
+	voicecount(_) {
 		this.channel.send(`:information_source: ${getVoiceConnections().size} voice connection(s) right now.`);
 	},
-	async queue() {
+	async queue(_) {
 		const queue: MusicData[] = this.guildPlayer.queue;
 		if (queue.length == 0)
 			return void this.channel.send('**A sor jelenleg üres.**');
 		const embed = commonEmbed.call(this);
 		const queueLines = queue.map((elem,index) => `${getEmoji(elem.type)} **${index+1}.** \t [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}; Kérte: ${elem.requester})`);
-		await useScrollableEmbed(this, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}, Összesen ${queue.length} elem`, queueLines);
+		const adapted = Object.assign(this, {
+			'user': this.author
+		});
+		await useScrollableEmbed(adapted, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}, Összesen ${queue.length} elem`, queueLines);
 	},
-	async fallback(mode) {
+	async fallback(param) {
 		const aliases = new Map([['r', 'radio'], ['s', 'silence'], ['l', 'leave']]);
+		let mode = sscanf(param, '%s') ?? '';
 		mode = aliases.get(mode) ?? mode;
 		if (!(new Set(aliases.values())).has(mode))
 			return void this.reply('**Ilyen fallback mód nem létezik.**');
@@ -266,7 +278,8 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			this.channel.send('**Mentés sikertelen.**');
 		}
 	},
-	async fallbackradio(given) {
+	async fallbackradio(param) {
+		const given: string = sscanf(param, '%s') ?? '';
 		if (radiosList.has(given)) {
 			var fr: MusicData = Object.assign({
 				type: 'radio' as StreamType,
@@ -294,49 +307,51 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
 		}
 	},
-	skip(amountToSkip) {
+	skip(param) {
+		let amountToSkip : number = sscanf(param, '%d') ?? 0;
 		if (amountToSkip<=0)
 			amountToSkip=1;
-		this.guildPlayer.skip(amountToSkip);		
+		this.guildPlayer.skip(amountToSkip);
+			
 	},
-	pause() {
+	pause(_) {
 		this.guildPlayer.pause();
-		this.reply(tickEmoji);
+		this.react(tickEmoji);
 	},
-	resume() {
+	resume(_) {
 		this.guildPlayer.resume();
-		this.reply(tickEmoji);
+		this.react(tickEmoji);
 	},
 	tune(param) {
-		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
+		const voiceChannel = this.member.voice.channel;
 		const channel = extractChannel(this, param);
 		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [Object.assign({
 			type: 'radio' as StreamType,
 			lengthSeconds: undefined,
-			requester: this.member as Discord.GuildMember
+			requester: this.member
 		}, radiosList.get(channel))]);
 	},
-	grant(commandSet, role) {
-		permissionReused.call(this, commandSet, role, (commands: string[], roleCommands: string[]) =>
+	grant(param) {
+		permissionReused.call(this, param, (commands: string[], roleCommands: string[]) =>
 			commands.forEach(elem => {
 				if (!roleCommands.includes(elem))
 					roleCommands.push(elem);
 			}));
 	},
-	granteveryone(commandSet) {
-		actions['grant'].call(this, `${commandSet} @everyone`);
+	granteveryone(param) {
+		legacyActions['grant'].call(this, `${param} @everyone`);
 	},
-	deny(commandSet, role) {
-		permissionReused.call(this, commandSet, role, (commands: string[], roleCommands: string[]) =>
+	deny(param) {
+		permissionReused.call(this, param, (commands: string[], roleCommands: string[]) =>
 			commands.forEach(elem => {
 				if (roleCommands.includes(elem))
 					roleCommands.splice(roleCommands.indexOf(elem), 1);
 			}));
 	},
-	denyeveryone(commandSet) {
-		actions['deny'].call(this, `${commandSet} @everyone`);
+	denyeveryone(param) {
+		legacyActions['deny'].call(this, `${param} @everyone`);
 	},
-	nowplaying() {
+	nowplaying(_) {
 		const nowPlayingData = this.guildPlayer.nowPlaying();
 		if (!nowPlayingData)
 			return void this.channel.send('**CSEND**');
@@ -345,12 +360,12 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			.setDescription(`${getEmoji(nowPlayingData.type)} [${nowPlayingData.name}](${nowPlayingData.url})\n${hourMinSec(nowPlayingData.playingSeconds)}/${hourMinSec(nowPlayingData.lengthSeconds)}`);
 		this.channel.send({ embeds: [embed] });
 	},
-	async perms() {
-		const adminRight = await Promise.resolve(isAdmin(this));
+	async perms(_) {
+		const adminRight = await Promise.resolve(legacyIsAdmin(this));
 		const adminCommands = commandNamesByTypes(legacyCommands, 'adminOnly', 'grantable');
 		adminCommands.sort();
 		const unlimitedCommands = commandNamesByTypes(legacyCommands, 'unlimited');
-		const grantedPerms = getRoles(this.guild.id).filter(([roleID, _]) => (this.member as Discord.GuildMember).roles.cache.has(roleID)).filter(([_, commands]) => commands.length > 0);
+		const grantedPerms = getRoles(this.guild.id).filter(([roleID, _]) => this.member.roles.cache.has(roleID)).filter(([_, commands]) => commands.length > 0);
 		grantedPerms.sort(([roleA, _commandsA], [roleB, _commandsB]) => roleA.localeCompare(roleB));
 		grantedPerms.forEach(([_, commands]) => commands.sort());
 		const allPerms = adminRight ? [...adminCommands] : [];
@@ -366,15 +381,15 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		})));
 		this.channel.send({ embeds: [embed] });
 	},
-	volume(vol) {
+	volume(param) {
+		const vol = sscanf(param, '%d');
 		if (vol == undefined || vol <= 0 || vol > 15)
 			return void this.reply('**Paraméterként szám elvárt. (1-15)**');
 		if (vol > 10)
 			this.channel.send('**Figyelem: erősítést alkalmaztál, a hangban torzítás léphet fel.**');
 		this.guildPlayer.setVolume(vol / 10);
-		this.reply(tickEmoji);
+		this.react(tickEmoji);
 	},
-	/*
 	async seek(param) {
 		const seconds = sscanf(param, '%d');
 		if (seconds == undefined || seconds <= 0)
@@ -385,32 +400,46 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		//TODO: érvényes lehet-e a típus?
 		await this.guildPlayer.seek(seconds);
 		this.react(tickEmoji);
-	},*/
-	mute() {
+	},
+	mute(_) {
 		this.guildPlayer.mute();
-		this.reply(tickEmoji);
+		this.react(tickEmoji);
 	},
-	unmute() {
+	unmute(_) {
 		this.guildPlayer.unmute();
-		this.reply(tickEmoji);
+		this.react(tickEmoji);
 	},
-	announce(target, rawMessage) {
+	announce(param) {
+		const [guildInfo, rawMessage = ''] = <string[]>sscanf(param, '%s %S');
 		const message: string = eval(rawMessage);
-		const guildToAnnounce = target == 'all' ? Array.from(client.guilds.cache.values()) : target == 'conn' ? Array.from(getVoiceConnections().values(), conn => client.guilds.resolve(conn.joinConfig.channelId)) : [client.guilds.resolve(target)];
+		const guildToAnnounce = guildInfo == 'all' ? Array.from(client.guilds.cache.values()) : guildInfo == 'conn' ? Array.from(getVoiceConnections().values(), conn => client.guilds.resolve(conn.joinConfig.channelId)) : [client.guilds.resolve(guildInfo)];
 		guildToAnnounce.forEach(guild => sendGuild(guild, message));
-		this.reply(tickEmoji);
+		this.react(tickEmoji);
 	},
-	partner(inv, rawContent, username, serverName) {
+	partner(param) {
+		const [link = '', rawContent = '""', username = '', serverName = ''] = param.split('\n');
 		const content: string = eval(rawContent);
-		sendToPartnerHook(inv, content, username, serverName);
-		this.reply(tickEmoji);
+		sendToPartnerHook(link, content, username, serverName);
+		this.react(tickEmoji);
 	}
 };
-async function permissionReused(this: ThisBinding, permCommands: string, role: Discord.Role, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
+async function permissionReused(this: ThisBinding, param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
+	try {
+		var [permCommands = '', roleName = ''] = <string[]>sscanf(param, '%s %S');
+	}
+	catch (e) {
+		//Nem nyertünk ki értelmeset
+		return void this.reply('**Nem megfelelő formátum.**');
+	}
+	if (!permCommands)
+		return void this.reply('**Az első paraméter üres.**');
 	const commandsArray = permCommands.toLowerCase() == 'all' ? legacyDebatedCommands : permCommands.split('|').map(translateAlias);
 	const firstWrong = commandsArray.find(elem => !legacyDebatedCommands.includes(elem));
 	if (firstWrong)
 		return void this.reply(`**\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.**`);
+	const role: Discord.Role = this.guild.roles.cache.find((elem: Discord.Role) => elem.name == roleName);
+	if (!role)
+		return void this.channel.send('**Nem létezik a megadott role.**');
 	const currentRoles = getRoleSafe(this.guild.id);
 	const roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);

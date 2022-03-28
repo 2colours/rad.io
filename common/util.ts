@@ -1,7 +1,7 @@
 ﻿import { Snowflake, Guild, TextChannel, MessageEmbed, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, MessageActionRow, MessageButton } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
-import { LegacyCommand, CommandType, PlayableData, LegacyThisBinding, database, LegacyDecorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
-	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from '../internal.js';
+import { LegacyCommand, CommandType, PlayableData, LegacyThisBinding, database, LegacyDecorator, UserHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
+	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator } from '../internal.js';
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import PasteClient from 'pastebin-api';
@@ -28,7 +28,8 @@ export function hourMinSec(seconds: number) {
 	seconds %= 60;
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
-export const aggregateDecorators: (decorators: LegacyDecorator[]) => LegacyDecorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
+export const aggregateLegacyDecorators: (decorators: LegacyDecorator[]) => LegacyDecorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
+export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
 export async function sendGuild(guild: Guild, content: string, options?: MessageOptions) {
 	for (const channel of guild.channels.cache.values()) {
 		if (!(channel instanceof TextChannel))
@@ -64,7 +65,7 @@ export function commonEmbed(this: LegacyThisBinding, additional: string = '') { 
 		.setFooter({ text: `${prefix}${this.cmdName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
 }
-export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, baseEmbed: MessageEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
+export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: MessageEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
 	let currentPage = 1;
 	const maxPage = Math.ceil(linesForDescription.length / elementsPerPage);
 	const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
@@ -88,7 +89,7 @@ export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, 
 	setButtonsDisabled();
 	const row = new MessageActionRow().addComponents(prevButton, nextButton);
 	const message = await ctx.channel.send({ embeds: [completeEmbed], components: [row] }) as Message;
-	const filter =  (i: MessageComponentInteraction) => (i.deferUpdate(), ['previous', 'next'].includes(i.customId) && i.user.id == ctx.author.id);
+	const filter =  (i: MessageComponentInteraction) => (i.deferUpdate(), ['previous', 'next'].includes(i.customId) && i.user.id == ctx.user.id);
 	const collector = message.createMessageComponentCollector({filter, time: 60000 });
 	for await (const i of collector) {
 		currentPage = i.customId == 'previous' ? currentPage - 1 : currentPage + 1;

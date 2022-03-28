@@ -2,9 +2,9 @@
 import { getVoiceConnection } from '@discordjs/voice';
 const token = process.env.radioToken;
 
-import { client, PackedMessage, ThisBinding, actions, GuildPlayer, translateAlias, messageCommands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix } from './internal.js';
+import { client, LegacyPackedMessage, legacyActions, GuildPlayer, translateAlias, legacyCommands, embedC, channels, radios, randomElement, legacyDebatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix, LegacyThisBinding } from './internal.js';
 import moment from 'moment';
-const help = actions['help'];
+const help = legacyActions['help'];
 
 const devChannel = () => client.channels.resolve(devChanId);
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
@@ -25,7 +25,7 @@ client.on('interactionCreate', async interaction => {
 		return;
 	if (interaction.commandName != 'queue')
 		return;
-	const { decoratedAction: commandFunction } = messageCommands.get('queue');
+	const { decoratedAction: commandFunction } = legacyCommands.get('queue');
 	const thisBinding: any = Object.defineProperties(interaction, {
 		'guildPlayer': {
 			get() { return guildPlayers.get(this.guild.id); },
@@ -56,12 +56,12 @@ client.on('messageCreate', async (message) => {
 		const param = prefixless.substring(commandTerminator).trim();
 		commandString = commandString.toLowerCase();
 		commandString = translateAlias(commandString);
-		const { decoratedAction: commandFunction = Function.prototype } = messageCommands.get(commandString) ?? {};
-		const packedMessage: PackedMessage = Object.assign(message, { cmdName: commandString });
-		const thisBinding: ThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
+		const { decoratedAction: commandFunction = Function.prototype } = legacyCommands.get(commandString) ?? {};
+		const packedMessage: LegacyPackedMessage = Object.assign(message, { cmdName: commandString });
+		const thisBinding: LegacyThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
 			get: () => guildPlayers.get(packedMessage.guild.id),
 			set: value => guildPlayers.set(packedMessage.guild.id, value)
-		}) as ThisBinding;
+		}) as LegacyThisBinding;
 		await Promise.resolve(commandFunction.call(thisBinding, param ?? ''));
 	}
 	catch (e) {
@@ -126,7 +126,7 @@ async function sendWelcome(guild: Discord.Guild) {
 		.setAuthor({ name: client.user.tag, iconURL: client.user.displayAvatarURL() })
 		.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
 		.addField('❯ Néhány szó a botról', 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.')
-		.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${debatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
+		.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${legacyDebatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
 		.setColor(embedC)
 		.setTimestamp();
 	sendGuild(guild, devServerInvite, { embeds: [embed] });
