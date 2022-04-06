@@ -18,7 +18,7 @@ function addParam(commandBuilder: SlashCommandBuilder, param: ParameterData) {
 	type SupportedCommandOptionTypes = ApplicationCommandOptionTypes & 'String' | 'Number' | 'Boolean' | 'Role';
 	type SupportedAddOptionName = `add${SupportedCommandOptionTypes}Option`;
 	type SupportedOption = Exclude<Parameters<SlashCommandBuilder[SupportedAddOptionName]>[0], Function>
-	const currentMethod = commandBuilder[`add${param.type}` as SupportedAddOptionName];
+	const currentMethod = commandBuilder[`add${param.type}Option` as SupportedAddOptionName];
 	const optionBuilder = (option: SupportedOption) => {
 		option.setDescription(param.description.slice(0, 100));
 		option.setRequired(param.required);
