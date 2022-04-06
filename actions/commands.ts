@@ -1,26 +1,49 @@
-﻿import { actions, LegacyCommandExtraData, LegacyCommand, Filter, CommandExtraData, DeepReadonly, ParameterData, ThisBinding, Resolvable } from '../internal.js';
+﻿import { actions, Command, Filter, CommandExtraData, DeepReadonly, ParameterData, ThisBinding, Resolvable, ApplicationCommandOptionTypes } from '../internal.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { REST } from '@discordjs/rest';
-import { Routes, ApplicationCommandOptionType } from 'discord-api-types/v9';
-import { Role } from 'discord.js';
+import { Routes } from 'discord-api-types/v9';
 
 const token = process.env.radioToken;
 const clientId = process.env.botId;
-const guildId = process.env.testServerId;
+const rest = new REST({ version: '9' }).setToken(token);
 
 const aliases: Map<string, string> = new Map();
-export const messageCommands: Map<string, LegacyCommand> = new Map();
+export const commands: Map<string, Command> = new Map();
 
 export function translateAlias(cmdOrAlias: string): string {
 	return aliases.get(cmdOrAlias) || cmdOrAlias;
 }
-function setupMessageCommand(commandData: LegacyCommandExtraData): void {
-	const cmdName = commandData.name;
-	for (const alias of commandData.aliases)
-		aliases.set(alias, cmdName);
-	messageCommands.set(cmdName, new LegacyCommand(Object.assign({
-		action: actions[cmdName]
-	}, commandData)));
+
+function addParam(commandBuilder: SlashCommandBuilder, param: ParameterData) {
+	type SupportedCommandOptionTypes = ApplicationCommandOptionTypes & 'String' | 'Number' | 'Boolean' | 'Role';
+	type SupportedAddOptionName = `add${SupportedCommandOptionTypes}Option`;
+	type SupportedOption = Exclude<Parameters<SlashCommandBuilder[SupportedAddOptionName]>[0], Function>
+	const currentMethod = commandBuilder[`add${param.type}` as SupportedAddOptionName];
+	const optionBuilder = (option: SupportedOption) => {
+		option.setDescription(param.description);
+		option.setRequired(param.required);
+		option.setName(param.name);
+		return option;
+	}
+	currentMethod.call(commandBuilder, optionBuilder);
+}
+async function setupMessageCommands(allCommandData: CommandData) {
+	const restCommands = Object.entries(allCommandData).map(([cmdName, cmdInfo]) => {
+		for (const alias of cmdInfo.aliases)
+			aliases.set(alias, cmdName);
+		commands.set(cmdName, new Command(Object.assign({
+			action: actions[cmdName as keyof CommandData],
+			name: cmdName
+		}, cmdInfo)));
+		const res = new SlashCommandBuilder()
+			.setName(cmdName)
+			.setDescription(cmdInfo.descrip);
+		for (const param of cmdInfo.params) {
+			addParam(res, param);
+		}
+		return res;
+	}).map(command => command.toJSON());
+	await rest.put(Routes.applicationCommands(clientId), { body: restCommands });
 }
 type CommandValueData = Omit<DeepReadonly<CommandExtraData>, 'name'>;
 type CommandDataConstraint = {
@@ -38,7 +61,7 @@ const commandData = constrainedCommandData({
 				name: 'n',
 				description: 'n (opcionális)',
 				required: false,
-				type: ApplicationCommandOptionType.Number
+				type: 'Number'
 			}
 		],
 		descrip: 'Az aktuálisan játszott stream (vagy azt is beleértve az n soron következő stream) átugrása. Ha a sor végére érnénk, fallback üzemmódba kerülünk.',
@@ -58,7 +81,7 @@ const commandData = constrainedCommandData({
 				name: 'prefix',
 				description: 'prefix',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}
 		],
 		descrip: 'Bot prefixének átállítása.',
@@ -71,7 +94,7 @@ const commandData = constrainedCommandData({
 				name: 'id',
 				description: 'id (opcionális)',
 				required: false,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}
 		],
 		descrip: 'Bot csatlakoztatása a felhasználó voice csatornájába. Rádió id megadása esetén az adott rádió egyből indításra kerül.',
@@ -91,7 +114,7 @@ const commandData = constrainedCommandData({
 				name: 'ytQuery',
 				description: 'URL / cím',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 				
 			}
 		],
@@ -106,7 +129,7 @@ const commandData = constrainedCommandData({
 				name: 'streamURL',
 				description: 'streamURL',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}
 		],
 		descrip: 'Egyéni stream sorba ütemezése URL alapján. A stream nem fog rádióadóként viselkedni, tehát nem skippelődik automatikusan a sor bővítése esetén.',
@@ -127,7 +150,7 @@ const commandData = constrainedCommandData({
 				name: 'max',
 				description: 'max (opcionális)',
 				required: false,
-				type: ApplicationCommandOptionType.Number
+				type: 'Number'
 			}
 		],
 		descrip: 'Az épp szóló szám ismétlése. Ha nincs megadva, hogy hányszor, akkor a szám korlátlan alkalommal ismétlődhet.',
@@ -169,7 +192,7 @@ const commandData = constrainedCommandData({
 				name: 'no',
 				description: 'sorszám',
 				required: true,
-				type: ApplicationCommandOptionType.Number
+				type: 'Number'
 			}
 		],
 		descrip: 'A várakozási sor adott elemének törlése sorszám szerint.',
@@ -183,7 +206,7 @@ const commandData = constrainedCommandData({
 				name: 'cmd',
 				description: 'parancs (opcionális)',
 				required: false,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}
 		],
 		descrip: 'A bot általános tudnivalóinak megjelenítése. Parancsnév megadása esetén a megadott parancsról részletesebb ismertetés.',
@@ -225,13 +248,13 @@ const commandData = constrainedCommandData({
 				name: 'target',
 				description: 'ID/all/conn',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			},
 			{
 				name: 'msg',
 				description: 'üzenet JS-sztringként',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}
 		],
 		descrip: 'A paraméterben megadott szerverekre üzenet küldése. Az üzenetet egy soros JS-sztringként kell megírni! all=összes szerver, conn=a botot éppen használó szerverek',
@@ -245,25 +268,25 @@ const commandData = constrainedCommandData({
 				name: 'inv',
 				description: 'invite link\\n',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			},
 			{
 				name: 'msg',
 				description: 'üzenet JS-sztringként\\n',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			},
 			{
 				name: 'username',
 				description: 'felhasználónév\\n',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			},
 			{
 				name: 'serverName',
 				description: 'szerver neve\\n',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}],
 		descrip: 'A partner webhookra küld egy üzenetet a felhasználó nevében. Ennek szövege az invite link, és mellé kerül egy embed, aminek a footerje a szerver neve, a tartalma pedig az üzenet sztringként kiértékelve.',
 		type: 'creatorsOnly',
@@ -276,7 +299,7 @@ const commandData = constrainedCommandData({
 				name: 'id',
 				description: 'ID',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}
 		],
 		descrip: 'A bot kiléptetése a megadott ID-jű szerverről.',
@@ -297,7 +320,7 @@ const commandData = constrainedCommandData({
 				name: 'leave/silence/radio',
 				description: 'leave/silence/radio',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}
 		],
 		descrip: 'Fallback mód beállítása. A bot akkor kerül fallback módba, ha kiürül a játszási sor. A választható üzemmódok: kilépés (leave), csendes jelenlét (silence), az erre a célra beállított rádió stream lejátszása (radio, lásd még `fallbackradio` parancs).',
@@ -311,7 +334,7 @@ const commandData = constrainedCommandData({
 				name: 'ID / streamURL',
 				description: 'ID / streamURL',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}
 		],
 		descrip: 'Rádió fallback esetén játszandó adó beállítása stream URL vagy rádió id alapján. (Lásd még: `fallback` parancs.)',
@@ -339,7 +362,7 @@ const commandData = constrainedCommandData({
 				name: 'id',
 				description: 'ID',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}
 		],
 		descrip: 'Rádióadó ütemezése a sor végére (id szerint, lásd `radios` parancs). Ha rádió lejátszása van folyamatban, akkor az újonnan ütemezett rádió egyből behangolásra kerül.',
@@ -353,13 +376,13 @@ const commandData = constrainedCommandData({
 				name: 'commandSet',
 				description: 'parancs1|parancs2|... / all',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			},
 			{
 				name: 'role',
 				description: 'a kérdéses rang',
 				required: true,
-				type: ApplicationCommandOptionType.Role
+				type: 'Role'
 			}
 		],
 		descrip: 'Új parancsok elérhetővé tétele egy role számára. Alapértelmezésben egyes parancsok csak adminisztrátoroknak elérhetők, ezt lehet felülírni ezzel a paranccsal.',
@@ -373,7 +396,7 @@ const commandData = constrainedCommandData({
 				name: 'commandSet',
 				description: 'parancs1|parancs2|... / all',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}
 		],
 		descrip: 'Új parancsok elérhetővé tétele mindenki (az @everyone role) számára. Alapértelmezésben egyes parancsok csak adminisztrátoroknak elérhetők, ezt lehet felülírni ezzel a paranccsal.',
@@ -387,13 +410,13 @@ const commandData = constrainedCommandData({
 				name: 'commandSet',
 				description: 'parancs1|parancs2|... / all',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			},
 			{
 				name: 'role',
 				description: 'a kérdéses rang',
 				required: true,
-				type: ApplicationCommandOptionType.Role
+				type: 'Role'
 			}
 		],
 		descrip: 'Parancshasználat visszavonása egy role-tól. (Lásd még: `grant` parancs.)',
@@ -407,7 +430,7 @@ const commandData = constrainedCommandData({
 				name: 'commandSet',
 				description: 'parancs1|parancs2|... / all',
 				required: true,
-				type: ApplicationCommandOptionType.String
+				type: 'String'
 			}
 		],
 		descrip: 'Parancshasználat visszavonása az @everyone role - tól. (Lásd még: `grant` parancs.)',
@@ -428,7 +451,7 @@ const commandData = constrainedCommandData({
 				name: 'vol',
 				description: 'hangerő (1-15)',
 				required: true,
-				type: ApplicationCommandOptionType.Number
+				type: 'Number'
 			}
 		],
 		descrip: 'A bot hangerejének állítása. A beállítás a bot kilépéséig érvényes, a kezdőérték 5, ahol a 10 jelenti a teljes hangerőt, a 10 fölötti értékek arányos erősítést.',
@@ -452,9 +475,9 @@ const commandData = constrainedCommandData({
 } as const);
 
 type CommandData = typeof commandData;
-type TypeFromParam<T> = T extends ApplicationCommandOptionType.Number ? number :
-			T extends ApplicationCommandOptionType.String ? string :
-			T extends ApplicationCommandOptionType.Role ? Role :
+type TypeFromParam<T> = T extends 'Number' ? number :
+			T extends 'String' ? string :
+			T extends 'Role' ? 'Role' :
 			unknown;
 type CompileTimeArray<T, V> = {
 	[K in keyof T]: V
@@ -484,17 +507,11 @@ setupMessageCommand({
 	filters: new Set([Filter.parameterNeeded, Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded]) //TODO: rádiónál lehessen?
 });*/
 
-export const debatedCommands = [...messageCommands].filter(entry => entry[1].type == 'grantable').map(entry=>entry[0]);
-
-
-const commands = [
-	new SlashCommandBuilder()
-		.setName('queue')
-		.setDescription('A várakozási sor tartalmának kiírása.')
-].map(command => command.toJSON());
-
-const rest = new REST({ version: '9' }).setToken(token);
-
+export const debatedCommands = [...commands].filter(entry => entry[1].type == 'grantable').map(entry=>entry[0]);
+await setupMessageCommands(commandData);
+/*
+const commands = .map(command => command.toJSON());*/
+/*
 try {
 	await rest.put(Routes.applicationCommands(clientId), { body: commands });
 	await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
@@ -502,4 +519,4 @@ try {
 }
 catch (e) {
 	console.error(e);
-}
+}*/

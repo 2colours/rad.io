@@ -1,7 +1,7 @@
 import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, CommandInteraction } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v9';
 import { Readable } from 'stream';
-import { GuildPlayer, Filter, client } from '../internal.js';
+import { GuildPlayer, Filter, client, aggregateDecorators } from '../internal.js';
 export interface Config {
 	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, FallbackType>;
@@ -66,11 +66,12 @@ export interface RadioConstantData {
 	url:string;
 	cult:string; //TODO biztos nem enum inkább?
 }
+export type ApplicationCommandOptionTypes = keyof typeof ApplicationCommandOptionType;
 export interface ParameterData {
 	name: string;
 	description: string;
 	required: boolean;
-	type: ApplicationCommandOptionType;
+	type: ApplicationCommandOptionTypes;
 }
 export interface CommandExtraData {
 	type: CommandType;
@@ -80,11 +81,34 @@ export interface CommandExtraData {
 	params: ParameterData[];
 	descrip: string;
 }
+interface CommandRawData extends CommandExtraData {
+	action: Action;
+}
+export class Command {
+	readonly decoratedAction: Action;
+	readonly aliases: string[];
+	readonly name: string;
+	readonly helpRelated: HelpInfo;
+	readonly type: CommandType;
+	constructor(baseData: DeepReadonly<CommandRawData>) {
+		this.type = baseData.type;
+		this.name = baseData.name;
+		this.aliases = baseData.aliases;
+		let orderedFilters = [...baseData.filters];
+		orderedFilters.sort(Filter.compare);
+		this.decoratedAction = aggregateDecorators(orderedFilters.map(elem => elem.decorator))(baseData.action);
+		this.helpRelated = {
+			requirements: orderedFilters.map(elem => elem.description),
+			params: baseData.params,
+			ownDescription: baseData.descrip
+		};
+	}
+}
 export type DeepReadonly<T> = { readonly [K in keyof T]: DeepReadonly<T[K]> }
 export type CommandType = 'unlimited' | 'adminOnly' | 'grantable' | 'creatorsOnly';
 export interface HelpInfo {
 	requirements: string[];
-	params: string[];
+	params: ParameterData[];
 	ownDescription: string;
 }
 export class Creator {
