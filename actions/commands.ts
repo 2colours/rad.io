@@ -20,7 +20,7 @@ function addParam(commandBuilder: SlashCommandBuilder, param: ParameterData) {
 	type SupportedOption = Exclude<Parameters<SlashCommandBuilder[SupportedAddOptionName]>[0], Function>
 	const currentMethod = commandBuilder[`add${param.type}` as SupportedAddOptionName];
 	const optionBuilder = (option: SupportedOption) => {
-		option.setDescription(param.description);
+		option.setDescription(param.description.slice(0, 100));
 		option.setRequired(param.required);
 		option.setName(param.name);
 		return option;
@@ -37,7 +37,7 @@ async function setupMessageCommands(allCommandData: CommandData) {
 		}, cmdInfo)));
 		const res = new SlashCommandBuilder()
 			.setName(cmdName)
-			.setDescription(cmdInfo.descrip);
+			.setDescription(cmdInfo.descrip.slice(0, 100));
 		for (const param of cmdInfo.params) {
 			addParam(res, param);
 		}
