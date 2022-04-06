@@ -22,7 +22,7 @@ function addParam(commandBuilder: SlashCommandBuilder, param: ParameterData) {
 	const optionBuilder = (option: SupportedOption) => {
 		option.setDescription(param.description.slice(0, 100));
 		option.setRequired(param.required);
-		option.setName(param.name);
+		option.setName(param.name.toLowerCase());
 		return option;
 	}
 	currentMethod.call(commandBuilder, optionBuilder);
@@ -36,7 +36,7 @@ async function setupMessageCommands(allCommandData: CommandData) {
 			name: cmdName
 		}, cmdInfo)));
 		const res = new SlashCommandBuilder()
-			.setName(cmdName)
+			.setName(cmdName.toLowerCase())
 			.setDescription(cmdInfo.descrip.slice(0, 100));
 		for (const param of cmdInfo.params) {
 			addParam(res, param);
