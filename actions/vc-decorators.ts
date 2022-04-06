@@ -1,6 +1,5 @@
-﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators, actions } from '../internal.js';
+﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators } from '../internal.js';
 import { getVoiceConnection } from '@discordjs/voice';
-import { sscanf } from 'scanf';
 import { VoiceBasedChannel } from 'discord.js';
 export const isAdmin: Predicate = ctx => ctx.memberPermissions?.has('ADMINISTRATOR');
 const isVcUser: Predicate = ctx => !!ctx.guild.members.resolve(ctx.user.id).voice.channel;
@@ -22,7 +21,7 @@ const pass:Decorator=action=>action;
 const rejectReply=(replyMessage:string)=>(_:Action)=>function(_:string) {
 this.reply(`**${replyMessage}**`);
 };
-const nop:Decorator=_=>_=>{};
+const nop:Decorator=()=>()=>{};
 const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
 const not=(pred:Predicate)=>(ctx:ThisBinding)=>!pred(ctx);
 const adminNeeded:Decorator=choiceFilter(isAdmin,pass,rejectReply('Ezt a parancsot csak adminisztrátorok használhatják.'));
@@ -34,22 +33,13 @@ const sameOrNoBotVcNeeded:Decorator=choiceFilter(any(not(isVcBot),not(isDifferen
 const permissionNeeded:Decorator=choiceFilter(hasPermission,pass,rejectReply('Nincs jogod a parancs használatához.'));
 const adminOrPermissionNeeded:Decorator=choiceFilter(isAdmin,pass,permissionNeeded);
 const creatorNeeded:Decorator=choiceFilter(isCreator,pass,nop);
-const vcPermissionNeeded:Decorator=action=>function(param) {
+const vcPermissionNeeded:Decorator=action=>function(...args: Parameters<Action>) {
 	if (!hasVcPermission(this))
 		this.channel.send(`**Nincs jogom csatlakozni a** \`${this.guild.members.resolve(this.user.id).voice.channel.name}\` **csatornához!**`).catch(console.error);
   else
-    action.call(this,param);
+    action.call(this,args);
 };
 const eventualVcBotNeeded: Decorator = choiceFilter(isVcBot, pass, vcPermissionNeeded);
-const parameterNeeded: Decorator = action => function (param) {
-	if (!sscanf(param, '%S')) {
-		const originalName = this.commandName;
-		this.commandName = 'help'; // TODO ez már nem annyira jó ötlet
-		actions['help'].call(this, originalName);
-	}
-	else
-		action.call(this, param);
-};
 const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
 const isFallback: Predicate = ctx => ctx.guildPlayer.fallbackPlayed;
 const isSilence: Predicate = ctx => !ctx.guildPlayer.nowPlaying();
@@ -58,9 +48,9 @@ const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('Ez a pa
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));
 const isPlayingFallbackSet: Predicate = ctx => getFallbackMode(ctx.guild.id) == 'radio';
 const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('Ez a parancs nem használható a jelenlegi fallback beállítással.'));
-const naturalErrors: Decorator = action => async function (param) {
+const naturalErrors: Decorator = action => async function (...args: Parameters<Action>): Promise<void> {
 	try {
-		await Promise.resolve(action.call(this, param));
+		await Promise.resolve(action.call(this, args));
 	}
 	catch (e) {
 		if (typeof e == 'string')
@@ -84,7 +74,6 @@ export class Filter {
 	static readonly leaveCriteria = new Filter(leaveCriteria, '');
 	static readonly nonFallbackNeeded = new Filter(nonFallbackNeeded, '');
 	static readonly nonSilenceNeded = new Filter(nonSilenceNeeded, '');
-	static readonly parameterNeeded = new Filter(parameterNeeded, '');
 	static readonly naturalErrorNoNeeded = new Filter(naturalErrors, '');
 	private constructor(readonly decorator: Decorator, readonly description: string) {
 		this.priority = ++Filter.counter;

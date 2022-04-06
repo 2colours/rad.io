@@ -1,6 +1,5 @@
 ﻿import { Snowflake, Guild, TextChannel, MessageEmbed, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, MessageActionRow, MessageButton, CommandInteractionOption, Role } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
-import { ApplicationCommandOptionType } from 'discord-api-types/v9';
 import { LegacyCommand, CommandType, PlayableData, LegacyThisBinding, database, LegacyDecorator, UserHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
 	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator, TypeFromParam, SupportedCommandOptionTypes } from '../internal.js';
 import sequelize from 'sequelize';

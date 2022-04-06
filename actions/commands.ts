@@ -85,7 +85,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'Bot prefixének átállítása.',
 		type: 'adminOnly',
-		filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.adminNeeded])
 	},
 	'join': {
 		aliases: ['j'],
@@ -119,7 +119,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'Youtube stream sorba ütemezése URL vagy keresőszó alapján. Keresőszó esetén a választás a bot által elhelyezett reakciók szerint történik.',
 		type: 'unlimited',
-		filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded])
 	},
 	'custom': {
 		aliases: ['c'],
@@ -133,7 +133,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'Egyéni stream sorba ütemezése URL alapján. A stream nem fog rádióadóként viselkedni, tehát nem skippelődik automatikusan a sor bővítése esetén.',
 		type: 'unlimited',
-		filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded])
 	},
 	'leave': {
 		aliases: ['l'],
@@ -196,7 +196,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'A várakozási sor adott elemének törlése sorszám szerint.',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
 	},
 	'help': {
 		aliases: ['h'],
@@ -258,7 +258,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'A paraméterben megadott szerverekre üzenet küldése. Az üzenetet egy soros JS-sztringként kell megírni! all=összes szerver, conn=a botot éppen használó szerverek',
 		type: 'creatorsOnly',
-		filters: new Set([Filter.creatorNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.creatorNeeded])
 	},
 	'partner': {
 		aliases: [],
@@ -289,7 +289,7 @@ const commandData = constrainedCommandData({
 			}],
 		descrip: 'A partner webhookra küld egy üzenetet a felhasználó nevében. Ennek szövege az invite link, és mellé kerül egy embed, aminek a footerje a szerver neve, a tartalma pedig az üzenet sztringként kiértékelve.',
 		type: 'creatorsOnly',
-		filters: new Set([Filter.creatorNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.creatorNeeded])
 	},
 	'leaveguild': {
 		aliases: ['lg'],
@@ -324,7 +324,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'Fallback mód beállítása. A bot akkor kerül fallback módba, ha kiürül a játszási sor. A választható üzemmódok: kilépés (leave), csendes jelenlét (silence), az erre a célra beállított rádió stream lejátszása (radio, lásd még `fallbackradio` parancs).',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.dedicationNeeded])
 	},
 	'fallbackradio': {
 		aliases: ['fr'],
@@ -338,7 +338,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'Rádió fallback esetén játszandó adó beállítása stream URL vagy rádió id alapján. (Lásd még: `fallback` parancs.)',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.dedicationNeeded])
 	},
 	'pause': {
 		aliases: [],
@@ -366,7 +366,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'Rádióadó ütemezése a sor végére (id szerint, lásd `radios` parancs). Ha rádió lejátszása van folyamatban, akkor az újonnan ütemezett rádió egyből behangolásra kerül.',
 		type: 'unlimited',
-		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded])
 	},
 	'grant': {
 		aliases: ['g'],
@@ -386,7 +386,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'Új parancsok elérhetővé tétele egy role számára. Alapértelmezésben egyes parancsok csak adminisztrátoroknak elérhetők, ezt lehet felülírni ezzel a paranccsal.',
 		type: 'adminOnly',
-		filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.adminNeeded])
 	},
 	'granteveryone': {
 		aliases: ['ge'],
@@ -400,7 +400,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'Új parancsok elérhetővé tétele mindenki (az @everyone role) számára. Alapértelmezésben egyes parancsok csak adminisztrátoroknak elérhetők, ezt lehet felülírni ezzel a paranccsal.',
 		type: 'adminOnly',
-		filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.adminNeeded])
 	},
 	'deny': {
 		aliases: ['d'],
@@ -420,7 +420,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'Parancshasználat visszavonása egy role-tól. (Lásd még: `grant` parancs.)',
 		type: 'adminOnly',
-		filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.adminNeeded])
 	},
 	'denyeveryone': {
 		aliases: ['de'],
@@ -434,7 +434,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'Parancshasználat visszavonása az @everyone role - tól. (Lásd még: `grant` parancs.)',
 		type: 'adminOnly',
-		filters: new Set([Filter.adminNeeded, Filter.parameterNeeded])
+		filters: new Set([Filter.adminNeeded])
 	},
 	'nowplaying': {
 		aliases: ['np'],
@@ -455,7 +455,7 @@ const commandData = constrainedCommandData({
 		],
 		descrip: 'A bot hangerejének állítása. A beállítás a bot kilépéséig érvényes, a kezdőérték 5, ahol a 10 jelenti a teljes hangerőt, a 10 fölötti értékek arányos erősítést.',
 		type: 'grantable',
-		filters: new Set([Filter.parameterNeeded, Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
+		filters: new Set([Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
 	},
 	'mute': {
 		aliases: [],
