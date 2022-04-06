@@ -317,7 +317,7 @@ const commandData = constrainedCommandData({
 		aliases: ['f'],
 		params: [
 			{
-				name: 'leave/silence/radio',
+				name: 'choice',
 				description: 'leave/silence/radio',
 				required: true,
 				type: 'String'
@@ -331,7 +331,7 @@ const commandData = constrainedCommandData({
 		aliases: ['fr'],
 		params: [
 			{
-				name: 'ID / streamURL',
+				name: 'idOrStreamUrl',
 				description: 'ID / streamURL',
 				required: true,
 				type: 'String'
