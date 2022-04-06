@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import { LegacyFilter, aggregateLegacyDecorators, Resolvable, GuildPlayerHolder, CommandType, HelpInfo } from '../internal.js';
+import { LegacyFilter, aggregateLegacyDecorators, Resolvable, GuildPlayerHolder, CommandType } from '../internal.js';
 export type LegacyAction = (this:LegacyThisBinding,param:string) => Resolvable<void>;
 export type LegacyDecorator = (toDecorate:LegacyAction) => LegacyAction;
 export type LegacyPredicate = (x: LegacyThisBinding) => Resolvable<boolean>;
@@ -18,6 +18,11 @@ export interface LegacyCommandExtraData {
 	params: string[];
 	descrip: string;
 }
+export interface LegacyHelpInfo {
+	requirements: string[];
+	params: string[];
+	ownDescription: string;
+}
 interface LegacyCommandRawData extends LegacyCommandExtraData {
 	action: LegacyAction;
 }
@@ -25,7 +30,7 @@ export class LegacyCommand {
 	readonly decoratedAction: LegacyAction;
 	readonly aliases: string[];
 	readonly name: string;
-	readonly helpRelated: HelpInfo;
+	readonly helpRelated: LegacyHelpInfo;
 	readonly type: CommandType;
 	constructor(baseData: LegacyCommandRawData) {
 		this.type = baseData.type;

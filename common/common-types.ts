@@ -93,13 +93,13 @@ export class Command {
 	constructor(baseData: DeepReadonly<CommandRawData>) {
 		this.type = baseData.type;
 		this.name = baseData.name;
-		this.aliases = baseData.aliases;
-		let orderedFilters = [...baseData.filters];
+		this.aliases = baseData.aliases as string[];
+		let orderedFilters = Array.from(baseData.filters as Set<Filter>);
 		orderedFilters.sort(Filter.compare);
-		this.decoratedAction = aggregateDecorators(orderedFilters.map(elem => elem.decorator))(baseData.action);
+		this.decoratedAction = aggregateDecorators(orderedFilters.map(elem => elem.decorator))(baseData.action as Action);
 		this.helpRelated = {
 			requirements: orderedFilters.map(elem => elem.description),
-			params: baseData.params,
+			params: baseData.params as ParameterData[],
 			ownDescription: baseData.descrip
 		};
 	}
