@@ -1,7 +1,13 @@
-import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, CommandInteraction } from 'discord.js';
+import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, CommandInteraction, Role } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v9';
 import { Readable } from 'stream';
-import { GuildPlayer, Filter, client, aggregateDecorators } from '../internal.js';
+import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../internal.js';
+export type SupportedCommandOptionTypes = ApplicationCommandOptionTypes & 'String' | 'Number' | 'Boolean' | 'Role';
+export type TypeFromParam<T> =
+			('Number' extends T ? number : never) |
+			('String' extends T ? string : never) |
+			('Role' extends T ? Role : never) |
+			('Boolean' extends T ? boolean : never);
 export interface Config {
 	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, FallbackType>;
@@ -11,7 +17,6 @@ export interface Config {
 type TextBasedChannels = DMChannel | TextChannel | NewsChannel | ThreadChannel;
 export type Resolvable<T> = T | Promise<T>;
 export type Predicate = (ctx: ThisBinding) => Resolvable<boolean>;
-export type Action = (this:ThisBinding,param:string) => Resolvable<void>;
 export type Decorator = (toDecorate:Action) => Action;
 export type ScrollableEmbedTitleResolver = (currentPage: number, maxPage: number) => string;
 export type PlayableCallbackVoid = () => void;

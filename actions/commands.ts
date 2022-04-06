@@ -1,4 +1,4 @@
-﻿import { actions, Command, Filter, CommandExtraData, DeepReadonly, ParameterData, ThisBinding, Resolvable, ApplicationCommandOptionTypes } from '../internal.js';
+﻿import { actions, Command, Filter, CommandExtraData, DeepReadonly, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam } from '../internal.js';
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
@@ -15,7 +15,6 @@ export function translateAlias(cmdOrAlias: string): string {
 }
 
 function addParam(commandBuilder: SlashCommandBuilder, param: ParameterData) {
-	type SupportedCommandOptionTypes = ApplicationCommandOptionTypes & 'String' | 'Number' | 'Boolean' | 'Role';
 	type SupportedAddOptionName = `add${SupportedCommandOptionTypes}Option`;
 	type SupportedOption = Exclude<Parameters<SlashCommandBuilder[SupportedAddOptionName]>[0], Function>
 	const currentMethod = commandBuilder[`add${param.type}Option` as SupportedAddOptionName];
@@ -475,10 +474,6 @@ const commandData = constrainedCommandData({
 } as const);
 
 type CommandData = typeof commandData;
-type TypeFromParam<T> = T extends 'Number' ? number :
-			T extends 'String' ? string :
-			T extends 'Role' ? 'Role' :
-			unknown;
 type CompileTimeArray<T, V> = {
 	[K in keyof T]: V
 };
@@ -487,6 +482,7 @@ type ActionArgs<Key extends keyof CommandData> = MappedArgs<CommandData[Key]['pa
 export type Actions = {
 	[commandName in keyof CommandData]: (this: ThisBinding, ...args: ActionArgs<commandName>) => Resolvable<void>;
 };
+export type Action = Actions[keyof Actions];
 /*
 
 /*setupCommand({

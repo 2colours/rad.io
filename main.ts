@@ -2,7 +2,7 @@
 import { getVoiceConnection } from '@discordjs/voice';
 const token = process.env.radioToken;
 
-import { client, LegacyPackedMessage, legacyActions, GuildPlayer, translateAlias, legacyCommands, embedC, channels, radios, randomElement, legacyDebatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix, LegacyThisBinding } from './internal.js';
+import { client, LegacyPackedMessage, legacyActions, GuildPlayer, translateAlias, legacyCommands, embedC, channels, radios, randomElement, legacyDebatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix, LegacyThisBinding, commands, ThisBinding, retrieveCommandOptionValue } from './internal.js';
 import moment from 'moment';
 const help = legacyActions['help'];
 
@@ -21,24 +21,18 @@ client.on('ready', async () => {
 
 
 client.on('interactionCreate', async interaction => {
-	if (!interaction.isCommand())
+	if (!interaction.isCommand() || !commands.has(interaction.commandName))
 		return;
-	if (interaction.commandName != 'queue')
-		return;
-	const { decoratedAction: commandFunction } = legacyCommands.get('queue');
-	const thisBinding: any = Object.defineProperties(interaction, {
-		'guildPlayer': {
+	const { decoratedAction: commandFunction } = commands.get(interaction.commandName);
+	const thisBinding: ThisBinding = Object.defineProperty(interaction, 'guildPlayer',{
 			get() { return guildPlayers.get(this.guild.id); },
 			set(value) { return guildPlayers.set(this.guild.id, value); }
-		},
-		'author': {
-			get() { return this.user; }
-		}
-	});
-	await Promise.resolve(commandFunction.call(thisBinding));
+		}) as ThisBinding;
+	const args = interaction.options.data.map(retrieveCommandOptionValue);
+	await Promise.resolve(commandFunction.call(thisBinding, ...args));
 });
 
-
+//Legacy
 client.on('messageCreate', async (message) => {
 	if (message.guild == null) return;
 	const prefix = getPrefix(message.guild.id);
