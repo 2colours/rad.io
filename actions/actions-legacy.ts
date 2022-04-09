@@ -5,7 +5,7 @@ import { commandNamesByTypes, legacyIsAdmin, randomElement, hourMinSec, attach, 
 	client, channels, legacyCommands, creators, getEmoji, legacyDebatedCommands, radios as radiosList, translateAlias, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch,
 	SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji,
-	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, LegacyActions } from '../internal.js';
+	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, LegacyActions, LegacyThisBinding } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
 import axios from 'axios';
@@ -423,7 +423,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		this.react(tickEmoji);
 	}
 };
-async function permissionReused(this: ThisBinding, param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
+async function permissionReused(this: LegacyThisBinding, param: string, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
 	try {
 		var [permCommands = '', roleName = ''] = <string[]>sscanf(param, '%s %S');
 	}
@@ -488,7 +488,7 @@ async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): P
 	}
 }
 
-async function searchPick(this: ThisBinding, results: SearchResultView[]): Promise<number> {
+async function searchPick(this: LegacyThisBinding, results: SearchResultView[]): Promise<number> {
 	if (results.length == 1)
 		return 0;
 	const topResults = results.map((elem, index) => `__${index+1}.__ - ${discordEscape(elem.title)} \`(${hourMinSec(elem.duration)})\``);
@@ -510,7 +510,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 	const message = await this.channel.send({ embeds: [embed], components: [row] });
 	const filter = (i: Discord.SelectMenuInteraction) => {
 		i.deferUpdate();
-		return i.user.id == this.user.id;
+		return i.user.id == this.author.id;
 	};
 	try {
 		const selectInteraction = await message.awaitMessageComponent({filter, time: 30000 });
