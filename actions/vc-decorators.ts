@@ -18,8 +18,8 @@ const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.u
 const isAloneUser: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot && member != ctx.guild.members.resolve(ctx.user.id));
 const isAloneBot: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
-const rejectReply=(replyMessage:string)=>(_:Action)=>function(_:string) {
-this.reply(`**${replyMessage}**`);
+const rejectReply=(replyMessage:string)=>(_:Action)=> async function(_:string) {
+	await this.editReply(`**${replyMessage}**`);
 };
 const nop:Decorator=()=>()=>{};
 const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
@@ -54,7 +54,7 @@ const naturalErrors: Decorator = action => async function (...args: Parameters<A
 	}
 	catch (e) {
 		if (typeof e == 'string')
-			return void this.reply(`**hiba - ${e}**`);
+			return void (await this.editReply(`**hiba - ${e}**`));
 		console.error(e);
 	}
 };

@@ -141,15 +141,15 @@ export const actions: Actions = {
 			requester: this.member as Discord.GuildMember
 		}]);
 	},
-	leave() {
+	async leave() {
 		const guildPlayer: GuildPlayer = this.guildPlayer;
 		guildPlayer.leave();
 		this.guildPlayer = undefined; //guildPlayer törlése így tehető meg
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	},
-	repeat(count) {
+	async repeat(count) {
 		if (count <= 0 && count != null)
-			return void this.reply('**Pozitív számot kell megadni.**');
+			return void (await this.editReply('**Pozitív számot kell megadni.**'));
 		this.guildPlayer.repeat(count);
 		this.channel.send('**Ismétlés felülírva.**');
 	},
@@ -172,23 +172,23 @@ export const actions: Actions = {
 				.setDescription(listRadios('eng'))]
 		});
 	},
-	shuffle() {
+	async shuffle() {
 		this.guildPlayer.shuffle();
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	},
-	clear() {
+	async clear() {
 		this.guildPlayer.clear();
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	},
-	toplast() {
+	async toplast() {
 		this.guildPlayer.topLast();
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	},
-	remove(queuePosition) {
+	async remove(queuePosition) {
 		this.guildPlayer.remove(queuePosition);
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	},
-	help(helpCommand) {
+	async help(helpCommand) {
 		const prefix = getPrefix(this.guild.id);
 		if (!helpCommand) {
 			const userCommands = commandNamesByTypes(legacyCommands, 'grantable', 'unlimited');
@@ -217,9 +217,9 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 				.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
 			return void this.channel.send({ embeds: [embed] });
 		}
-		this.reply('**Nincs ilyen nevű parancs.**');
+		await this.editReply('**Nincs ilyen nevű parancs.**');
 	},
-	async guilds() {
+	guilds() {
 		const guildLines = client.guilds.cache.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
 		createPastebin(`${client.user.username} on ${client.guilds.cache.size} guilds with ${client.users.cache.size} users.`, guildLines.join('\n'))
 			.then(link => this.channel.send(link));
@@ -255,7 +255,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const aliases = new Map([['r', 'radio'], ['s', 'silence'], ['l', 'leave']]);
 		mode = aliases.get(mode) ?? mode;
 		if (!(new Set(aliases.values())).has(mode))
-			return void this.reply('**Ilyen fallback mód nem létezik.**');
+			return void (await this.editReply('**Ilyen fallback mód nem létezik.**'));
 		setFallbackMode(this.guild.id, <FallbackType>mode);
 		this.channel.send(`**Új fallback: ${mode}. **`);
 		try {
@@ -283,7 +283,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 				requester: undefined
 			};
 		else
-			return void this.reply('**Érvénytelen rádióadó.**');
+			return void (await this.editReply('**Érvénytelen rádióadó.**'));
 		setFallbackChannel(this.guild.id, fr);
 		this.channel.send(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`);
 		try {
@@ -299,13 +299,13 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			amountToSkip=1;
 		this.guildPlayer.skip(amountToSkip);		
 	},
-	pause() {
+	async pause() {
 		this.guildPlayer.pause();
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	},
-	resume() {
+	async resume() {
 		this.guildPlayer.resume();
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	},
 	tune(param) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
@@ -366,51 +366,51 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		})));
 		this.channel.send({ embeds: [embed] });
 	},
-	volume(vol) {
+	async volume(vol) {
 		if (vol == undefined || vol <= 0 || vol > 15)
-			return void this.reply('**Paraméterként szám elvárt. (1-15)**');
+			return void (await this.editReply('**Paraméterként szám elvárt. (1-15)**'));
 		if (vol > 10)
 			this.channel.send('**Figyelem: erősítést alkalmaztál, a hangban torzítás léphet fel.**');
 		this.guildPlayer.setVolume(vol / 10);
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	},
 	/*
 	async seek(param) {
 		const seconds = sscanf(param, '%d');
 		if (seconds == undefined || seconds <= 0)
-			return void this.reply('**Paraméterként pozitív szám elvárt.**');
+			return void (await this.editReply('**Paraméterként pozitív szám elvárt.**'));
 		const maxSeconds = this.guildPlayer.nowPlaying()?.lengthSeconds;
 		if (seconds > maxSeconds)
-			return void this.reply(`**a paraméter nem lehet nagyobb a szám hosszánál. (${maxSeconds})**`)
+			return void (await this.editReply(`**a paraméter nem lehet nagyobb a szám hosszánál. (${maxSeconds})**`))
 		//TODO: érvényes lehet-e a típus?
 		await this.guildPlayer.seek(seconds);
 		this.react(tickEmoji);
 	},*/
-	mute() {
+	async mute() {
 		this.guildPlayer.mute();
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	},
-	unmute() {
+	async unmute() {
 		this.guildPlayer.unmute();
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	},
-	announce(target, rawMessage) {
+	async announce(target, rawMessage) {
 		const message: string = eval(rawMessage);
 		const guildToAnnounce = target == 'all' ? Array.from(client.guilds.cache.values()) : target == 'conn' ? Array.from(getVoiceConnections().values(), conn => client.guilds.resolve(conn.joinConfig.channelId)) : [client.guilds.resolve(target)];
 		guildToAnnounce.forEach(guild => sendGuild(guild, message));
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	},
-	partner(inv, rawContent, username, serverName) {
+	async partner(inv, rawContent, username, serverName) {
 		const content: string = eval(rawContent);
 		sendToPartnerHook(inv, content, username, serverName);
-		this.reply(tickEmoji);
+		await this.editReply(tickEmoji);
 	}
 };
 async function permissionReused(this: ThisBinding, permCommands: string, role: Discord.Role, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
 	const commandsArray = permCommands.toLowerCase() == 'all' ? legacyDebatedCommands : permCommands.split('|').map(translateAlias);
 	const firstWrong = commandsArray.find(elem => !legacyDebatedCommands.includes(elem));
 	if (firstWrong)
-		return void this.reply(`**\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.**`);
+		return void (await this.editReply(`**\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.**`));
 	const currentRoles = getRoleSafe(this.guild.id);
 	const roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
