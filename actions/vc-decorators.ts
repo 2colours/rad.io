@@ -7,7 +7,7 @@ const isDifferentVc: Predicate = ctx => client.channels.resolve(getVoiceConnecti
 const isVcBot: Predicate = ctx => !!getVoiceConnection(ctx.guildId);
 const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (param: string) {
 	const currentDecorator = await Promise.resolve(pred(this)) ? dec1 : dec2;
-	currentDecorator(action).call(this,param);
+	await currentDecorator(action).call(this,param);
 };
 const hasPermission: Predicate = ctx => {
 	const guildRoles = getRoles(ctx.guild.id);
@@ -33,11 +33,11 @@ const sameOrNoBotVcNeeded:Decorator=choiceFilter(any(not(isVcBot),not(isDifferen
 const permissionNeeded:Decorator=choiceFilter(hasPermission,pass,rejectReply('Nincs jogod a parancs használatához.'));
 const adminOrPermissionNeeded:Decorator=choiceFilter(isAdmin,pass,permissionNeeded);
 const creatorNeeded:Decorator=choiceFilter(isCreator,pass,nop);
-const vcPermissionNeeded:Decorator=action=>function(...args: Parameters<Action>) {
+const vcPermissionNeeded:Decorator=action=>async function(...args: Parameters<Action>) {
 	if (!hasVcPermission(this))
-		this.channel.send(`**Nincs jogom csatlakozni a** \`${this.guild.members.resolve(this.user.id).voice.channel.name}\` **csatornához!**`).catch(console.error);
-  else
-    action.call(this,args);
+		await this.channel.send(`**Nincs jogom csatlakozni a** \`${this.guild.members.resolve(this.user.id).voice.channel.name}\` **csatornához!**`).catch(console.error);
+	else
+		await action.call(this,args);
 };
 const eventualVcBotNeeded: Decorator = choiceFilter(isVcBot, pass, vcPermissionNeeded);
 const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
