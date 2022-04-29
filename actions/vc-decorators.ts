@@ -5,9 +5,9 @@ export const isAdmin: Predicate = ctx => ctx.memberPermissions?.has('ADMINISTRAT
 const isVcUser: Predicate = ctx => !!ctx.guild.members.resolve(ctx.user.id).voice.channel;
 const isDifferentVc: Predicate = ctx => client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) != ctx.guild.members.resolve(ctx.user.id).voice.channel;
 const isVcBot: Predicate = ctx => !!getVoiceConnection(ctx.guildId);
-const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (param: string) {
+const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (...args: Parameters<Action>) {
 	const currentDecorator = await Promise.resolve(pred(this)) ? dec1 : dec2;
-	await currentDecorator(action).call(this,param);
+	await currentDecorator(action).call(this,...args as any);
 };
 const hasPermission: Predicate = ctx => {
 	const guildRoles = getRoles(ctx.guild.id);
@@ -18,7 +18,7 @@ const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.u
 const isAloneUser: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot && member != ctx.guild.members.resolve(ctx.user.id));
 const isAloneBot: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
-const rejectReply=(replyMessage:string)=>(_:Action)=> async function(_:string) {
+const rejectReply=(replyMessage:string)=>(_:Action)=> async function(_:Parameters<Action>) {
 	await this.editReply(`**${replyMessage}**`);
 };
 const nop:Decorator=()=>()=>{};
@@ -37,7 +37,7 @@ const vcPermissionNeeded:Decorator=action=>async function(...args: Parameters<Ac
 	if (!hasVcPermission(this))
 		await this.channel.send(`**Nincs jogom csatlakozni a** \`${this.guild.members.resolve(this.user.id).voice.channel.name}\` **csatornához!**`).catch(console.error);
 	else
-		await action.call(this,args);
+		await action.call(this,...args as any);
 };
 const eventualVcBotNeeded: Decorator = choiceFilter(isVcBot, pass, vcPermissionNeeded);
 const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
