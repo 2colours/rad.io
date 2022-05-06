@@ -294,10 +294,11 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			this.channel.send('**Hiba: a beállítás csak leállásig lesz érvényes.**');
 		}
 	},
-	skip(amountToSkip) {
+	async skip(amountToSkip) {
 		if (amountToSkip<=0)
 			amountToSkip=1;
-		this.guildPlayer.skip(amountToSkip);		
+		await this.guildPlayer.skip(amountToSkip);		
+		await this.editReply(tickEmoji);
 	},
 	async pause() {
 		this.guildPlayer.pause();

@@ -115,9 +115,9 @@ export class GuildPlayer {
 	async seek(_seconds: number) {
 		//TODO
 	}
-	skip(amount: number = 1) {
+	async skip(amount: number = 1) {
 		this.queue.splice(0,(amount<=this.queue.length)?amount-1:this.queue.length);
-		this.startNext();
+		await this.startNext();
 	}
 	private async startNext() {
 		this.playingElement = this.queue.shift() ?? null;
