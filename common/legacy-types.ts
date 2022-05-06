@@ -7,7 +7,7 @@ export interface LegacyActions {
 	[name: string]: LegacyAction;
 }
 export interface LegacyPackedMessage extends Message {
-	cmdName: string;
+	commandName: string;
 }
 export interface LegacyThisBinding extends LegacyPackedMessage, GuildPlayerHolder { }
 export interface LegacyCommandExtraData {

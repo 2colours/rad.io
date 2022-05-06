@@ -58,11 +58,15 @@ export async function forceSchedule(textChannel: TextChannel, voiceChannel: Base
 	else
 		holder.guildPlayer.bulkSchedule(playableData);
 };
-export function commonEmbed(this: LegacyThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
+interface CommonEmbedThisBinding {
+	guild: Guild;
+	commandName: string;
+};
+export function commonEmbed(this: CommonEmbedThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
 	const prefix = getPrefix(this.guild.id);
 	return new MessageEmbed()
 		.setColor(embedC)
-		.setFooter({ text: `${prefix}${this.cmdName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
+		.setFooter({ text: `${prefix}${this.commandName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
 }
 export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: MessageEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {

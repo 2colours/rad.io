@@ -12,7 +12,7 @@ const choiceFilter = (pred: LegacyPredicate, dec1: LegacyDecorator, dec2: Legacy
 };
 const hasPermission: LegacyPredicate = ctx => {
 	const guildRoles = getRoles(ctx.guild.id);
-	return guildRoles.some(([roleName, relatedPerms]) => ctx.member.roles.cache.has(roleName) && relatedPerms.includes(ctx.cmdName));
+	return guildRoles.some(([roleName, relatedPerms]) => ctx.member.roles.cache.has(roleName) && relatedPerms.includes(ctx.commandName));
 }
 const hasVcPermission: LegacyPredicate = ctx => ctx.member.voice.channel.joinable;
 const isCreator: LegacyPredicate = ctx => creators.map(elem => elem.id).includes(ctx.author.id);
@@ -43,8 +43,8 @@ const vcPermissionNeeded:LegacyDecorator=action=>function(param) {
 const eventualVcBotNeeded: LegacyDecorator = choiceFilter(isVcBot, pass, vcPermissionNeeded);
 const parameterNeeded: LegacyDecorator = action => function (param) {
 	if (!sscanf(param, '%S')) {
-		const originalName = this.cmdName;
-		this.cmdName = 'help';
+		const originalName = this.commandName;
+		this.commandName = 'help';
 		legacyActions['help'].call(this, originalName);
 	}
 	else

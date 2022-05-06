@@ -40,7 +40,7 @@ client.on('messageCreate', async (message) => {
 	const prefix = getPrefix(message.guild.id);
 	if (message.mentions.users.has(client.user.id))
 		return void help.call(Object.assign(message, {
-			cmdName: 'help'
+			commandName: 'help'
 		}), '');
 	const content = message.content;
 	if (!content.toLowerCase().startsWith(prefix)) return;
@@ -53,7 +53,7 @@ client.on('messageCreate', async (message) => {
 		commandString = commandString.toLowerCase();
 		commandString = translateAlias(commandString);
 		const { decoratedAction: commandFunction = Function.prototype } = legacyCommands.get(commandString) ?? {};
-		const packedMessage: LegacyPackedMessage = Object.assign(message, { cmdName: commandString });
+		const packedMessage: LegacyPackedMessage = Object.assign(message, { commandName: commandString });
 		const thisBinding: LegacyThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
 			get: () => guildPlayers.get(packedMessage.guild.id),
 			set: value => guildPlayers.set(packedMessage.guild.id, value)
