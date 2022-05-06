@@ -127,6 +127,7 @@ export class Creator {
 }
 export interface SearchResultView {
 	title: string;
+	uploaderName: string;
 	duration: number; //másodpercben
 }
 

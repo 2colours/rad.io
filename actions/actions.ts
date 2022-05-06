@@ -59,8 +59,10 @@ export const actions: Actions = {
 			if (!results || results.length == 0)
 				return void this.channel.send('**Nincs találat.**');
 			await Promise.all(results.map(elem => elem.fetch()));
-			const resultsView: SearchResultView[] = results.map(elem => Object.assign({}, {
-				title: elem.title, duration: elem.minutes * 60 + elem.seconds
+			const resultsView: SearchResultView[] = results.map(elem => ({
+				title: elem.title,
+				duration: elem.minutes * 60 + elem.seconds,
+				uploaderName: elem.channel.name
 			}));
 			try {
 				var index: number = await searchPick.call(this, resultsView);
@@ -473,10 +475,10 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 			.setPlaceholder('Válassz egy videót')
 			.setMinValues(1)
 			.setMaxValues(1)
-			.addOptions(topResults.map((resultLine, index) => Object.assign({}, {
-				label: resultLine,
+			.addOptions(results.map((resultData, index) => ({
+				label: discordEscape(resultData.title).slice(0, 100),
 				value: index.toString(),
-				description: 'ÉS IDE MI KERÜLJÖN?'
+				description: `${resultData.uploaderName} — ${hourMinSec(resultData.duration)}`
 			})))
 	);
 	const message = await this.channel.send({ embeds: [embed], components: [row] });
