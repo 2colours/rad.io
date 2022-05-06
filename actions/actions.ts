@@ -478,7 +478,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 			.addOptions(results.map((resultData, index) => ({
 				label: discordEscape(resultData.title).slice(0, 100),
 				value: index.toString(),
-				description: `${resultData.uploaderName} — ${hourMinSec(resultData.duration)}`
+				description: `${hourMinSec(resultData.duration)} — ${resultData.uploaderName}`
 			})))
 	);
 	const message = await this.channel.send({ embeds: [embed], components: [row] });
