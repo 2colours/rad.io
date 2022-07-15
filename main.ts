@@ -2,11 +2,12 @@
 import { getVoiceConnection } from '@discordjs/voice';
 const token = process.env.radioToken;
 
-import { client, LegacyPackedMessage, legacyActions, GuildPlayer, translateAlias, legacyCommands, embedC, channels, radios, randomElement, legacyDebatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix, LegacyThisBinding, commands, ThisBinding, retrieveCommandOptionValue } from './internal.js';
+import { client, LegacyPackedMessage, legacyActions, GuildPlayer, translateAlias, legacyCommands, embedC, channels, radios, randomElement, legacyDebatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix, LegacyThisBinding, commands, ThisBinding, retrieveCommandOptionValue, creators } from './internal.js';
 import moment from 'moment';
 const help = legacyActions['help'];
 
 const devChannel = () => client.channels.resolve(devChanId);
+const guildId = process.env.testServerId;
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
 client.on('ready', async () => {
@@ -14,6 +15,18 @@ client.on('ready', async () => {
 		if (guild.voice?.channel)
 			guild.voice.channel.leave();
 	}); Discord.js v12 legacy*/
+	const ownGuild = client.guilds.resolve(guildId);
+	const ownGuildCommands = await ownGuild.commands.fetch();
+	ownGuildCommands.forEach(currentCommand => {
+		ownGuild.commands.permissions.add({
+			command: currentCommand.id,
+			permissions: creators.map(creator => ({
+				id: creator.id,
+				type: 'USER',
+				permission: true
+				}))
+		});
+	});
 	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();

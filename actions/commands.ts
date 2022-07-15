@@ -2,9 +2,11 @@
 import { SlashCommandBuilder } from '@discordjs/builders';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
+import tsObjectEntries from 'ts-type-object-entries';
 
 const token = process.env.radioToken;
 const clientId = process.env.botId;
+const guildId = process.env.testServerId;
 const rest = new REST({ version: '9' }).setToken(token);
 
 const aliases: Map<string, string> = new Map();
@@ -27,22 +29,27 @@ function addParam(commandBuilder: SlashCommandBuilder, param: ParameterData) {
 	currentMethod.call(commandBuilder, optionBuilder);
 }
 async function setupMessageCommands(allCommandData: CommandData) {
-	const restCommands = Object.entries(allCommandData).map(([cmdName, cmdInfo]) => {
+	const devCommands = tsObjectEntries(allCommandData).filter(([_name, info]) => info.type == 'creatorsOnly');
+	const publicCommands:CommandDataEntries = tsObjectEntries(allCommandData).filter(([_name, info]) => info.type != 'creatorsOnly');
+	type CommandDataEntries = [keyof CommandData, CommandData[keyof CommandData]][];
+	const setupCommands = (commandList: CommandDataEntries, defPermission: boolean) => commandList.map(([cmdName, cmdInfo]) => {
 		for (const alias of cmdInfo.aliases)
 			aliases.set(alias, cmdName);
 		commands.set(cmdName, new Command(Object.assign({
-			action: actions[cmdName as keyof CommandData],
+			action: actions[cmdName],
 			name: cmdName
 		}, cmdInfo)));
 		const res = new SlashCommandBuilder()
 			.setName(cmdName.toLowerCase())
+			.setDefaultPermission(defPermission)
 			.setDescription(cmdInfo.descrip.slice(0, 100));
 		for (const param of cmdInfo.params) {
 			addParam(res, param);
 		}
 		return res;
 	}).map(command => command.toJSON());
-	await rest.put(Routes.applicationCommands(clientId), { body: restCommands });
+	await rest.put(Routes.applicationCommands(clientId), { body: setupCommands(publicCommands, true) });
+	await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: setupCommands(devCommands, false) });
 }
 type CommandValueData = Omit<DeepReadonly<CommandExtraData>, 'name'>;
 type CommandDataConstraint = {
