@@ -61,6 +61,7 @@ export class GuildPlayer {
 		Promise.resolve(downloadMethods.get(this.playingElement.type)(this.playingElement.url))
 			.then(stream => {
 				this.currentPlay = new Playable(createAudioResource(stream, {inlineVolume:true}));
+				this.currentPlay.resource.volume.setVolume(this.volume);
 				this.engine.play(this.currentPlay.resource);
 			});
 		
