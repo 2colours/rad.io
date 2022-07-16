@@ -2,9 +2,9 @@ import * as Discord from 'discord.js';
 import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
 import moment from 'moment';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
-	client, channels, legacyCommands, creators, getEmoji, legacyDebatedCommands, radios as radiosList, translateAlias, forceSchedule,
+	client, channels, commands, creators, getEmoji, legacyDebatedCommands, radios as radiosList, translateAlias, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, setPrefix, tickEmoji,
-	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite } from '../internal.js';
+	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
 import axios from 'axios';
@@ -193,9 +193,9 @@ export const actions: Actions = {
 	async help(helpCommand) {
 		const prefix = getPrefix(this.guild.id);
 		if (!helpCommand) {
-			const userCommands = commandNamesByTypes(legacyCommands, 'grantable', 'unlimited');
+			const userCommands = commandNamesByTypes(commands, 'grantable', 'unlimited');
 			userCommands.sort();
-			const adminCommands = commandNamesByTypes(legacyCommands, 'adminOnly');
+			const adminCommands = commandNamesByTypes(commands, 'adminOnly');
 			adminCommands.sort();
 			const embed = commonEmbed.call(this)
 				.addField('❯ Felhasználói parancsok', userCommands.map(cmd => `\`${cmd}\``).join(' '))
@@ -207,14 +207,14 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			return void this.channel.send({ embeds: [embed] });
 		}
 		helpCommand = translateAlias(helpCommand);
-		if (legacyCommands.has(helpCommand)) {
-			const currentCommand = legacyCommands.get(helpCommand);
+		if (commands.has(helpCommand)) {
+			const currentCommand = commands.get(helpCommand);
 			const currentAliases = currentCommand.aliases;
 			const currentRequirements = currentCommand.helpRelated.requirements;
 			currentAliases.sort();
 			const embed = commonEmbed.call(this, ` ${helpCommand}`)
 				.addField('❯ Részletes leírás', currentCommand.helpRelated.ownDescription)
-				.addField('❯ Teljes parancs', `\`${prefix}${helpCommand}${['', ...currentCommand.helpRelated.params.map((attribute: string) => `<${attribute}>`)].join(' ')}\``)
+				.addField('❯ Teljes parancs', `\`${prefix}${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``)
 				.addField('❯ Használat feltételei', currentRequirements.length == 0 ? '-' : currentRequirements.join(' '))
 				.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
 			return void this.channel.send({ embeds: [embed] });
@@ -350,9 +350,9 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	},
 	async perms() {
 		const adminRight = await Promise.resolve(isAdmin(this));
-		const adminCommands = commandNamesByTypes(legacyCommands, 'adminOnly', 'grantable');
+		const adminCommands = commandNamesByTypes(commands, 'adminOnly', 'grantable');
 		adminCommands.sort();
-		const unlimitedCommands = commandNamesByTypes(legacyCommands, 'unlimited');
+		const unlimitedCommands = commandNamesByTypes(commands, 'unlimited');
 		const grantedPerms = getRoles(this.guild.id).filter(([roleID, _]) => (this.member as Discord.GuildMember).roles.cache.has(roleID)).filter(([_, commands]) => commands.length > 0);
 		grantedPerms.sort(([roleA, _commandsA], [roleB, _commandsB]) => roleA.localeCompare(roleB));
 		grantedPerms.forEach(([_, commands]) => commands.sort());
