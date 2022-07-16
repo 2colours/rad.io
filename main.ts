@@ -71,6 +71,7 @@ client.on('messageCreate', async (message) => {
 			get: () => guildPlayers.get(packedMessage.guild.id),
 			set: value => guildPlayers.set(packedMessage.guild.id, value)
 		}) as LegacyThisBinding;
+		legacyWarning(message, prefix);
 		await Promise.resolve(commandFunction.call(thisBinding, param ?? ''));
 	}
 	catch (e) {
@@ -153,7 +154,7 @@ function setPStatus() {
 	const randomRadioName = radios.get(randomElement(channels)).name;
 	const presence = `${randomRadioName} | ${randomElement(presenceEndings)}`;
 	client.user.setPresence({ activities: [{ name: presence, type: 'LISTENING' }] });
-};
+}
 
 function updateStatusChannels() {
 	if (client.user.id != dedicatedClientId) return;
@@ -161,5 +162,18 @@ function updateStatusChannels() {
 	const usersChan = client.channels.resolve(usersChanId) as Discord.VoiceChannel;
 	guildsChan.setName(`RAD.io (${client.guilds.cache.size}) szerveren`);
 	usersChan.setName(`RAD.io (${client.users.cache.size}) felhasználóval`);
-};
+}
+
+
+function legacyWarning(message: Discord.Message, currentPrefix: string) {
+	if (Math.random() < 0.9)
+		return;
+	message.reply(
+`**FIGYELEM!**
+Ezt az üzenetet azért kapod, mert a régi módon, prefixszel (\`${currentPrefix}\`) próbáltál kiadni egy parancsot.
+Ennek a támogatása [nemsokára véget ér](https://support-dev.discord.com/hc/en-us/articles/4404772028055-Message-Content-Privileged-Intent-FAQ).
+Ha nem látod a Rad.IO /parancsait a / begépelésére, kérj meg egy admint, hogy hívja be a botot újra.`
+	);
+}
+
 forceLogin().then(_ => setInterval(setPStatus, 60000 * 5));
