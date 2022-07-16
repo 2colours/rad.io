@@ -2,9 +2,9 @@ import * as Discord from 'discord.js';
 import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
 import moment from 'moment';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
-	client, channels, commands, creators, getEmoji, legacyDebatedCommands, radios as radiosList, translateAlias, forceSchedule,
+	client, channels, commands, creators, getEmoji, radios as radiosList, translateAlias, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, setPrefix, tickEmoji,
-	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData } from '../internal.js';
+	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
 import axios from 'axios';
@@ -364,8 +364,8 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	}
 };
 async function permissionReused(this: ThisBinding, permCommands: string, role: Discord.Role, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
-	const commandsArray = permCommands.toLowerCase() == 'all' ? legacyDebatedCommands : permCommands.split('|').map(translateAlias);
-	const firstWrong = commandsArray.find(elem => !legacyDebatedCommands.includes(elem));
+	const commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|').map(translateAlias);
+	const firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void (await this.editReply(`**\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.**`));
 	const currentRoles = getRoleSafe(this.guild.id);
