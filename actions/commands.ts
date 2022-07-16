@@ -78,8 +78,8 @@ const commandData = constrainedCommandData({
 		aliases: ['q'],
 		params: [],
 		descrip: 'A várakozási sor tartalmának kiírása.',
-		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.nonSilenceNeded])
+		type: 'unlimited',
+		filters: new Set([Filter.vcBotNeeded])
 	},
 	'setprefix': {
 		aliases: ['sp'],
