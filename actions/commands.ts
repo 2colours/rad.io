@@ -501,8 +501,9 @@ setupMessageCommand({
 	filters: new Set([Filter.parameterNeeded, Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded]) //TODO: rádiónál lehessen?
 });*/
 
-export const debatedCommands = [...commands].filter(entry => entry[1].type == 'grantable').map(entry=>entry[0]);
 await setupMessageCommands(commandData);
+export const debatedCommands = [...commands].filter(entry => entry[1].type == 'grantable').map(entry=>entry[0]);
+
 /*
 const commands = .map(command => command.toJSON());*/
 /*
