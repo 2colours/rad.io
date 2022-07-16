@@ -3,8 +3,8 @@ import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
 import moment from 'moment';
 import { commandNamesByTypes, legacyIsAdmin, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, legacyCommands, creators, getEmoji, legacyDebatedCommands, radios as radiosList, translateAlias, forceSchedule,
-	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, soundcloudSearch,
-	SearchResultView, partnerHook, avatarURL, webhookC, radios, soundcloudResolveTrack, setPrefix, tickEmoji,
+	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink,
+	SearchResultView, partnerHook, avatarURL, webhookC, radios, setPrefix, tickEmoji,
 	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, LegacyActions, LegacyThisBinding } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
@@ -63,7 +63,8 @@ export const legacyActions: LegacyActions = {
 				return void this.channel.send('**Nincs találat.**');
 			await Promise.all(results.map(elem => elem.fetch()));
 			const resultsView: SearchResultView[] = results.map(elem => Object.assign({}, {
-				title: elem.title, duration: elem.minutes * 60 + elem.seconds
+				title: elem.title, duration: elem.minutes * 60 + elem.seconds,
+				uploaderName: elem.channel.name
 			}));
 			try {
 				var index: number = await searchPick.call(this, resultsView);
@@ -85,51 +86,6 @@ export const legacyActions: LegacyActions = {
 		catch (e) {
 			console.error(e);
 			this.channel.send('**Hiba a keresés során.**');
-		}
-	},
-	async soundcloud(param) {
-		const voiceChannel = this.member.voice.channel;
-		const scString = sscanf(param, '%S') ?? '';
-		if (isLink(scString)) {
-			try {
-				const track = await soundcloudResolveTrack(scString);
-				forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
-					name: track.title,
-					url: track.url,
-					type: 'sc',
-					lengthSeconds: track.duration,
-					requester: this.member
-				}]);
-			}
-			catch (e) {
-				console.error(e);
-				this.channel.send('**Hiba a keresés során.**');
-			}
-		}
-		else {
-			try {
-				const results = await soundcloudSearch(scString, 5);
-				if (!results || results.length == 0)
-					return void this.channel.send('nincs találat.');
-				try {
-					var index: number = await searchPick.call(this, results);
-				}
-				catch (e) {
-					return;
-				}
-				const selectedResult = results[index];
-				forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
-					name: selectedResult.title,
-					url: selectedResult.url,
-					type: 'sc',
-					lengthSeconds: selectedResult.duration,
-					requester: this.member
-				}]);
-			}
-			catch (e) {
-				console.error(e);
-				this.channel.send('**Hiba a keresés során.**');
-			}
 		}
 	},
 	async custom(param) {

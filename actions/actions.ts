@@ -86,52 +86,6 @@ export const actions: Actions = {
 			this.channel.send('**Hiba a keresés során.**');
 		}
 	},
-	/*
-	async soundcloud(param) {
-		const voiceChannel = this.member.voice.channel;
-		const scString = sscanf(param, '%S') ?? '';
-		if (isLink(scString)) {
-			try {
-				const track = await soundcloudResolveTrack(scString);
-				forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
-					name: track.title,
-					url: track.url,
-					type: 'sc',
-					lengthSeconds: track.duration,
-					requester: this.member
-				}]);
-			}
-			catch (e) {
-				console.error(e);
-				this.channel.send('**Hiba a keresés során.**');
-			}
-		}
-		else {
-			try {
-				const results = await soundcloudSearch(scString, 5);
-				if (!results || results.length == 0)
-					return void this.channel.send('nincs találat.');
-				try {
-					var index: number = await searchPick.call(this, results);
-				}
-				catch (e) {
-					return;
-				}
-				const selectedResult = results[index];
-				forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
-					name: selectedResult.title,
-					url: selectedResult.url,
-					type: 'sc',
-					lengthSeconds: selectedResult.duration,
-					requester: this.member
-				}]);
-			}
-			catch (e) {
-				console.error(e);
-				this.channel.send('**Hiba a keresés során.**');
-			}
-		}
-	},*/
 	async custom(url) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		url = sscanf(url, '%s') ?? '';

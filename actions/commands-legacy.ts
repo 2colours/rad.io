@@ -48,15 +48,6 @@ setupMessageCommand({
 	filters: new Set([LegacyFilter.vcUserNeeded, LegacyFilter.eventualVcBotNeeded, LegacyFilter.sameOrNoBotVcNeeded, LegacyFilter.parameterNeeded])
 });
 
-/*setupCommand({
-	name: 'soundcloud',
-	aliases: ['sc'],
-	params: ['cím'],
-	descrip: 'Soundcloud stream sorba ütemezése keresőszó alapján. A választás a bot által elhelyezett reakciók szerint történik.',
-	type: 'unlimited',
-	filters: new Set([LegacyFilter.vcUserNeeded, LegacyFilter.eventualVcBotNeeded, LegacyFilter.sameOrNoBotVcNeeded, LegacyFilter.parameterNeeded])
-});*/
-
 setupMessageCommand({
 	name: 'custom',
 	aliases: ['c'],

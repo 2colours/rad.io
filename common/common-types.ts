@@ -130,7 +130,3 @@ export interface SearchResultView {
 	uploaderName: string;
 	duration: number; //másodpercben
 }
-
-export interface SoundcloudResult extends SearchResultView {
-	url: string;
-}

@@ -492,15 +492,6 @@ export type Actions = {
 export type Action = Actions[keyof Actions];
 /*
 
-/*setupCommand({
-	name: 'soundcloud',
-	aliases: ['sc'],
-	params: ['cím'],
-	descrip: 'Soundcloud stream sorba ütemezése keresőszó alapján. A választás a bot által elhelyezett reakciók szerint történik.',
-	type: 'unlimited',
-	filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded, Filter.parameterNeeded])
-});
-
 setupMessageCommand({
 	name: 'seek',
 	aliases: [],
