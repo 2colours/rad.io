@@ -53,12 +53,12 @@ export class GuildPlayer {
 	get playingElement(): MusicData {
 		return this._playingElement;
 	}
-	set playingElement(value: MusicData) {
+	private async setPlayingElement(value: MusicData):Promise<void> {
 		this._playingElement = value;
 		if (!value)
 			return;
 		this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``).catch();
-		Promise.resolve(downloadMethods.get(this.playingElement.type)(this.playingElement.url))
+		await Promise.resolve(downloadMethods.get(this.playingElement.type)(this.playingElement.url))
 			.then(stream => {
 				this.currentPlay = new Playable(createAudioResource(stream, {inlineVolume:true}));
 				this.currentPlay.resource.volume.setVolume(this.volume);
@@ -79,7 +79,7 @@ export class GuildPlayer {
 		this.queue = [];
 		this.handler = new VoiceHandler(this);
 		this.volume = 0.5;
-		this.playingElement = null;
+		this.setPlayingElement(null);
 		if (musicToPlay.length > 0)
 			this.bulkSchedule(musicToPlay);
 		this.engine = createAudioPlayer()
@@ -90,7 +90,7 @@ export class GuildPlayer {
 				const shouldRepeat = this.currentPlay.askRepeat();
 				if (!shouldRepeat)
 					return await this.startNext();
-				this.playingElement = this.playingElement;
+				await this.setPlayingElement(this.playingElement);
 			});
 		getVoiceConnection(this.ownerGuild.id).subscribe(this.engine);
 	}
@@ -121,7 +121,15 @@ export class GuildPlayer {
 		await this.startNext();
 	}
 	private async startNext() {
-		this.playingElement = this.queue.shift() ?? null;
+		while (true) {
+			try {
+				await this.setPlayingElement(this.queue.shift() ?? null);
+				break;
+			}
+			catch (e) {
+				this.announcementChannel.send('**Az indítás során hiba lépett fel.**');
+			}
+		}
 		if (!this.fallbackPlayed){
 			if (!this.playingElement) {
 				this.fallbackPlayed = true
@@ -191,7 +199,7 @@ export class GuildPlayer {
 				const fallbackMusic = getFallbackChannel(this.ownerGuild.id);
 				if (!fallbackMusic)
 					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
-				this.playingElement = fallbackMusic;
+				await this.setPlayingElement(fallbackMusic);
 				break;
 			case 'leave':
 				this.leave();
