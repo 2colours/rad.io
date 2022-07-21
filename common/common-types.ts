@@ -1,37 +1,38 @@
-import { Snowflake, Message, User, TextChannel, GuildMember, DMChannel, NewsChannel } from 'discord.js';
+import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, CommandInteraction, Role } from 'discord.js';
+import { ApplicationCommandOptionType } from 'discord-api-types/v9';
 import { Readable } from 'stream';
-import { GuildPlayer, Filter, aggregateDecorators, client } from '../internal.js';
+import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../internal.js';
+export type SupportedCommandOptionTypes = ApplicationCommandOptionTypes & 'String' | 'Number' | 'Boolean' | 'Role';
+export type TypeFromParam<T> =
+			('Number' extends T ? number : never) |
+			('String' extends T ? string : never) |
+			('Role' extends T ? Role : never) |
+			('Boolean' extends T ? boolean : never);
 export interface Config {
 	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, FallbackType>;
 	fallbackChannels: Map<Snowflake, MusicData>;
 	roles: Map<Snowflake, Map<Snowflake,string[]>>; //TODO az a string[] specifikusan parancsnév a debatedCommands-ból
 }
-type Resolvable<T> = T | Promise<T>;
-export type Action = (this:ThisBinding,param:string) => Resolvable<void>;
+type TextBasedChannels = DMChannel | TextChannel | NewsChannel | ThreadChannel;
+export type Resolvable<T> = T | Promise<T>;
+export type Predicate = (ctx: ThisBinding) => Resolvable<boolean>;
 export type Decorator = (toDecorate:Action) => Action;
-export type Predicate = (x: ThisBinding) => Resolvable<boolean>;
 export type ScrollableEmbedTitleResolver = (currentPage: number, maxPage: number) => string;
 export type PlayableCallbackVoid = () => void;
 export type PlayableCallbackBoolean = () => boolean;
 export type PlayableCallbackNumber = () => number;
 export type StreamProvider = (url:string) => Resolvable<string | Readable>;
-export interface Actions {
-	[name: string]: Action;
-}
-export interface PackedMessage extends Message {
-	cmdName:string;
-}
 export interface GuildPlayerHolder {
 	guildPlayer: GuildPlayer;
 }
-export interface AuthorHolder {
-	author: User;
+export interface UserHolder {
+	user: User;
 }
 export interface TextChannelHolder {
-	channel: TextChannel | DMChannel | NewsChannel;
+	channel: TextBasedChannels | PartialDMChannel;
 }
-export interface ThisBinding extends PackedMessage, GuildPlayerHolder { }
+export interface ThisBinding extends CommandInteraction, GuildPlayerHolder { }
 export type FallbackType = 'leave' | 'radio' | 'silence';
 export interface PrefixTableData {
 	guildID: Snowflake;
@@ -70,41 +71,49 @@ export interface RadioConstantData {
 	url:string;
 	cult:string; //TODO biztos nem enum inkább?
 }
+export type ApplicationCommandOptionTypes = keyof typeof ApplicationCommandOptionType;
+export interface ParameterData {
+	name: string;
+	description: string;
+	required: boolean;
+	type: ApplicationCommandOptionTypes;
+}
 export interface CommandExtraData {
 	type: CommandType;
 	name: string; //Biztos? Még mindig a validálás kérdése
 	aliases: string[];
 	filters: Set<Filter>;
-	params: string[];
+	params: ParameterData[];
 	descrip: string;
 }
 interface CommandRawData extends CommandExtraData {
 	action: Action;
 }
-export type CommandType = 'unlimited' | 'adminOnly' | 'grantable' | 'creatorsOnly';
 export class Command {
 	readonly decoratedAction: Action;
 	readonly aliases: string[];
 	readonly name: string;
 	readonly helpRelated: HelpInfo;
 	readonly type: CommandType;
-	constructor(baseData: CommandRawData) {
+	constructor(baseData: DeepReadonly<CommandRawData>) {
 		this.type = baseData.type;
 		this.name = baseData.name;
-		this.aliases = baseData.aliases;
-		let orderedFilters = [...baseData.filters];
+		this.aliases = baseData.aliases as string[];
+		let orderedFilters = Array.from(baseData.filters as Set<Filter>);
 		orderedFilters.sort(Filter.compare);
-		this.decoratedAction = aggregateDecorators(orderedFilters.map(elem => elem.decorator))(baseData.action);
+		this.decoratedAction = aggregateDecorators(orderedFilters.map(elem => elem.decorator))(baseData.action as Action);
 		this.helpRelated = {
 			requirements: orderedFilters.map(elem => elem.description),
-			params: baseData.params,
+			params: baseData.params as ParameterData[],
 			ownDescription: baseData.descrip
 		};
 	}
 }
-interface HelpInfo {
+export type DeepReadonly<T> = { readonly [K in keyof T]: DeepReadonly<T[K]> }
+export type CommandType = 'unlimited' | 'adminOnly' | 'grantable' | 'creatorsOnly';
+export interface HelpInfo {
 	requirements: string[];
-	params: string[];
+	params: ParameterData[];
 	ownDescription: string;
 }
 export class Creator {
@@ -118,9 +127,6 @@ export class Creator {
 }
 export interface SearchResultView {
 	title: string;
+	uploaderName: string;
 	duration: number; //másodpercben
-}
-
-export interface SoundcloudResult extends SearchResultView {
-	url: string;
 }

@@ -1,17 +1,31 @@
 ﻿import * as Discord from 'discord.js';
+import { getVoiceConnection } from '@discordjs/voice';
 const token = process.env.radioToken;
 
-import { client, PackedMessage, ThisBinding, actions, GuildPlayer, translateAlias, commands, embedC, channels, radios, randomElement, debatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix } from './internal.js';
+import { client, LegacyPackedMessage, legacyActions, GuildPlayer, translateAlias, legacyCommands, embedC, channels, radios, randomElement, legacyDebatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix, LegacyThisBinding, commands, ThisBinding, retrieveCommandOptionValue, creators } from './internal.js';
 import moment from 'moment';
-const help = actions['help'];
+const help = legacyActions['help'];
 
 const devChannel = () => client.channels.resolve(devChanId);
+const guildId = process.env.testServerId;
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
 client.on('ready', async () => {
-	client.guilds.cache.forEach(guild => {
+	/*client.guilds.cache.forEach(guild => {
 		if (guild.voice?.channel)
 			guild.voice.channel.leave();
+	}); Discord.js v12 legacy*/
+	const ownGuild = client.guilds.resolve(guildId);
+	const ownGuildCommands = await ownGuild.commands.fetch();
+	ownGuildCommands.forEach(currentCommand => {
+		ownGuild.commands.permissions.add({
+			command: currentCommand.id,
+			permissions: creators.map(creator => ({
+				id: creator.id,
+				type: 'USER',
+				permission: true
+				}))
+		});
 	});
 	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
@@ -19,12 +33,27 @@ client.on('ready', async () => {
 });
 
 
-client.on('message', async (message) => {
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand() || !commands.has(interaction.commandName))
+		return;
+	const { decoratedAction: commandFunction } = commands.get(interaction.commandName);
+	const thisBinding: ThisBinding = Object.defineProperty(interaction, 'guildPlayer',{
+			get() { return guildPlayers.get(this.guild.id); },
+			set(value) { return guildPlayers.set(this.guild.id, value); }
+		}) as ThisBinding;
+	const args = interaction.options.data.map(retrieveCommandOptionValue);
+	const defaultContent = (await interaction.deferReply({fetchReply: true})).content;
+	await Promise.resolve(commandFunction.call(thisBinding, ...args));
+	await interaction.fetchReply().then(reply => void (reply.content == defaultContent && interaction.deleteReply()));
+});
+
+//Legacy
+client.on('messageCreate', async (message) => {
 	if (message.guild == null) return;
 	const prefix = getPrefix(message.guild.id);
 	if (message.mentions.users.has(client.user.id))
 		return void help.call(Object.assign(message, {
-			cmdName: 'help'
+			commandName: 'help'
 		}), '');
 	const content = message.content;
 	if (!content.toLowerCase().startsWith(prefix)) return;
@@ -36,16 +65,17 @@ client.on('message', async (message) => {
 		const param = prefixless.substring(commandTerminator).trim();
 		commandString = commandString.toLowerCase();
 		commandString = translateAlias(commandString);
-		const { decoratedAction: commandFunction = Function.prototype } = commands.get(commandString) ?? {};
-		const packedMessage: PackedMessage = Object.assign(message, { cmdName: commandString });
-		const thisBinding: ThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
+		const { decoratedAction: commandFunction = Function.prototype } = legacyCommands.get(commandString) ?? {};
+		const packedMessage: LegacyPackedMessage = Object.assign(message, { commandName: commandString });
+		const thisBinding: LegacyThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
 			get: () => guildPlayers.get(packedMessage.guild.id),
 			set: value => guildPlayers.set(packedMessage.guild.id, value)
-		}) as ThisBinding;
+		}) as LegacyThisBinding;
+		legacyWarning(message, prefix);
 		await Promise.resolve(commandFunction.call(thisBinding, param ?? ''));
 	}
-	catch (ex) {
-		console.log(ex);
+	catch (e) {
+		console.error(e);
 	}
 });
 
@@ -65,7 +95,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	}
 	if (oldState.member?.user.bot) //innen csak nem botokra figyelünk
 		return;
-	if ([oldState.channel, newState.channel].includes(guildPlayer.ownerGuild.voice?.channel))
+	if ([oldState.channel?.id, newState.channel?.id].includes(getVoiceConnection(guildPlayer.ownerGuild.id).joinConfig.channelId))
 		guildPlayer.handler.eventTriggered();
 });
 
@@ -95,21 +125,21 @@ function logGuildJoin(guild: Discord.Guild) {
 	const embed = new Discord.MessageEmbed()
 		.setDescription(`ID: ${guild.id}
 Members: ${guild.memberCount}
-Owner: ${guild.owner ? guild.owner.user.tag : 'unable to fetch'}
+Owner: ${guild.members.resolve(guild.ownerId)?.user?.tag ?? 'unable to fetch'}
 Created At: ${created}
 Icon: [Link](${guild.iconURL() ? guild.iconURL() : client.user.displayAvatarURL()})`);
-	(devChannel() as Discord.TextChannel).send(`**${client.user.tag}** joined \`${guild.name}\``, { embed: embed });
+	(devChannel() as Discord.TextChannel).send({ content: `**${client.user.tag}** joined \`${guild.name}\``, embeds: [embed] });
 }
 
 async function sendWelcome(guild: Discord.Guild) {
 	const embed = new Discord.MessageEmbed()
-		.setAuthor(client.user.tag, client.user.displayAvatarURL())
+		.setAuthor({ name: client.user.tag, iconURL: client.user.displayAvatarURL() })
 		.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
 		.addField('❯ Néhány szó a botról', 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.')
-		.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${debatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
+		.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${legacyDebatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
 		.setColor(embedC)
 		.setTimestamp();
-	sendGuild(guild, devServerInvite, { embed });
+	sendGuild(guild, devServerInvite, { embeds: [embed] });
 }
 
 function forceLogin(): Promise<any> {
@@ -123,8 +153,8 @@ function setPStatus() {
 	const presenceEndings = [`G: ${client.guilds.cache.size}`, `Rádiók száma: ${channels.length} `, `@${client.user.username}`, `U: ${client.users.cache.size}`];
 	const randomRadioName = radios.get(randomElement(channels)).name;
 	const presence = `${randomRadioName} | ${randomElement(presenceEndings)}`;
-	client.user.setPresence({ activity: { name: presence, type: 'LISTENING' } });
-};
+	client.user.setPresence({ activities: [{ name: presence, type: 'LISTENING' }] });
+}
 
 function updateStatusChannels() {
 	if (client.user.id != dedicatedClientId) return;
@@ -132,5 +162,18 @@ function updateStatusChannels() {
 	const usersChan = client.channels.resolve(usersChanId) as Discord.VoiceChannel;
 	guildsChan.setName(`RAD.io (${client.guilds.cache.size}) szerveren`);
 	usersChan.setName(`RAD.io (${client.users.cache.size}) felhasználóval`);
-};
+}
+
+
+function legacyWarning(message: Discord.Message, currentPrefix: string) {
+	if (Math.random() < 0.9)
+		return;
+	message.reply(
+`**FIGYELEM!**
+Ezt az üzenetet azért kapod, mert a régi módon, prefixszel (\`${currentPrefix}\`) próbáltál kiadni egy parancsot.
+Ennek a támogatása _nemsokára véget ér_. (https://support-dev.discord.com/hc/en-us/articles/4404772028055-Message-Content-Privileged-Intent-FAQ)
+Ha nem látod a Rad.IO /parancsait a / begépelésére, kérj meg egy admint, hogy hívja be a botot újra.`
+	);
+}
+
 forceLogin().then(_ => setInterval(setPStatus, 60000 * 5));

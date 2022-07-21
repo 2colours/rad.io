@@ -1,69 +1,61 @@
-﻿import { aggregateDecorators, Predicate, Action, Decorator, ThisBinding, creators, actions, getRoles, getFallbackMode } from '../internal.js';
-import { sscanf } from 'scanf';
-export const isAdmin: Predicate = ctx => ctx.member.permissions.has('ADMINISTRATOR');
-const isVcUser: Predicate = ctx => !!ctx.member.voice.channel;
-const isDifferentVc: Predicate = ctx => ctx.guild.voice?.channel != ctx.member.voice.channel;
-const isVcBot: Predicate = ctx => !!ctx.guild.voice?.connection;
-const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (param: string) {
+﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators } from '../internal.js';
+import { getVoiceConnection } from '@discordjs/voice';
+import { VoiceBasedChannel } from 'discord.js';
+export const isAdmin: Predicate = ctx => ctx.memberPermissions?.has('ADMINISTRATOR');
+const isVcUser: Predicate = ctx => !!ctx.guild.members.resolve(ctx.user.id).voice.channel;
+const isDifferentVc: Predicate = ctx => client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) != ctx.guild.members.resolve(ctx.user.id).voice.channel;
+const isVcBot: Predicate = ctx => !!getVoiceConnection(ctx.guildId);
+const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (...args: Parameters<Action>) {
 	const currentDecorator = await Promise.resolve(pred(this)) ? dec1 : dec2;
-currentDecorator(action).call(this,param);
+	await currentDecorator(action).call(this,...args as any);
 };
 const hasPermission: Predicate = ctx => {
 	const guildRoles = getRoles(ctx.guild.id);
-	return guildRoles.some(([roleName, relatedPerms]) => ctx.member.roles.cache.has(roleName) && relatedPerms.includes(ctx.cmdName));
+	return guildRoles.some(([roleName, relatedPerms]) => ctx.guild.members.resolve(ctx.user.id).roles.cache.has(roleName) && relatedPerms.includes(ctx.commandName));
 }
-const hasVcPermission: Predicate = ctx => ctx.member.voice.channel.joinable;
-const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.author.id);
-const isAloneUser: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voice.channel.members.some(member => !member.user.bot && member != ctx.member);
-const isAloneBot: Predicate = ctx => isVcBot(ctx) && !ctx.guild.voice.channel.members.some(member => !member.user.bot);
+const hasVcPermission: Predicate = ctx => ctx.guild.members.resolve(ctx.user.id).voice.channel.joinable;
+const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.user.id);
+const isAloneUser: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot && member != ctx.guild.members.resolve(ctx.user.id));
+const isAloneBot: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
-const rejectReply=(replyMessage:string)=>(_:Action)=>function(_:string) {
-this.reply(`**${replyMessage}**`);
+const rejectReply=(replyMessage:string)=>(_:Action)=> async function(_:Parameters<Action>) {
+	await this.editReply(`**${replyMessage}**`);
 };
-const nop:Decorator=_=>_=>{};
+const nop:Decorator=()=>()=>{};
 const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
 const not=(pred:Predicate)=>(ctx:ThisBinding)=>!pred(ctx);
-const adminNeeded:Decorator=choiceFilter(isAdmin,pass,rejectReply('ezt a parancsot csak adminisztrátorok használhatják.'));
-const vcUserNeeded:Decorator=choiceFilter(isVcUser,pass,rejectReply('nem vagy voice csatornán.'));
-const sameVcNeeded:Decorator=choiceFilter(not(isDifferentVc),pass,rejectReply('nem vagyunk közös voice csatornán.')); //átengedi azt, ha egyik sincs vojszban!
-const vcBotNeeded:Decorator=choiceFilter(isVcBot,pass,rejectReply('nem vagyok voice csatornán.'));
-const noBotVcNeeded:Decorator=choiceFilter(isVcBot,rejectReply('már voice csatornán vagyok'),pass);
-const sameOrNoBotVcNeeded:Decorator=choiceFilter(any(not(isVcBot),not(isDifferentVc)),pass,rejectReply('már másik voice csatornán vagyok.'));
-const permissionNeeded:Decorator=choiceFilter(hasPermission,pass,rejectReply('nincs jogod a parancs használatához.'));
+const adminNeeded:Decorator=choiceFilter(isAdmin,pass,rejectReply('Ezt a parancsot csak adminisztrátorok használhatják.'));
+const vcUserNeeded:Decorator=choiceFilter(isVcUser,pass,rejectReply('Nem vagy voice csatornán.'));
+const sameVcNeeded:Decorator=choiceFilter(not(isDifferentVc),pass,rejectReply('Nem vagyunk közös voice csatornán.')); //átengedi azt, ha egyik sincs vojszban!
+const vcBotNeeded:Decorator=choiceFilter(isVcBot,pass,rejectReply('Nem vagyok voice csatornán.'));
+const noBotVcNeeded:Decorator=choiceFilter(isVcBot,rejectReply('Már voice csatornán vagyok'),pass);
+const sameOrNoBotVcNeeded:Decorator=choiceFilter(any(not(isVcBot),not(isDifferentVc)),pass,rejectReply('Már másik voice csatornán vagyok.'));
+const permissionNeeded:Decorator=choiceFilter(hasPermission,pass,rejectReply('Nincs jogod a parancs használatához.'));
 const adminOrPermissionNeeded:Decorator=choiceFilter(isAdmin,pass,permissionNeeded);
 const creatorNeeded:Decorator=choiceFilter(isCreator,pass,nop);
-const vcPermissionNeeded:Decorator=action=>function(param) {
+const vcPermissionNeeded:Decorator=action=>async function(...args: Parameters<Action>) {
 	if (!hasVcPermission(this))
-		this.channel.send(`**Nincs jogom csatlakozni a** \`${this.member.voice.channel.name}\` **csatornához!**`).catch(console.error);
-  else
-    action.call(this,param);
+		await this.channel.send(`**Nincs jogom csatlakozni a** \`${this.guild.members.resolve(this.user.id).voice.channel.name}\` **csatornához!**`).catch(console.error);
+	else
+		await action.call(this,...args as any);
 };
 const eventualVcBotNeeded: Decorator = choiceFilter(isVcBot, pass, vcPermissionNeeded);
-const parameterNeeded: Decorator = action => function (param) {
-	if (!sscanf(param, '%S')) {
-		const originalName = this.cmdName;
-		this.cmdName = 'help';
-		actions['help'].call(this, originalName);
-	}
-	else
-		action.call(this, param);
-};
 const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
 const isFallback: Predicate = ctx => ctx.guildPlayer.fallbackPlayed;
 const isSilence: Predicate = ctx => !ctx.guildPlayer.nowPlaying();
-const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
-const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('ez a parancs nem használható, amikor semmi nem szól (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
+const nonFallbackNeeded: Decorator = choiceFilter(isFallback, rejectReply('Ez a parancs nem használható fallback módban (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
+const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('Ez a parancs nem használható, amikor semmi nem szól (leave-eld a botot vagy ütemezz be valamilyen zenét).'), pass);
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));
 const isPlayingFallbackSet: Predicate = ctx => getFallbackMode(ctx.guild.id) == 'radio';
-const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('ez a parancs nem használható a jelenlegi fallback beállítással.'));
-const naturalErrors: Decorator = action => async function (param) {
+const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('Ez a parancs nem használható a jelenlegi fallback beállítással.'));
+const naturalErrors: Decorator = action => async function (...args: Parameters<Action>): Promise<void> {
 	try {
-		await Promise.resolve(action.call(this, param));
+		await Promise.resolve(action.call(this, args));
 	}
-	catch (ex) {
-		if (typeof ex == 'string')
-			return void this.reply(`**hiba - ${ex}**`);
-		console.error(ex);
+	catch (e) {
+		if (typeof e == 'string')
+			return void (await this.editReply(`**hiba - ${e}**`));
+		console.error(e);
 	}
 };
 
@@ -82,7 +74,6 @@ export class Filter {
 	static readonly leaveCriteria = new Filter(leaveCriteria, '');
 	static readonly nonFallbackNeeded = new Filter(nonFallbackNeeded, '');
 	static readonly nonSilenceNeded = new Filter(nonSilenceNeeded, '');
-	static readonly parameterNeeded = new Filter(parameterNeeded, '');
 	static readonly naturalErrorNoNeeded = new Filter(naturalErrors, '');
 	private constructor(readonly decorator: Decorator, readonly description: string) {
 		this.priority = ++Filter.counter;

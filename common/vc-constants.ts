@@ -398,7 +398,7 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	]);
 	return emojis.get(type);
 }
-export const tickEmoji = '☑';
+export const tickEmoji = '_☑_';
 export const maxPlaylistSize = 0; //Workaround a popyt 4-hez
 export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800'),new Creator('236922361918652416','Peketr#4324')];
 export const dedicatedClientId = '430326522146979861';
@@ -406,5 +406,5 @@ export const guildsChanId = '470522240551616523';
 export const usersChanId = '470522309132943360';
 export const devChanId = '470574072565202944';
 export const devServerInvite = 'https://discord.gg/C83h4Sk';
-export const partnerHook = new WebhookClient('663426173552033802', process.env.partnerWebhookToken);
+export const partnerHook = new WebhookClient({ id: '663426173552033802', token: process.env.partnerWebhookToken });
 export const avatarURL = 'https://i.imgur.com/FXgwVII.png';

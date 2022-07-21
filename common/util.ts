@@ -1,6 +1,7 @@
-﻿import { Snowflake, Guild, TextChannel, StringResolvable, MessageEmbed, MessageOptions, Message, MessageReaction, User, VoiceChannel, EmojiIdentifierResolvable } from 'discord.js';
-import { Command, CommandType, PlayableData, ThisBinding, database, Decorator, AuthorHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
-	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix } from '../internal.js';
+﻿import { Snowflake, Guild, TextChannel, MessageEmbed, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, MessageActionRow, MessageButton, CommandInteractionOption, Role } from 'discord.js';
+import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
+import { LegacyCommand, CommandType, PlayableData, database, LegacyDecorator, UserHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
+	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command } from '../internal.js';
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import PasteClient from 'pastebin-api';
@@ -27,22 +28,28 @@ export function hourMinSec(seconds: number) {
 	seconds %= 60;
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
+export const aggregateLegacyDecorators: (decorators: LegacyDecorator[]) => LegacyDecorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
 export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
-export async function sendGuild(guild: Guild, content: StringResolvable, options?: MessageOptions) {
+export async function sendGuild(guild: Guild, content: string, options?: MessageOptions) {
 	for (const channel of guild.channels.cache.values()) {
 		if (!(channel instanceof TextChannel))
 			continue;
 		try {
-			await channel.send(content, options);
+			await channel.send({ content, options });
 			break;
 		}
 		catch (e) {
 		}
 	}
 }
-export async function forceSchedule(textChannel: TextChannel, voiceChannel: VoiceChannel, holder: GuildPlayerHolder, playableData: MusicData[]) {
-	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !voiceChannel.guild.voice?.connection) {
-		await voiceChannel.join();
+export async function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildVoiceChannel, holder: GuildPlayerHolder, playableData: MusicData[]) {
+	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
+		joinVoiceChannel({
+			channelId: voiceChannel.id,
+			guildId: voiceChannel.guildId,
+			//@ts-ignore
+			adapterCreator: voiceChannel.guild.voiceAdapterCreator
+		});
 		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
 		return;
 	}
@@ -51,60 +58,55 @@ export async function forceSchedule(textChannel: TextChannel, voiceChannel: Voic
 	else
 		holder.guildPlayer.bulkSchedule(playableData);
 };
-export function commonEmbed(this: ThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
+interface CommonEmbedThisBinding {
+	guild: Guild;
+	commandName: string;
+};
+export function commonEmbed(this: CommonEmbedThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
 	const prefix = getPrefix(this.guild.id);
 	return new MessageEmbed()
 		.setColor(embedC)
-		.setFooter(`${prefix}${this.cmdName}${additional} - ${client.user.username}`, client.user.avatarURL())
+		.setFooter({ text: `${prefix}${this.commandName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
-};
-function scrollRequest(context: AuthorHolder, message: Message, currentPage: number, allPages: number) {
-	const res = new Promise<number>(async (resolve, reject) => {
-		const emojis: EmojiIdentifierResolvable[] = [];
-		if (currentPage > 1)
-			emojis.push('◀');
-		if (currentPage < allPages)
-			emojis.push('▶');
-		const filter = (reaction: MessageReaction, user: User) => emojis.some(emoji => reaction.emoji.name === emoji) && user.id == context.author.id;
-		const collector = message.createReactionCollector(filter, { maxEmojis: 1, time: 10000 });
-		collector.on('collect', r => {
-			resolve(r.emoji.name == '◀' ? currentPage - 1 : currentPage + 1);
-			collector.stop();
-		});
-		collector.on('end', _ => {
-			reject(' lejárt az idő.');
-		});
-		for (const emoji of emojis) {
-			const reaction = await message.react(emoji);
-			res
-				.then(_ => reaction.users.remove(client.user), _ => reaction.users.remove(client.user));
-		}
-	});
-	return res;
-};
-export async function useScrollableEmbed(ctx: AuthorHolder & TextChannelHolder, baseEmbed: MessageEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
+}
+export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: MessageEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
 	let currentPage = 1;
 	const maxPage = Math.ceil(linesForDescription.length / elementsPerPage);
 	const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
-	let completeEmbed = baseEmbed
+	const completeEmbed = baseEmbed
 		.setTitle(titleResolver(currentPage, maxPage))
 		.setDescription(currentDescription);
-	const message = await ctx.channel.send({ embed: completeEmbed }) as Message;
-	while (true) {
-		try {
-			currentPage = await scrollRequest(ctx, message, currentPage, maxPage);
-		}
-		catch (e) {
-			if (typeof e != 'string')
-				console.error(e);
-			break;
-		}
+	const prevButton = new MessageButton()
+		.setCustomId('previous')
+		.setLabel('Előző')
+		.setStyle('PRIMARY')
+		.setEmoji('◀️');
+	const nextButton = new MessageButton()
+		.setCustomId('next')
+		.setLabel('Következő')
+		.setStyle('PRIMARY')
+		.setEmoji('▶️');
+	function setButtonsDisabled() {
+		prevButton.setDisabled(currentPage <= 1);
+		nextButton.setDisabled(currentPage >= maxPage)
+	}
+	setButtonsDisabled();
+	const row = new MessageActionRow().addComponents(prevButton, nextButton);
+	const message = await ctx.channel.send({ embeds: [completeEmbed], components: [row] }) as Message;
+	const filter =  (i: MessageComponentInteraction) => (i.deferUpdate(), ['previous', 'next'].includes(i.customId) && i.user.id == ctx.user.id);
+	const collector = message.createMessageComponentCollector({filter, time: 60000 });
+	for await (const i of collector) {
+		currentPage = i.customId == 'previous' ? currentPage - 1 : currentPage + 1;
 		const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
-		completeEmbed = baseEmbed
+		setButtonsDisabled();
+		completeEmbed
 			.setTitle(titleResolver(currentPage, maxPage))
 			.setDescription(currentDescription);
-		await message.edit({ embed: completeEmbed });
+		await message.edit({ embeds: [completeEmbed], components: [row] });
 	}
+	completeEmbed.setTitle(`**Lejárt az idő** - ${titleResolver(currentPage, maxPage)}`);
+	[prevButton, nextButton].forEach(b => b.setDisabled(true));
+	await message.edit({ embeds: [completeEmbed], components: [row] });	
 }
 export const saveRow = {
 	async prefix(rowObj: PrefixTableData) {
@@ -163,6 +165,12 @@ export function starterSeconds(data: PlayableData): number {
 	return parseInt(new URL(data.url).searchParams.get('t')) || 0
 }
 
-export function commandNamesByTypes(commandMap: Map<string, Command>, ...types: CommandType[]) {
+export function commandNamesByTypes(commandMap: Map<string, LegacyCommand | Command>, ...types: CommandType[]) {
 	return [...commandMap].filter(([_, command]) => types.includes(command.type)).map(([name, _]) => name);
+}
+type SupportedCommandValueTypes = TypeFromParam<SupportedCommandOptionTypes>;
+export function retrieveCommandOptionValue(option: CommandInteractionOption): SupportedCommandValueTypes {
+	return ['BOOLEAN', 'STRING', 'NUMBER'].includes(option.type) ? option.value :
+	option.type == 'ROLE' ? option.role as Role :
+	null;
 }
