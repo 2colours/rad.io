@@ -171,7 +171,7 @@ function legacyWarning(message: Discord.Message, currentPrefix: string) {
 	message.reply(
 `**FIGYELEM!**
 Ezt az üzenetet azért kapod, mert a régi módon, prefixszel (\`${currentPrefix}\`) próbáltál kiadni egy parancsot.
-Ennek a támogatása [nemsokára véget ér](https://support-dev.discord.com/hc/en-us/articles/4404772028055-Message-Content-Privileged-Intent-FAQ).
+Ennek a támogatása _nemsokára véget ér_. (https://support-dev.discord.com/hc/en-us/articles/4404772028055-Message-Content-Privileged-Intent-FAQ)
 Ha nem látod a Rad.IO /parancsait a / begépelésére, kérj meg egy admint, hogy hívja be a botot újra.`
 	);
 }
