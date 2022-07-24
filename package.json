@@ -19,7 +19,7 @@
     "ffmpeg-static": "^4.4.0",
     "moment": "^2.29.1",
     "node-gyp": "^9.1.0",
-    "pastebin-api": "^2.0.1",
+    "pastebin-api": "^5.1.2",
     "play-dl": "^1.2.8",
     "popyt": "^5",
     "scanf": "^1",
