@@ -6,7 +6,6 @@
     "start": "node -r dotenv/config main.js"
   },
   "dependencies": {
-    "@discordjs/builders": "^0.12.0",
     "@discordjs/opus": "^0.8.0",
     "@discordjs/rest": "^1.0.0",
     "@discordjs/voice": "^0.11.0",
