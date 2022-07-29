@@ -2,12 +2,11 @@
 import { getVoiceConnection } from '@discordjs/voice';
 const token = process.env.radioToken;
 
-import { client, LegacyPackedMessage, legacyActions, GuildPlayer, translateAlias, legacyCommands, embedC, channels, radios, randomElement, legacyDebatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix, LegacyThisBinding, commands, ThisBinding, retrieveCommandOptionValue, creators } from './internal.js';
+import { client, LegacyPackedMessage, legacyActions, GuildPlayer, translateAlias, legacyCommands, embedC, channels, radios, randomElement, legacyDebatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix, LegacyThisBinding, commands, ThisBinding, retrieveCommandOptionValue } from './internal.js';
 import moment from 'moment';
 const help = legacyActions['help'];
 
 const devChannel = () => client.channels.resolve(devChanId);
-const guildId = process.env.testServerId;
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
 client.on('ready', async () => {
@@ -15,18 +14,6 @@ client.on('ready', async () => {
 		if (guild.voice?.channel)
 			guild.voice.channel.leave();
 	}); Discord.js v12 legacy*/
-	const ownGuild = client.guilds.resolve(guildId);
-	const ownGuildCommands = await ownGuild.commands.fetch();
-	ownGuildCommands.forEach(currentCommand => {
-		ownGuild.commands.permissions.add({
-			command: currentCommand.id,
-			permissions: creators.map(creator => ({
-				id: creator.id,
-				type: 'USER',
-				permission: true
-				}))
-		});
-	});
 	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();
@@ -122,7 +109,7 @@ process.on('unhandledRejection', (reason, _) => {
 
 function logGuildJoin(guild: Discord.Guild) {
 	const created = moment(guild.createdAt).format("MMM Do YY");
-	const embed = new Discord.MessageEmbed()
+	const embed = new Discord.EmbedBuilder()
 		.setDescription(`ID: ${guild.id}
 Members: ${guild.memberCount}
 Owner: ${guild.members.resolve(guild.ownerId)?.user?.tag ?? 'unable to fetch'}
@@ -132,11 +119,11 @@ Icon: [Link](${guild.iconURL() ? guild.iconURL() : client.user.displayAvatarURL(
 }
 
 async function sendWelcome(guild: Discord.Guild) {
-	const embed = new Discord.MessageEmbed()
+	const embed = new Discord.EmbedBuilder()
 		.setAuthor({ name: client.user.tag, iconURL: client.user.displayAvatarURL() })
 		.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
-		.addField('❯ Néhány szó a botról', 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.')
-		.addField('❯ Első lépések', `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${legacyDebatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`)
+		.addFields({ name: '❯ Néhány szó a botról', value: 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.'},
+		{name: '❯ Első lépések', value: `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${legacyDebatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`})
 		.setColor(embedC)
 		.setTimestamp();
 	sendGuild(guild, devServerInvite, { embeds: [embed] });
@@ -153,7 +140,7 @@ function setPStatus() {
 	const presenceEndings = [`G: ${client.guilds.cache.size}`, `Rádiók száma: ${channels.length} `, `@${client.user.username}`, `U: ${client.users.cache.size}`];
 	const randomRadioName = radios.get(randomElement(channels)).name;
 	const presence = `${randomRadioName} | ${randomElement(presenceEndings)}`;
-	client.user.setPresence({ activities: [{ name: presence, type: 'LISTENING' }] });
+	client.user.setPresence({ activities: [{ name: presence, type: Discord.ActivityType.Listening }] });
 }
 
 function updateStatusChannels() {

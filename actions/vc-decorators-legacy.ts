@@ -1,8 +1,8 @@
 ﻿import { aggregateLegacyDecorators,LegacyPredicate, LegacyAction, LegacyDecorator, LegacyThisBinding, creators,legacyActions, getRoles, getFallbackMode, client } from '../internal.js';
 import { getVoiceConnection } from '@discordjs/voice';
 import { sscanf } from 'scanf';
-import { VoiceBasedChannel } from 'discord.js';
-export const legacyIsAdmin: LegacyPredicate = ctx => ctx.member.permissions.has('ADMINISTRATOR');
+import { PermissionsBitField, VoiceBasedChannel } from 'discord.js';
+export const legacyIsAdmin: LegacyPredicate = ctx => ctx.member.permissions.has(PermissionsBitField.Flags.Administrator);
 const isVcUser: LegacyPredicate = ctx => !!ctx.member.voice.channel;
 const isDifferentVc: LegacyPredicate = ctx => client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) != ctx.member.voice.channel;
 const isVcBot: LegacyPredicate = ctx => !!getVoiceConnection(ctx.guildId);

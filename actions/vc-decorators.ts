@@ -1,7 +1,7 @@
 ﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators } from '../internal.js';
 import { getVoiceConnection } from '@discordjs/voice';
-import { VoiceBasedChannel } from 'discord.js';
-export const isAdmin: Predicate = ctx => ctx.memberPermissions?.has('ADMINISTRATOR');
+import { PermissionsBitField, VoiceBasedChannel } from 'discord.js';
+export const isAdmin: Predicate = ctx => ctx.memberPermissions?.has(PermissionsBitField.Flags.Administrator);
 const isVcUser: Predicate = ctx => !!ctx.guild.members.resolve(ctx.user.id).voice.channel;
 const isDifferentVc: Predicate = ctx => client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) != ctx.guild.members.resolve(ctx.user.id).voice.channel;
 const isVcBot: Predicate = ctx => !!getVoiceConnection(ctx.guildId);

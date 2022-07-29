@@ -118,12 +118,12 @@ export const actions: Actions = {
 				.join('\n');
 		}
 		const prefix = getPrefix(this.guild.id);
-		const baseEmbed: Discord.MessageEmbed = commonEmbed.call(this).addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
+		const baseEmbed: Discord.EmbedBuilder = commonEmbed.call(this).addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
 		await this.channel.send({
-			embeds: [new Discord.MessageEmbed(baseEmbed)
+			embeds: [Discord.EmbedBuilder.from(baseEmbed)
 				.setTitle('❯ Magyar rádiók')
 				.setDescription(listRadios('hun')),
-				new Discord.MessageEmbed(baseEmbed)
+				Discord.EmbedBuilder.from(baseEmbed)
 				.setTitle('❯ Külföldi rádiók')
 				.setDescription(listRadios('eng'))]
 		});
@@ -313,11 +313,12 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const allPerms = adminRight ? [...adminCommands] : [];
 		allPerms.splice(0, 0, ...[...unlimitedCommands, ...grantedPerms.map(([_, commandNames]) => commandNames).reduce((acc, commandNames) => acc.splice(0, 0, ...commandNames), [])]);
 		allPerms.sort();
-		let embed: Discord.MessageEmbed = commonEmbed.call(this);
-		embed = embed.addField('❯ Összes jogosultság', allPerms.map(cmd => `\`${cmd}\``).join(' '));
+		let embed: Discord.EmbedBuilder = commonEmbed.call(this);
+		const embedFields: Discord.APIEmbedField[] = [];
+		embedFields.push({name: '❯ Összes jogosultság', value: allPerms.map(cmd => `\`${cmd}\``).join(' ')});
 		if (adminRight)
-			embed = embed.addField('❯ Adminisztrátor jog', adminCommands.map(cmd => `\`${cmd}\``).join(' '));
-		embed = embed.addFields(grantedPerms.map(([roleID, commands]) => Object.assign({}, {
+			embedFields.push({name: '❯ Adminisztrátor jog', value: adminCommands.map(cmd => `\`${cmd}\``).join(' ')});
+		embed = embed.addFields(...embedFields, ...grantedPerms.map(([roleID, commands]) => ({
 			name: `❯ _${this.guild.roles.resolve(roleID).name}_ rang`,
 			value: commands.map(cmd => `\`${cmd}\``).join(' ')
 		})));
@@ -423,18 +424,17 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 	const embed = commonEmbed.call(this)
 		.setTitle("❯ Találatok")
 		.setDescription(topResults.join('\n'));
-	const row = new Discord.MessageActionRow().addComponents(
-		new Discord.MessageSelectMenu()
-			.setCustomId('select')
-			.setPlaceholder('Válassz egy videót')
-			.setMinValues(1)
-			.setMaxValues(1)
-			.addOptions(results.map((resultData, index) => ({
-				label: discordEscape(resultData.title).slice(0, 100),
-				value: index.toString(),
-				description: `${hourMinSec(resultData.duration)} — ${resultData.uploaderName}`
-			})))
-	);
+	const videoChooser = new Discord.SelectMenuBuilder()
+		.setCustomId('select')
+		.setPlaceholder('Válassz egy videót')
+		.setMinValues(1)
+		.setMaxValues(1)
+		.addOptions(results.map((resultData, index) => ({
+			label: discordEscape(resultData.title).slice(0, 100),
+			value: index.toString(),
+			description: `${hourMinSec(resultData.duration)} — ${resultData.uploaderName}`
+	})));
+	const row = new Discord.ActionRowBuilder<Discord.MessageActionRowComponentBuilder>().addComponents(videoChooser);
 	const message = await this.channel.send({ embeds: [embed], components: [row] });
 	const filter = (i: Discord.SelectMenuInteraction) => {
 		i.deferUpdate();
@@ -442,7 +442,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 	};
 	try {
 		const selectInteraction = await message.awaitMessageComponent({filter, time: 30000 });
-		row.components[0].setDisabled(true);
+		videoChooser.setDisabled(true);
 		message.edit({ components: [row] });
 		return +(selectInteraction as Discord.SelectMenuInteraction).values[0];
 	}
@@ -476,7 +476,7 @@ async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
 }
 
 function sendToPartnerHook(link: string, content: string, username: string, serverName: string): void {
-	const embed = new Discord.MessageEmbed();
+	const embed = new Discord.EmbedBuilder();
 	embed.setColor(webhookC);
 	embed.setFooter({ text: serverName });
 	embed.setDescription(content);
