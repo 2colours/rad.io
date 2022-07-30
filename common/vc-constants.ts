@@ -50,10 +50,10 @@ const radios = {
 		url: 'http://online.funfm.ro:8000/funfm.mp3',
 		name: 'Fun FM Rádió (Csíkszereda)'
 	},
-	'plusfm': {
+	'pluszfm': {
 		cult: 'hun',
-		url: 'http://hosting2.42netmedia.com:8961/stream',
-		name: 'Plus FM (Nagyvárad)'
+		url: 'https://stream2.radiotransilvania.ro/Nagyvarad',
+		name: 'Plusz FM (Nagyvárad)'
 	},
 	'gaga': {
 		cult: 'hun',
@@ -72,7 +72,7 @@ const radios = {
 	},
 	'szabadkai': {
 		cult: 'hun',
-		url: 'http://79.172.194.189:4110/live.mp3',
+		url: 'http://stream2.nmih.hu:4110/live.mp3',
 		name: 'Szabadkai Magyar Rádió (SZMR)'
 	},
 	'bartok': {
@@ -98,11 +98,6 @@ const radios = {
 	'danko': {
 		name: 'Dankó Rádió',
 		url: 'http://icast.connectmedia.hu/4748/mr7.mp3',
-		cult: 'hun'
-	},
-	'radioface': {
-		name: 'Rádió Face',
-		url: 'http://91.227.139.87:8000/',
 		cult: 'hun'
 	},
 	'risefm': {
@@ -176,8 +171,8 @@ const radios = {
 		cult: 'hun'
 	},
 	'rock': {
-		name: 'Rocker Rádió',
-		url: 'https://stream.diazol.hu:35202/live',
+		name: 'Rock Rádió',
+		url: 'https://icast.connectmedia.hu/5301/live.mp3/',
 		cult: 'hun'
 	},
 	'mez': {
@@ -202,7 +197,7 @@ const radios = {
 	},
 	'halas': {
 		name: 'Halas Rádió Kiskunhalas',
-		url: 'https://eapps-cs.herokuapp.com/92.61.114.191:8110/stream',
+		url: 'https://stream.42netmedia.com:8443/halas',
 		cult: 'hun'
 	},
 	'buddhafm': {
@@ -267,7 +262,7 @@ const radios = {
 	},
 	'yammatfm': {
 		name: 'Yammat FM (Pop Rock)',
-		url: 'https://streaming.radio.co/s5ad4b474a/listen',
+		url: 'https://stream.yammat.fm/radio/8000/yammat.mp3',
 		cult: 'eng'
 	},
 	'rockfm': {
@@ -317,12 +312,7 @@ const radios = {
 	},
 	'radio886': {
 		name: 'Radio 88.6 Wien',
-		url: 'https://radio886.fluidstream.eu/886_live.mp3',
-		cult: 'eng'
-	},
-	'antrock': {
-		name: 'Rádio Anténa Rock',
-		url: 'http://stream.antenarock.sk/antena-hi.mp3',
+		url: 'https://edge08.streamonkey.net/radio886-onair/stream/mp3',
 		cult: 'eng'
 	},
 	'actualitati': {

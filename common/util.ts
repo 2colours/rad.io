@@ -1,4 +1,4 @@
-﻿import { Snowflake, Guild, TextChannel, MessageEmbed, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, MessageActionRow, MessageButton, CommandInteractionOption, Role } from 'discord.js';
+﻿import { Snowflake, Guild, TextChannel, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { LegacyCommand, CommandType, PlayableData, database, LegacyDecorator, UserHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
 	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command } from '../internal.js';
@@ -64,38 +64,38 @@ interface CommonEmbedThisBinding {
 };
 export function commonEmbed(this: CommonEmbedThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
 	const prefix = getPrefix(this.guild.id);
-	return new MessageEmbed()
+	return new EmbedBuilder()
 		.setColor(embedC)
 		.setFooter({ text: `${prefix}${this.commandName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
 }
-export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: MessageEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
+export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: EmbedBuilder, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
 	let currentPage = 1;
 	const maxPage = Math.ceil(linesForDescription.length / elementsPerPage);
 	const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
 	const completeEmbed = baseEmbed
 		.setTitle(titleResolver(currentPage, maxPage))
 		.setDescription(currentDescription);
-	const prevButton = new MessageButton()
+	const prevButton = new ButtonBuilder()
 		.setCustomId('previous')
 		.setLabel('Előző')
-		.setStyle('PRIMARY')
+		.setStyle(ButtonStyle.Primary)
 		.setEmoji('◀️');
-	const nextButton = new MessageButton()
+	const nextButton = new ButtonBuilder()
 		.setCustomId('next')
 		.setLabel('Következő')
-		.setStyle('PRIMARY')
+		.setStyle(ButtonStyle.Primary)
 		.setEmoji('▶️');
 	function setButtonsDisabled() {
 		prevButton.setDisabled(currentPage <= 1);
 		nextButton.setDisabled(currentPage >= maxPage)
 	}
 	setButtonsDisabled();
-	const row = new MessageActionRow().addComponents(prevButton, nextButton);
+	const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(prevButton, nextButton);
 	const message = await ctx.channel.send({ embeds: [completeEmbed], components: [row] }) as Message;
 	const filter =  (i: MessageComponentInteraction) => (i.deferUpdate(), ['previous', 'next'].includes(i.customId) && i.user.id == ctx.user.id);
-	const collector = message.createMessageComponentCollector({filter, time: 60000 });
-	for await (const i of collector) {
+	const collector = message.createMessageComponentCollector({filter, time: 60000, componentType: ComponentType.Button });
+	for await (const [i, _] of collector) {
 		currentPage = i.customId == 'previous' ? currentPage - 1 : currentPage + 1;
 		const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
 		setButtonsDisabled();
@@ -170,7 +170,7 @@ export function commandNamesByTypes(commandMap: Map<string, LegacyCommand | Comm
 }
 type SupportedCommandValueTypes = TypeFromParam<SupportedCommandOptionTypes>;
 export function retrieveCommandOptionValue(option: CommandInteractionOption): SupportedCommandValueTypes {
-	return ['BOOLEAN', 'STRING', 'NUMBER'].includes(option.type) ? option.value :
-	option.type == 'ROLE' ? option.role as Role :
+	return [ApplicationCommandOptionType.Boolean, ApplicationCommandOptionType.String, ApplicationCommandOptionType.Number].includes(option.type) ? option.value :
+	option.type == ApplicationCommandOptionType.Role ? option.role as Role :
 	null;
 }

@@ -118,12 +118,13 @@ export const actions: Actions = {
 				.join('\n');
 		}
 		const prefix = getPrefix(this.guild.id);
-		const baseEmbed: Discord.MessageEmbed = commonEmbed.call(this).addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
+		let baseEmbed: Discord.EmbedBuilder = commonEmbed.call(this);
+		baseEmbed = baseEmbed.addFields({name: '❯ Használat', value: `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``});
 		await this.channel.send({
-			embeds: [new Discord.MessageEmbed(baseEmbed)
+			embeds: [Discord.EmbedBuilder.from(baseEmbed)
 				.setTitle('❯ Magyar rádiók')
 				.setDescription(listRadios('hun')),
-				new Discord.MessageEmbed(baseEmbed)
+				Discord.EmbedBuilder.from(baseEmbed)
 				.setTitle('❯ Külföldi rádiók')
 				.setDescription(listRadios('eng'))]
 		});
@@ -151,13 +152,16 @@ export const actions: Actions = {
 			userCommands.sort();
 			const adminCommands = commandNamesByTypes(commands, 'adminOnly');
 			adminCommands.sort();
-			const embed = commonEmbed.call(this)
-				.addField('❯ Felhasználói parancsok', userCommands.map(cmd => `\`${cmd}\``).join(' '))
-				.addField('❯ Adminisztratív parancsok', adminCommands.map(cmd => `\`${cmd}\``).join(' '))
-				.addField('❯ Részletes leírás', `\`${prefix}help <command>\``)
-				.addField('❯ Egyéb információk', `RAD.io meghívása saját szerverre: [Ide kattintva](https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=274881334336&scope=bot%20applications.commands)
+			let embed: Discord.EmbedBuilder = commonEmbed.call(this);
+			embed = embed
+				.addFields(
+				{name: '❯ Felhasználói parancsok', value: userCommands.map(cmd => `\`${cmd}\``).join(' ')},
+				{name: '❯ Adminisztratív parancsok', value: adminCommands.map(cmd => `\`${cmd}\``).join(' ')},
+				{name: '❯ Részletes leírás', value: `\`${prefix}help <command>\``},
+				{name: '❯ Egyéb információk', value: `RAD.io meghívása saját szerverre: [Ide kattintva](https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=274881334336&scope=bot%20applications.commands)
 Meghívó a RAD.io Development szerverre: [${devServerInvite.substring('https://'.length)}](${devServerInvite})
-A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`);
+A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`}
+				);
 			return void this.channel.send({ embeds: [embed] });
 		}
 		helpCommand = translateAlias(helpCommand);
@@ -166,11 +170,14 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			const currentAliases = currentCommand.aliases;
 			const currentRequirements = currentCommand.helpRelated.requirements;
 			currentAliases.sort();
-			const embed = commonEmbed.call(this, ` ${helpCommand}`)
-				.addField('❯ Részletes leírás', currentCommand.helpRelated.ownDescription)
-				.addField('❯ Teljes parancs', `\`${prefix}${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``)
-				.addField('❯ Használat feltételei', currentRequirements.length == 0 ? '-' : currentRequirements.join(' '))
-				.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
+			let embed: Discord.EmbedBuilder = commonEmbed.call(this, ` ${helpCommand}`);
+			embed = embed
+				.addFields(
+				{name: '❯ Részletes leírás', value: currentCommand.helpRelated.ownDescription},
+				{name: '❯ Teljes parancs', value: `\`${prefix}${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``},
+				{name: '❯ Használat feltételei', value: currentRequirements.length == 0 ? '-' : currentRequirements.join(' ')},
+				{name: '❯ Alias-ok', value: currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' ')}
+				);
 			return void this.channel.send({ embeds: [embed] });
 		}
 		await this.editReply('**Nincs ilyen nevű parancs.**');
@@ -203,7 +210,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const queue: MusicData[] = this.guildPlayer.queue;
 		if (queue.length == 0)
 			return void this.channel.send('**A sor jelenleg üres.**');
-		const embed = commonEmbed.call(this);
+		const embed: Discord.EmbedBuilder = commonEmbed.call(this);
 		const queueLines = queue.map((elem,index) => `${getEmoji(elem.type)} **${index+1}.** \t [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}; Kérte: ${elem.requester})`);
 		await useScrollableEmbed(this, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}, Összesen ${queue.length} elem`, queueLines);
 	},
@@ -297,7 +304,8 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const nowPlayingData = this.guildPlayer.nowPlaying();
 		if (!nowPlayingData)
 			return void this.channel.send('**CSEND**');
-		const embed = commonEmbed.call(this)
+		let embed: Discord.EmbedBuilder = commonEmbed.call(this);
+		embed = embed
 			.setTitle('❯ Épp játszott stream')
 			.setDescription(`${getEmoji(nowPlayingData.type)} [${nowPlayingData.name}](${nowPlayingData.url})\n${hourMinSec(nowPlayingData.playingSeconds)}/${hourMinSec(nowPlayingData.lengthSeconds)}`);
 		this.channel.send({ embeds: [embed] });
@@ -313,11 +321,12 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const allPerms = adminRight ? [...adminCommands] : [];
 		allPerms.splice(0, 0, ...[...unlimitedCommands, ...grantedPerms.map(([_, commandNames]) => commandNames).reduce((acc, commandNames) => acc.splice(0, 0, ...commandNames), [])]);
 		allPerms.sort();
-		let embed: Discord.MessageEmbed = commonEmbed.call(this);
-		embed = embed.addField('❯ Összes jogosultság', allPerms.map(cmd => `\`${cmd}\``).join(' '));
+		let embed: Discord.EmbedBuilder = commonEmbed.call(this);
+		const embedFields: Discord.APIEmbedField[] = [];
+		embedFields.push({name: '❯ Összes jogosultság', value: allPerms.map(cmd => `\`${cmd}\``).join(' ')});
 		if (adminRight)
-			embed = embed.addField('❯ Adminisztrátor jog', adminCommands.map(cmd => `\`${cmd}\``).join(' '));
-		embed = embed.addFields(grantedPerms.map(([roleID, commands]) => Object.assign({}, {
+			embedFields.push({name: '❯ Adminisztrátor jog', value: adminCommands.map(cmd => `\`${cmd}\``).join(' ')});
+		embed = embed.addFields(...embedFields, ...grantedPerms.map(([roleID, commands]) => ({
 			name: `❯ _${this.guild.roles.resolve(roleID).name}_ rang`,
 			value: commands.map(cmd => `\`${cmd}\``).join(' ')
 		})));
@@ -420,21 +429,21 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 	if (results.length == 1)
 		return 0;
 	const topResults = results.map((elem, index) => `__${index+1}.__ - ${discordEscape(elem.title)} \`(${hourMinSec(elem.duration)})\``);
-	const embed = commonEmbed.call(this)
+	let embed: Discord.EmbedBuilder = commonEmbed.call(this);
+	embed = embed
 		.setTitle("❯ Találatok")
 		.setDescription(topResults.join('\n'));
-	const row = new Discord.MessageActionRow().addComponents(
-		new Discord.MessageSelectMenu()
-			.setCustomId('select')
-			.setPlaceholder('Válassz egy videót')
-			.setMinValues(1)
-			.setMaxValues(1)
-			.addOptions(results.map((resultData, index) => ({
-				label: discordEscape(resultData.title).slice(0, 100),
-				value: index.toString(),
-				description: `${hourMinSec(resultData.duration)} — ${resultData.uploaderName}`
-			})))
-	);
+	const videoChooser = new Discord.SelectMenuBuilder()
+		.setCustomId('select')
+		.setPlaceholder('Válassz egy videót')
+		.setMinValues(1)
+		.setMaxValues(1)
+		.addOptions(results.map((resultData, index) => ({
+			label: discordEscape(resultData.title).slice(0, 100),
+			value: index.toString(),
+			description: `${hourMinSec(resultData.duration)} — ${resultData.uploaderName}`
+	})));
+	const row = new Discord.ActionRowBuilder<Discord.MessageActionRowComponentBuilder>().addComponents(videoChooser);
 	const message = await this.channel.send({ embeds: [embed], components: [row] });
 	const filter = (i: Discord.SelectMenuInteraction) => {
 		i.deferUpdate();
@@ -442,7 +451,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 	};
 	try {
 		const selectInteraction = await message.awaitMessageComponent({filter, time: 30000 });
-		row.components[0].setDisabled(true);
+		videoChooser.setDisabled(true);
 		message.edit({ components: [row] });
 		return +(selectInteraction as Discord.SelectMenuInteraction).values[0];
 	}
@@ -476,7 +485,7 @@ async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
 }
 
 function sendToPartnerHook(link: string, content: string, username: string, serverName: string): void {
-	const embed = new Discord.MessageEmbed();
+	const embed = new Discord.EmbedBuilder();
 	embed.setColor(webhookC);
 	embed.setFooter({ text: serverName });
 	embed.setDescription(content);
