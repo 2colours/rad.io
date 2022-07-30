@@ -15,7 +15,7 @@
     "axios": "^0.27.2",
     "discord.js": "^14.1.1",
     "dotenv": "^16.0.1",
-    "ffmpeg-static": "^4.4.0",
+    "ffmpeg-static": "^5.0.2",
     "moment": "^2.29.1",
     "node-gyp": "^9.1.0",
     "pastebin-api": "^5.1.2",
