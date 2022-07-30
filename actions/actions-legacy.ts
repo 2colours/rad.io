@@ -5,7 +5,7 @@ import { commandNamesByTypes, legacyIsAdmin, randomElement, hourMinSec, attach, 
 	client, channels, legacyCommands, creators, getEmoji, legacyDebatedCommands, radios as radiosList, translateAlias, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink,
 	SearchResultView, partnerHook, avatarURL, webhookC, radios, setPrefix, tickEmoji,
-	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, LegacyActions, LegacyThisBinding } from '../internal.js';
+	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, LegacyActions, LegacyThisBinding, devServerInvite } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
 import axios from 'axios';
@@ -121,7 +121,8 @@ export const legacyActions: LegacyActions = {
 				.join('\n');
 		}
 		const prefix = getPrefix(this.guild.id);
-		const baseEmbed: Discord.EmbedBuilder = commonEmbed.call(this).addField('❯ Használat', `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``);
+		let baseEmbed: Discord.EmbedBuilder = commonEmbed.call(this);
+		baseEmbed = baseEmbed.addFields({name: '❯ Használat', value: `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``});
 		await this.channel.send({
 			embeds: [Discord.EmbedBuilder.from(baseEmbed)
 				.setTitle('❯ Magyar rádiók')
@@ -158,13 +159,16 @@ export const legacyActions: LegacyActions = {
 			userCommands.sort();
 			const adminCommands = commandNamesByTypes(legacyCommands, 'adminOnly');
 			adminCommands.sort();
-			const embed = commonEmbed.call(this)
-				.addField('❯ Felhasználói parancsok', userCommands.map(cmd => `\`${cmd}\``).join(' '))
-				.addField('❯ Adminisztratív parancsok', adminCommands.map(cmd => `\`${cmd}\``).join(' '))
-				.addField('❯ Részletes leírás', `\`${prefix}help <command>\``)
-				.addField('❯ Egyéb információk', `RAD.io meghívása saját szerverre: [Ide kattintva](https://discordapp.com/oauth2/authorize?client_id=${client.user.id}&permissions=8&scope=bot)
-Meghívó a RAD.io Development szerverre: [discord.gg/C83h4Sk](https://discord.gg/C83h4Sk)
-A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`);
+			let embed: Discord.EmbedBuilder = commonEmbed.call(this);
+			embed = embed
+				.addFields(
+				{name: '❯ Felhasználói parancsok', value: userCommands.map(cmd => `\`${cmd}\``).join(' ')},
+				{name: '❯ Adminisztratív parancsok', value: adminCommands.map(cmd => `\`${cmd}\``).join(' ')},
+				{name: '❯ Részletes leírás', value: `\`${prefix}help <command>\``},
+				{name: '❯ Egyéb információk', value: `RAD.io meghívása saját szerverre: [Ide kattintva](https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=274881334336&scope=bot%20applications.commands)
+Meghívó a RAD.io Development szerverre: [${devServerInvite.substring('https://'.length)}](${devServerInvite})
+A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`}
+				);
 			return void this.channel.send({ embeds: [embed] });
 		}
 		helpCommand = translateAlias(helpCommand);
@@ -173,11 +177,14 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			const currentAliases = currentCommand.aliases;
 			const currentRequirements = currentCommand.helpRelated.requirements;
 			currentAliases.sort();
-			const embed = commonEmbed.call(this, ` ${helpCommand}`)
-				.addField('❯ Részletes leírás', currentCommand.helpRelated.ownDescription)
-				.addField('❯ Teljes parancs', `\`${prefix}${helpCommand}${['', ...currentCommand.helpRelated.params.map((attribute: string) => `<${attribute}>`)].join(' ')}\``)
-				.addField('❯ Használat feltételei', currentRequirements.length == 0 ? '-' : currentRequirements.join(' '))
-				.addField('❯ Alias-ok', currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' '));
+			let embed: Discord.EmbedBuilder = commonEmbed.call(this, ` ${helpCommand}`);
+			embed = embed
+				.addFields(
+				{name: '❯ Részletes leírás', value: currentCommand.helpRelated.ownDescription},
+				{name: '❯ Teljes parancs', value: `\`${prefix}${helpCommand}${['', ...currentCommand.helpRelated.params.map(param => `<${param}>`)].join(' ')}\``},
+				{name: '❯ Használat feltételei', value: currentRequirements.length == 0 ? '-' : currentRequirements.join(' ')},
+				{name: '❯ Alias-ok', value: currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' ')}
+				);
 			return void this.channel.send({ embeds: [embed] });
 		}
 		this.reply('**Nincs ilyen nevű parancs.**');
@@ -211,7 +218,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const queue: MusicData[] = this.guildPlayer.queue;
 		if (queue.length == 0)
 			return void this.channel.send('**A sor jelenleg üres.**');
-		const embed = commonEmbed.call(this);
+		const embed: Discord.EmbedBuilder = commonEmbed.call(this);
 		const queueLines = queue.map((elem,index) => `${getEmoji(elem.type)} **${index+1}.** \t [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}; Kérte: ${elem.requester})`);
 		const adapted = Object.assign(this, {
 			'user': this.author
@@ -311,7 +318,8 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const nowPlayingData = this.guildPlayer.nowPlaying();
 		if (!nowPlayingData)
 			return void this.channel.send('**CSEND**');
-		const embed = commonEmbed.call(this)
+		let embed: Discord.EmbedBuilder = commonEmbed.call(this);
+		embed = embed
 			.setTitle('❯ Épp játszott stream')
 			.setDescription(`${getEmoji(nowPlayingData.type)} [${nowPlayingData.name}](${nowPlayingData.url})\n${hourMinSec(nowPlayingData.playingSeconds)}/${hourMinSec(nowPlayingData.lengthSeconds)}`);
 		this.channel.send({ embeds: [embed] });
@@ -449,7 +457,8 @@ async function searchPick(this: LegacyThisBinding, results: SearchResultView[]):
 	if (results.length == 1)
 		return 0;
 	const topResults = results.map((elem, index) => `__${index+1}.__ - ${discordEscape(elem.title)} \`(${hourMinSec(elem.duration)})\``);
-	const embed = commonEmbed.call(this)
+	let embed: Discord.EmbedBuilder = commonEmbed.call(this);
+	embed = embed
 		.setTitle("❯ Találatok")
 		.setDescription(topResults.join('\n'));
 	const videoChooser = new Discord.SelectMenuBuilder()
