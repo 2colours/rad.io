@@ -19,7 +19,7 @@ const isAloneUser: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(
 const isAloneBot: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
 const rejectReply=(replyMessage:string)=>(_:Action)=> async function(_:Parameters<Action>) {
-	await this.editReply(`**${replyMessage}**`);
+	await this.reply(`**${replyMessage}**`);
 };
 const nop:Decorator=()=>()=>{};
 const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
@@ -54,7 +54,7 @@ const naturalErrors: Decorator = action => async function (...args: Parameters<A
 	}
 	catch (e) {
 		if (typeof e == 'string')
-			return void (await this.editReply(`**hiba - ${e}**`));
+			return void (await this.reply(`**hiba - ${e}**`));
 		console.error(e);
 	}
 };
