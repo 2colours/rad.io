@@ -444,7 +444,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 			description: `${hourMinSec(resultData.duration)} — ${resultData.uploaderName}`
 	})));
 	const row = new Discord.ActionRowBuilder<Discord.MessageActionRowComponentBuilder>().addComponents(videoChooser);
-	const message = await this.channel.send({ embeds: [embed], components: [row] });
+	const message = await this.reply({ embeds: [embed], components: [row], ephemeral: true });
 	const filter = (i: Discord.SelectMenuInteraction) => {
 		i.deferUpdate();
 		return i.user.id == this.user.id;
@@ -452,7 +452,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 	try {
 		const selectInteraction = await message.awaitMessageComponent({filter, time: 30000 });
 		videoChooser.setDisabled(true);
-		message.edit({ components: [row] });
+		this.editReply({ components: [row] });
 		return +(selectInteraction as Discord.SelectMenuInteraction).values[0];
 	}
 	catch (e) {
@@ -460,7 +460,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 		if (timeouted)
 			embed.setTitle(`❯ Találatok - Lejárt a választási idő`);
 		row.components[0].setDisabled(true);
-		message.edit({embeds: [embed], components: [row] });
+		this.editReply({embeds: [embed], components: [row] });
 		throw timeouted ? 'timeout' : e;
 	}
 }
