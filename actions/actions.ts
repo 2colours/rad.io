@@ -191,13 +191,14 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const connectionLines = Array.from(getVoiceConnections().values(), vc => `${client.guilds.resolve(vc.joinConfig.guildId).name} (${vc.joinConfig.guildId}) - ${(client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).name} (${(client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size})`);
 		const usersAffected = Array.from(getVoiceConnections().values(), vc => (client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
 		createPastebin(`${client.user.username} on ${getVoiceConnections().size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
-			.then(link => this.reply({content: link, ephemeral: true}));
+			.then(link => this.reply({ content: link, ephemeral: true }));
 	},
 	async testradios() {
+		await this.deferReply({ ephemeral: true });
 		const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, await axios.get(data.url, { timeout: 5000, responseType: 'stream' }).then(response => response.status == 200, _ => false)]));
 		const offRadios = idAndAvailables.filter(([_, available]) => !available).map(([id, _]) => id);
-		createPastebin(`${offRadios.length} radios went offline`, offRadios.join('\n'))
-			.then(link => this.reply(link));
+		await createPastebin(`${offRadios.length} radios went offline`, offRadios.join('\n'))
+			.then(link => this.editReply({ content: link }));
 	},
 	async leaveguild(id) {
 		const guildToLeave = await client.guilds.resolve(id).leave();
