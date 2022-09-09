@@ -35,11 +35,11 @@ client.on('interactionCreate', async interaction => {
 //Legacy
 client.on('messageCreate', async (message) => {
 	if (message.guild == null) return;
-	const prefix = getPrefix(message.guild.id);
 	if (message.mentions.users.has(client.user.id))
 		return void help.call(Object.assign(message, {
 			commandName: 'help'
 		}), '');
+	const prefix = getPrefix(message.guild.id);
 	const content = message.content;
 	if (!content.toLowerCase().startsWith(prefix)) return;
 	try {
@@ -161,4 +161,5 @@ Ha nem látod a Rad.IO /parancsait a / begépelésére, kérj meg egy admint, ho
 	);
 }
 
-forceLogin().then(_ => setInterval(setPStatus, 60000 * 5));
+await forceLogin();
+setInterval(setPStatus, 60000 * 5);
