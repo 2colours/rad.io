@@ -141,6 +141,7 @@ export class GuildPlayer {
 				break;
 			}
 			catch (e) {
+				console.log(e);
 				this.announcementChannel.send('**Az indítás során hiba lépett fel.**');
 			}
 		}
