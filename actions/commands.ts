@@ -1,5 +1,5 @@
 ﻿import { actions, Command, Filter, CommandExtraData, DeepReadonly, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam } from '../internal.js';
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { SlashCommandBuilder } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import tsObjectEntries from 'ts-type-object-entries';
@@ -490,6 +490,7 @@ export type Actions = {
 	[commandName in keyof CommandData]: (this: ThisBinding, ...args: ActionArgs<commandName>) => Resolvable<void>;
 };
 export type Action = Actions[keyof Actions];
+export type ActionParams = Parameters<Action>; //TODO: fix this
 /*
 
 setupMessageCommand({
