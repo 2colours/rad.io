@@ -17,8 +17,22 @@ function isDefinite(data:MusicData) {
 	const definiteTypes: StreamType[] = ['yt', 'custom', 'sc'];
 	return data && definiteTypes.includes(data.type);
 }
+type ReadyHandler = (a: AudioResource) => void;
 class Playable {
-	constructor(readonly resource: AudioResource) {}
+	private resource: AudioResource;
+	private readyHandlers: Array<ReadyHandler> = [];
+	constructor(private streamType: StreamType, private url: string, private volume: number) {}
+	loadResource() {
+		Promise.resolve(downloadMethods.get(this.streamType)(this.url))
+			.then(stream => {
+				this.resource = createAudioResource(stream, {inlineVolume:true})
+				this.resource.volume.setVolume(this.volume);
+				this.readyHandlers.forEach(handler => handler(this.resource));
+			});
+	}
+	onReady(handler: ReadyHandler) {
+		this.readyHandlers.push(handler);
+	}
 	askRepeat() {
 		return false;
 	}
@@ -58,13 +72,13 @@ export class GuildPlayer {
 		if (!value)
 			return;
 		this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``).catch();
-		await Promise.resolve(downloadMethods.get(this.playingElement.type)(this.playingElement.url))
-			.then(stream => {
-				this.currentPlay = new Playable(createAudioResource(stream, {inlineVolume:true}));
-				this.currentPlay.resource.volume.setVolume(this.volume);
-				this.engine.play(this.currentPlay.resource);
-			});
-		
+		this.currentPlay = new Playable(this.playingElement.type, this.playingElement.url, this.volume);
+		this.currentPlay.onReady(resource => this.engine.play(resource));
+		this.currentPlay.loadResource();
+	}
+	private async resetPlayingElement():Promise<void> {
+		this.announcementChannel.send(`**Ismétllődik: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``).catch();
+		this.currentPlay.loadResource();
 	}
 	private announcementChannel: Discord.TextChannel;
 	queue: MusicData[];
@@ -90,7 +104,7 @@ export class GuildPlayer {
 				const shouldRepeat = this.currentPlay.askRepeat();
 				if (!shouldRepeat)
 					return await this.startNext();
-				await this.setPlayingElement(this.playingElement);
+				await this.resetPlayingElement();
 			});
 		getVoiceConnection(this.ownerGuild.id).subscribe(this.engine);
 	}
