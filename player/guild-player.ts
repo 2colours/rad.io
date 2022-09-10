@@ -87,15 +87,13 @@ export class GuildPlayer extends EventEmitter {
 	private volume: number;
 	private oldVolume?: number;
 	private destroyed: boolean = false;
-	constructor(public ownerGuild: Discord.Guild, musicToPlay: MusicData[]) {
+	constructor(public ownerGuild: Discord.Guild) {
 		super();
 		this.fallbackPlayed = false;
 		this.queue = [];
 		this.handler = new VoiceHandler(this);
 		this.volume = 0.5;
 		this.setPlayingElement(null);
-		if (musicToPlay.length > 0)
-			this.bulkSchedule(musicToPlay);
 		this.engine = createAudioPlayer()
 			.on('error', _e => {
 			//TODO

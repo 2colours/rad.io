@@ -466,19 +466,20 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 	}
 }
 
-async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
-	const voiceChannel: Discord.VoiceChannel = this.member.voice.channel;
+async function joinAndStartup(this: ThisBinding, startup: (guildPlayer: GuildPlayer) => void) {
+	const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 	try {
-		await this.reply('**Csatlakozva.**');
+		await this.channel.send('**Csatlakozva.**').catch();
 		joinVoiceChannel({
 			channelId: voiceChannel.id,
 			guildId: voiceChannel.guildId,
 			//@ts-ignore
 			adapterCreator: voiceChannel.guild.voiceAdapterCreator
 		});
-		this.guildPlayer = new GuildPlayer(this.guild, []);
-		this.guildPlayer.on('announcement', (message: string) => this.channel.send(message).catch());
+		this.guildPlayer = new GuildPlayer(this.guild);
+		this.guildPlayer.once('announcement', (message: string) => this.reply(message));
 		startup(this.guildPlayer);
+		this.guildPlayer.on('announcement', (message: string) => this.channel.send(message).catch());
 	}
 	catch (e) {
 		console.error(e);

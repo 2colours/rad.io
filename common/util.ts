@@ -1,7 +1,7 @@
 ﻿import { Snowflake, Guild, TextChannel, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
-import { LegacyCommand, CommandType, PlayableData, database, LegacyDecorator, UserHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
-	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command } from '../internal.js';
+import { LegacyCommand, CommandType, PlayableData, database, LegacyDecorator, UserHolder, TextChannelHolder, client, embedC, MusicData,
+	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding } from '../internal.js';
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import PasteClient from 'pastebin-api';
@@ -42,7 +42,7 @@ export async function sendGuild(guild: Guild, content: string, options?: Message
 		}
 	}
 }
-export async function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildVoiceChannel, holder: GuildPlayerHolder, playableData: MusicData[]) {
+export async function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildVoiceChannel, actionThis: ThisBinding, playableData: MusicData[]) {
 	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
 		joinVoiceChannel({
 			channelId: voiceChannel.id,
@@ -50,14 +50,14 @@ export async function forceSchedule(textChannel: TextChannel, voiceChannel: Base
 			//@ts-ignore
 			adapterCreator: voiceChannel.guild.voiceAdapterCreator
 		});
-		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, playableData);
-		holder.guildPlayer.on('announcement', (message: string) => textChannel.send(message).catch());
-		return;
+		actionThis.guildPlayer = new GuildPlayer(voiceChannel.guild);
 	}
+	actionThis.guildPlayer.once('announcement', (message: string) => actionThis.reply(message));
 	if (playableData.length == 1)
-		holder.guildPlayer.schedule(playableData[0]);
+		actionThis.guildPlayer.schedule(playableData[0]);
 	else
-		holder.guildPlayer.bulkSchedule(playableData);
+		actionThis.guildPlayer.bulkSchedule(playableData);
+	actionThis.guildPlayer.on('announcement', (message: string) => textChannel.send(message).catch());
 };
 interface CommonEmbedThisBinding {
 	guild: Guild;
