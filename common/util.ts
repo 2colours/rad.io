@@ -52,6 +52,7 @@ export async function forceSchedule(textChannel: TextChannel, voiceChannel: Base
 		});
 		actionThis.guildPlayer = new GuildPlayer(voiceChannel.guild);
 	}
+	actionThis.guildPlayer.removeAllListeners();
 	actionThis.guildPlayer.once('announcement', (message: string) => actionThis.editReply(message));
 	if (playableData.length == 1)
 		actionThis.guildPlayer.schedule(playableData[0]);
