@@ -51,6 +51,7 @@ export const actions: Actions = {
 			}
 			if (toSchedule.length > 1)
 				this.reply(`**${toSchedule.length} elem került a sorba.**`);
+			await this.deferReply();
 			return void forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
 		}
 		const ytString = sscanf(ytQuery, '%S') ?? '';
@@ -89,6 +90,7 @@ export const actions: Actions = {
 	async custom(url) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		url = sscanf(url, '%s') ?? '';
+		await this.deferReply();
 		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
 			name: 'Custom',
 			url,
@@ -272,9 +274,10 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		this.guildPlayer.resume();
 		await this.reply(tickEmoji);
 	},
-	tune(param) {
+	async tune(param) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		const channel = extractChannel(this, param);
+		await this.deferReply();
 		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [Object.assign({
 			type: 'radio' as StreamType,
 			lengthSeconds: undefined,
@@ -444,8 +447,9 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 			value: index.toString(),
 			description: `${hourMinSec(resultData.duration)} — ${resultData.uploaderName}`
 	})));
+	await this.deferReply();
 	const row = new Discord.ActionRowBuilder<Discord.MessageActionRowComponentBuilder>().addComponents(videoChooser);
-	const message = await this.reply({ embeds: [embed], components: [row], ephemeral: true });
+	const message = await this.channel.send({ embeds: [embed], components: [row]});
 	const filter = (i: Discord.SelectMenuInteraction) => {
 		i.deferUpdate();
 		return i.user.id == this.user.id;
@@ -453,7 +457,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 	try {
 		const selectInteraction = await message.awaitMessageComponent({filter, time: 30000 });
 		videoChooser.setDisabled(true);
-		this.editReply({ components: [row] });
+		message.edit({ components: [row] });
 		return +(selectInteraction as Discord.SelectMenuInteraction).values[0];
 	}
 	catch (e) {
@@ -461,7 +465,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 		if (timeouted)
 			embed.setTitle(`❯ Találatok - Lejárt a választási idő`);
 		row.components[0].setDisabled(true);
-		this.editReply({embeds: [embed], components: [row] });
+		message.edit({embeds: [embed], components: [row] });
 		throw timeouted ? 'timeout' : e;
 	}
 }
