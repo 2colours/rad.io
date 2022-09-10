@@ -50,7 +50,8 @@ export async function forceSchedule(textChannel: TextChannel, voiceChannel: Base
 			//@ts-ignore
 			adapterCreator: voiceChannel.guild.voiceAdapterCreator
 		});
-		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
+		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, playableData);
+		holder.guildPlayer.on('announcement', (message: string) => textChannel.send(message).catch());
 		return;
 	}
 	if (playableData.length == 1)

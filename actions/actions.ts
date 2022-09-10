@@ -476,7 +476,8 @@ async function joinAndStartup(startup: (guildPlayer: GuildPlayer) => void) {
 			//@ts-ignore
 			adapterCreator: voiceChannel.guild.voiceAdapterCreator
 		});
-		this.guildPlayer = new GuildPlayer(this.guild, this.channel, []);
+		this.guildPlayer = new GuildPlayer(this.guild, []);
+		this.guildPlayer.on('announcement', (message: string) => this.channel.send(message).catch());
 		startup(this.guildPlayer);
 	}
 	catch (e) {
