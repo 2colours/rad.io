@@ -18,8 +18,8 @@ const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.u
 const isAloneUser: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot && member != ctx.guild.members.resolve(ctx.user.id));
 const isAloneBot: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
-const rejectReply=(replyMessage:string)=>(_:Action)=> async function(_:Parameters<Action>) {
-	await this.reply(`**${replyMessage}**`);
+const rejectReply=(replyMessage:string)=>(_:Action)=> async function(this: ThisBinding, _:Parameters<Action>) {
+	await this.reply({ content: `**${replyMessage}**`, ephemeral: true });
 };
 const nop:Decorator=()=>()=>{};
 const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
@@ -48,13 +48,13 @@ const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('Ez a pa
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));
 const isPlayingFallbackSet: Predicate = ctx => getFallbackMode(ctx.guild.id) == 'radio';
 const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('Ez a parancs nem használható a jelenlegi fallback beállítással.'));
-const naturalErrors: Decorator = action => async function (...args: ActionParams): Promise<void> {
+const naturalErrors: Decorator = action => async function (this: ThisBinding, ...args: ActionParams): Promise<void> {
 	try {
 		await Promise.resolve(action.call(this, ...args as any)); //TODO: cast...
 	}
 	catch (e) {
 		if (typeof e == 'string')
-			return void (await this.reply(`**hiba - ${e}**`));
+			return void (await this.reply({ content: `**hiba - ${e}**`, ephemeral: true}));
 		console.error(e);
 	}
 };
