@@ -473,7 +473,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 async function joinAndStartup(this: ThisBinding, startup: (guildPlayer: GuildPlayer) => void) {
 	const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 	try {
-		await this.channel.send('**Csatlakozva.**').catch();
+		await this.reply('**Csatlakozva.**');
 		joinVoiceChannel({
 			channelId: voiceChannel.id,
 			guildId: voiceChannel.guildId,
@@ -481,7 +481,7 @@ async function joinAndStartup(this: ThisBinding, startup: (guildPlayer: GuildPla
 			adapterCreator: voiceChannel.guild.voiceAdapterCreator
 		});
 		this.guildPlayer = new GuildPlayer(this.guild);
-		this.guildPlayer.once('announcement', (message: string) => this.reply(message));
+		this.guildPlayer.once('announcement', (message: string) => this.editReply(message));
 		startup(this.guildPlayer);
 		this.guildPlayer.on('announcement', (message: string) => this.channel.send(message).catch());
 	}
