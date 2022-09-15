@@ -2,9 +2,8 @@
 import { getVoiceConnection } from '@discordjs/voice';
 const token = process.env.radioToken;
 
-import { client, LegacyPackedMessage, legacyActions, GuildPlayer, translateAlias, legacyCommands, embedC, channels, radios, randomElement, legacyDebatedCommands, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, getPrefix, LegacyThisBinding, commands, ThisBinding, retrieveCommandOptionValue } from './internal.js';
+import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue } from './internal.js';
 import moment from 'moment';
-const help = legacyActions['help'];
 
 const devChannel = () => client.channels.resolve(devChanId);
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
@@ -32,37 +31,6 @@ client.on('interactionCreate', async interaction => {
 	await Promise.resolve(commandFunction.call(thisBinding, ...args));
 });
 
-//Legacy
-client.on('messageCreate', async (message) => {
-	if (message.guild == null) return;
-	if (message.mentions.users.has(client.user.id))
-		return void help.call(Object.assign(message, {
-			commandName: 'help'
-		}), '');
-	const prefix = getPrefix(message.guild.id);
-	const content = message.content;
-	if (!content.toLowerCase().startsWith(prefix)) return;
-	try {
-		const prefixless = content.substring(prefix.length).trim();
-		const firstSpace = prefixless.indexOf(' ');
-		const commandTerminator = firstSpace != -1 ? firstSpace : prefixless.length;
-		let commandString = prefixless.substring(0, commandTerminator);
-		const param = prefixless.substring(commandTerminator).trim();
-		commandString = commandString.toLowerCase();
-		commandString = translateAlias(commandString);
-		const { decoratedAction: commandFunction = Function.prototype } = legacyCommands.get(commandString) ?? {};
-		const packedMessage: LegacyPackedMessage = Object.assign(message, { commandName: commandString });
-		const thisBinding: LegacyThisBinding = Object.defineProperty(packedMessage, 'guildPlayer', {
-			get: () => guildPlayers.get(packedMessage.guild.id),
-			set: value => guildPlayers.set(packedMessage.guild.id, value)
-		}) as LegacyThisBinding;
-		legacyWarning(message, prefix);
-		await Promise.resolve(commandFunction.call(thisBinding, param ?? ''));
-	}
-	catch (e) {
-		console.error(e);
-	}
-});
 
 client.on('voiceStateUpdate', (oldState, newState) => {
 	const id = oldState.guild.id;
@@ -120,8 +88,9 @@ async function sendWelcome(guild: Discord.Guild) {
 	const embed = new Discord.EmbedBuilder()
 		.setAuthor({ name: client.user.tag, iconURL: client.user.displayAvatarURL() })
 		.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
-		.addFields({ name: '❯ Néhány szó a botról', value: 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.'},
-		{name: '❯ Első lépések', value: `Az alapértelmezett prefix a **.**, ez a \`setprefix\` parancs használatával megváltoztatható.\nA ${legacyDebatedCommands.map(cmdName => '`' + cmdName + '`').join(', ')} parancsok alapértelmezésképpen csak az adminisztrátoroknak használhatóak - ez a működés a \`grant\` és \`deny\` parancsokkal felüldefiniálható.\nA bot működéséhez az írási jogosultság elengedhetetlen, a reakciók engedélyezése pedig erősen ajánlott.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`})
+		.addFields(
+			{ name: '❯ Néhány szó a botról', value: 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.'},
+			{name: '❯ Első lépések', value: `A bot slash commandokkal használható. Működéséhez az írási jogosultság elengedhetetlen.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`})
 		.setColor(embedC)
 		.setTimestamp();
 	sendGuild(guild, devServerInvite, { embeds: [embed] });
@@ -149,17 +118,6 @@ function updateStatusChannels() {
 	usersChan.setName(`RAD.io (${client.users.cache.size}) felhasználóval`);
 }
 
-
-function legacyWarning(message: Discord.Message, currentPrefix: string) {
-	if (Math.random() < 0.9)
-		return;
-	message.reply(
-`**FIGYELEM!**
-Ezt az üzenetet azért kapod, mert a régi módon, prefixszel (\`${currentPrefix}\`) próbáltál kiadni egy parancsot.
-Ennek a támogatása _nemsokára véget ér_. (https://support-dev.discord.com/hc/en-us/articles/4404772028055-Message-Content-Privileged-Intent-FAQ)
-Ha nem látod a Rad.IO /parancsait a / begépelésére, kérj meg egy admint, hogy hívja be a botot újra.`
-	);
-}
 
 await forceLogin();
 setInterval(setPStatus, 60000 * 5);
