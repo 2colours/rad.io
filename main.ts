@@ -89,7 +89,7 @@ async function sendWelcome(guild: Discord.Guild) {
 		.setAuthor({ name: client.user.tag, iconURL: client.user.displayAvatarURL() })
 		.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
 		.addFields(
-			{ name: '❯ Néhány szó a botról', value: 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot vagy mention-öld a botot.'},
+			{ name: '❯ Néhány szó a botról', value: 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot.'},
 			{name: '❯ Első lépések', value: `A bot slash commandokkal használható. Működéséhez az írási jogosultság elengedhetetlen.\n\nTovábbi kérdésekre a dev szerveren készségesen válaszolunk.`})
 		.setColor(embedC)
 		.setTimestamp();
