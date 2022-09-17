@@ -334,7 +334,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			name: `❯ _${this.guild.roles.resolve(roleID).name}_ rang`,
 			value: commands.map(cmd => `\`${cmd}\``).join(' ')
 		})));
-		this.reply({ embeds: [embed], ephemeral: true });
+		this.reply({ embeds: [embed] });
 	},
 	async volume(vol) {
 		if (vol == undefined || vol <= 0 || vol > 15)
