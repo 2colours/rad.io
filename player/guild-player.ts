@@ -23,13 +23,11 @@ class Playable {
 	private resource: AudioResource;
 	private readyEmitter: EventEmitter = new EventEmitter();
 	constructor(private streamType: StreamType, private url: string, private volume: number) {}
-	loadResource() {
-		Promise.resolve(downloadMethods.get(this.streamType)(this.url))
-			.then(stream => {
-				this.resource = createAudioResource(stream, {inlineVolume:true})
-				this.resource.volume.setVolume(this.volume);
-				this.readyEmitter.emit('ready', this.resource);
-			});
+	async loadResource() {
+		const stream = await Promise.resolve(downloadMethods.get(this.streamType)(this.url));
+		this.resource = createAudioResource(stream, {inlineVolume:true});
+		this.resource.volume.setVolume(this.volume);
+		this.readyEmitter.emit('ready', this.resource);
 	}
 	onReady(handler: ReadyHandler) {
 		this.readyEmitter.on('ready', handler);
@@ -68,18 +66,18 @@ export class GuildPlayer extends EventEmitter {
 	get playingElement(): MusicData {
 		return this._playingElement;
 	}
-	private async setPlayingElement(value: MusicData):Promise<void> {
+	private async setPlayingElement(value: MusicData) {
 		this._playingElement = value;
 		if (!value)
 			return;
 		this.emit('announcement', `**Lejátszás alatt: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``);
 		this.currentPlay = new Playable(this.playingElement.type, this.playingElement.url, this.volume);
 		this.currentPlay.onReady(resource => this.engine.play(resource));
-		this.currentPlay.loadResource();
+		await this.currentPlay.loadResource();
 	}
-	private async resetPlayingElement():Promise<void> {
+	private async resetPlayingElement() {
 		this.emit('announcement', `**Ismétllődik: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``);
-		this.currentPlay.loadResource();
+		await this.currentPlay.loadResource();
 	}
 	queue: MusicData[];
 	fallbackPlayed: boolean;
