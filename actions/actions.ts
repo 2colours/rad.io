@@ -263,6 +263,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	async skip(amountToSkip) {
 		if (amountToSkip<=0)
 			amountToSkip=1;
+		await this.deferReply();
 		this.guildPlayer.removeAllListeners();
 		this.guildPlayer.once('announcement', (message: string) => this.editReply(message));
 		await this.guildPlayer.skip(amountToSkip);
