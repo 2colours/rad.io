@@ -174,7 +174,9 @@ export class GuildPlayer extends EventEmitter {
 		for (const musicData of musicDatas)
 			this.queue.push(musicData);
 		if (autoSkip)
-			this.startNext();
+			this.startNext()
+		else
+			this.emit('announcement', `**${musicDatas.length} elem került a sorba.**`);
 	}
 	shuffle() {
 		if (this.queue.length >= 2)

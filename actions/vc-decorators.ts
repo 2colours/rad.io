@@ -54,7 +54,7 @@ const naturalErrors: Decorator = action => async function (this: ThisBinding, ..
 	}
 	catch (e) {
 		if (typeof e == 'string')
-			return void (await this.reply({ content: `**hiba - ${e}**`, ephemeral: true}));
+			return void await this.reply({ content: `**hiba - ${e}**`, ephemeral: true});
 		console.error(e);
 	}
 };

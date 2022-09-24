@@ -49,10 +49,7 @@ export const actions: Actions = {
 			catch (e) {
 				return void await this.reply({content: '**Érvénytelen youtube url.**', ephemeral: true});
 			}
-			if (toSchedule.length > 1)
-				await this.reply(`**${toSchedule.length} elem került a sorba.**`);
-			else
-				await this.deferReply();
+			await this.deferReply();
 			return void forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
 		}
 		const ytString = sscanf(ytQuery, '%S') ?? '';
