@@ -218,6 +218,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const queue: MusicData[] = this.guildPlayer.queue;
 		if (queue.length == 0)
 			return void await this.reply('**A sor jelenleg üres.**');
+		await this.reply(`**${queue.length} elem a sorban:**`);
 		const embed: Discord.EmbedBuilder = commonEmbed.call(this);
 		const queueLines = queue.map((elem,index) => `${getEmoji(elem.type)} **${index+1}.** \t [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}; Kérte: ${elem.requester})`);
 		await useScrollableEmbed(this, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}, Összesen ${queue.length} elem`, queueLines);
