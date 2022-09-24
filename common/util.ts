@@ -1,6 +1,6 @@
 ﻿import { Snowflake, Guild, TextChannel, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
-import { LegacyCommand, CommandType, PlayableData, database, LegacyDecorator, UserHolder, TextChannelHolder, client, embedC, MusicData,
+import { CommandType, PlayableData, database, UserHolder, TextChannelHolder, client, embedC, MusicData,
 	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding } from '../internal.js';
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
@@ -28,7 +28,6 @@ export function hourMinSec(seconds: number) {
 	seconds %= 60;
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
-export const aggregateLegacyDecorators: (decorators: LegacyDecorator[]) => LegacyDecorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
 export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
 export async function sendGuild(guild: Guild, content: string, options?: MessageOptions) {
 	for (const channel of guild.channels.cache.values()) {
@@ -42,7 +41,7 @@ export async function sendGuild(guild: Guild, content: string, options?: Message
 		}
 	}
 }
-export async function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildVoiceChannel, actionThis: ThisBinding, playableData: MusicData[]) {
+export function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildVoiceChannel, actionThis: ThisBinding, playableData: MusicData[]) {
 	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
 		joinVoiceChannel({
 			channelId: voiceChannel.id,
@@ -167,7 +166,7 @@ export function starterSeconds(data: PlayableData): number {
 	return parseInt(new URL(data.url).searchParams.get('t')) || 0
 }
 
-export function commandNamesByTypes(commandMap: Map<string, LegacyCommand | Command>, ...types: CommandType[]) {
+export function commandNamesByTypes(commandMap: Map<string, Command>, ...types: CommandType[]) {
 	return [...commandMap].filter(([_, command]) => types.includes(command.type)).map(([name, _]) => name);
 }
 type SupportedCommandValueTypes = TypeFromParam<SupportedCommandOptionTypes>;
