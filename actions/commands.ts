@@ -395,20 +395,6 @@ const commandData = constrainedCommandData({
 		type: 'adminOnly',
 		filters: new Set([Filter.adminNeeded])
 	},
-	'granteveryone': {
-		aliases: ['ge'],
-		params: [
-			{
-				name: 'commandSet',
-				description: 'parancs1|parancs2|... / all',
-				required: true,
-				type: 'String'
-			}
-		],
-		descrip: 'Új parancsok elérhetővé tétele mindenki (az @everyone role) számára. Alapértelmezésben egyes parancsok csak adminisztrátoroknak elérhetők, ezt lehet felülírni ezzel a paranccsal.',
-		type: 'adminOnly',
-		filters: new Set([Filter.adminNeeded])
-	},
 	'deny': {
 		aliases: ['d'],
 		params: [
@@ -426,20 +412,6 @@ const commandData = constrainedCommandData({
 			}
 		],
 		descrip: 'Parancshasználat visszavonása egy role-tól. (Lásd még: `grant` parancs.)',
-		type: 'adminOnly',
-		filters: new Set([Filter.adminNeeded])
-	},
-	'denyeveryone': {
-		aliases: ['de'],
-		params: [
-			{
-				name: 'commandSet',
-				description: 'parancs1|parancs2|... / all',
-				required: true,
-				type: 'String'
-			}
-		],
-		descrip: 'Parancshasználat visszavonása az @everyone role - tól. (Lásd még: `grant` parancs.)',
 		type: 'adminOnly',
 		filters: new Set([Filter.adminNeeded])
 	},

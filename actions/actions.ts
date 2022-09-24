@@ -291,18 +291,12 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 					roleCommands.push(elem);
 			}));
 	},
-	granteveryone(commandSet) {
-		actions['grant'].call(this, `${commandSet} @everyone`);
-	},
 	deny(commandSet, role) {
 		permissionReused.call(this, commandSet, role, (commands: string[], roleCommands: string[]) =>
 			commands.forEach(elem => {
 				if (roleCommands.includes(elem))
 					roleCommands.splice(roleCommands.indexOf(elem), 1);
 			}));
-	},
-	denyeveryone(commandSet) {
-		actions['deny'].call(this, `${commandSet} @everyone`);
 	},
 	nowplaying() {
 		const nowPlayingData = this.guildPlayer.nowPlaying();
