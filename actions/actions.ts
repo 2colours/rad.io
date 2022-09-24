@@ -263,8 +263,10 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	async skip(amountToSkip) {
 		if (amountToSkip<=0)
 			amountToSkip=1;
-		await this.guildPlayer.skip(amountToSkip);		
-		await this.reply(tickEmoji);
+		this.guildPlayer.removeAllListeners();
+		this.guildPlayer.once('announcement', (message: string) => this.editReply(message));
+		await this.guildPlayer.skip(amountToSkip);
+		this.guildPlayer.on('announcement', (message: string) => this.channel.send(message).catch());
 	},
 	async pause() {
 		this.guildPlayer.pause();
