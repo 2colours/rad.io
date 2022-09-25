@@ -6,6 +6,7 @@ import { getEmoji, MusicData, StreamType, StreamProvider, shuffle, getFallbackMo
 	getFallbackChannel, PlayingData } from '../internal.js';
 import { Collection, GuildMember, VoiceChannel } from 'discord.js';
 import axios from 'axios'
+import EventEmitter from 'node:events';
 const ytdl = async (url: string) => (await play.stream(url)).stream;
 const clientId = process.env.soundcloudClientId;
 const downloadMethods = new Map<StreamType, StreamProvider>([
@@ -17,8 +18,20 @@ function isDefinite(data:MusicData) {
 	const definiteTypes: StreamType[] = ['yt', 'custom', 'sc'];
 	return data && definiteTypes.includes(data.type);
 }
+type ReadyHandler = (a: AudioResource) => void;
 class Playable {
-	constructor(readonly resource: AudioResource) {}
+	private resource: AudioResource;
+	private readyEmitter: EventEmitter = new EventEmitter();
+	constructor(private streamType: StreamType, private url: string, private volume: number) {}
+	async loadResource() {
+		const stream = await Promise.resolve(downloadMethods.get(this.streamType)(this.url));
+		this.resource = createAudioResource(stream, {inlineVolume:true});
+		this.resource.volume.setVolume(this.volume);
+		this.readyEmitter.emit('ready', this.resource);
+	}
+	onReady(handler: ReadyHandler) {
+		this.readyEmitter.on('ready', handler);
+	}
 	askRepeat() {
 		return false;
 	}
@@ -46,42 +59,39 @@ class VoiceHandler {
 			global.clearTimeout(this.timeoutId);
 	}
 }
-export class GuildPlayer {
+export class GuildPlayer extends EventEmitter {
 	private engine: AudioPlayer;
 	private currentPlay: Playable;
 	private _playingElement: MusicData;
 	get playingElement(): MusicData {
 		return this._playingElement;
 	}
-	private async setPlayingElement(value: MusicData):Promise<void> {
+	private async setPlayingElement(value: MusicData) {
 		this._playingElement = value;
 		if (!value)
 			return;
-		this.announcementChannel.send(`**Lejátszás alatt: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``).catch();
-		await Promise.resolve(downloadMethods.get(this.playingElement.type)(this.playingElement.url))
-			.then(stream => {
-				this.currentPlay = new Playable(createAudioResource(stream, {inlineVolume:true}));
-				this.currentPlay.resource.volume.setVolume(this.volume);
-				this.engine.play(this.currentPlay.resource);
-			});
-		
+		this.emit('announcement', `**Lejátszás alatt: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``);
+		this.currentPlay = new Playable(this.playingElement.type, this.playingElement.url, this.volume);
+		this.currentPlay.onReady(resource => this.engine.play(resource));
+		await this.currentPlay.loadResource();
 	}
-	private announcementChannel: Discord.TextChannel;
+	private async resetPlayingElement() {
+		this.emit('announcement', `**Ismétllődik: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``);
+		await this.currentPlay.loadResource();
+	}
 	queue: MusicData[];
 	fallbackPlayed: boolean;
 	public handler: VoiceHandler;
 	private volume: number;
 	private oldVolume?: number;
 	private destroyed: boolean = false;
-	constructor(public ownerGuild: Discord.Guild, textChannel: Discord.TextChannel, musicToPlay: MusicData[]) {
-		this.announcementChannel = textChannel;
+	constructor(public ownerGuild: Discord.Guild) {
+		super();
 		this.fallbackPlayed = false;
 		this.queue = [];
 		this.handler = new VoiceHandler(this);
 		this.volume = 0.5;
 		this.setPlayingElement(null);
-		if (musicToPlay.length > 0)
-			this.bulkSchedule(musicToPlay);
 		this.engine = createAudioPlayer()
 			.on('error', _e => {
 			//TODO
@@ -90,7 +100,7 @@ export class GuildPlayer {
 				const shouldRepeat = this.currentPlay.askRepeat();
 				if (!shouldRepeat)
 					return await this.startNext();
-				await this.setPlayingElement(this.playingElement);
+				await this.resetPlayingElement();
 			});
 		getVoiceConnection(this.ownerGuild.id).subscribe(this.engine);
 	}
@@ -127,7 +137,8 @@ export class GuildPlayer {
 				break;
 			}
 			catch (e) {
-				this.announcementChannel.send('**Az indítás során hiba lépett fel.**');
+				console.log(e);
+				this.emit('announcement', '**Az indítás során hiba lépett fel.**');
 			}
 		}
 		if (!this.fallbackPlayed){
@@ -156,14 +167,16 @@ export class GuildPlayer {
 		if (autoSkip)
 			this.startNext();
 		else
-			this.announcementChannel.send(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
+			this.emit('announcement', `**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
 	bulkSchedule(musicDatas: MusicData[]) {
 		const autoSkip = this.autoSkip();
 		for (const musicData of musicDatas)
 			this.queue.push(musicData);
 		if (autoSkip)
-			this.startNext();
+			this.startNext()
+		else
+			this.emit('announcement', `**${musicDatas.length} elem került a sorba.**`);
 	}
 	shuffle() {
 		if (this.queue.length >= 2)
@@ -192,13 +205,13 @@ export class GuildPlayer {
 		this.queue.splice(queuePosition - 1, 1);
 	}
 	private async fallbackMode() {
-		this.announcementChannel.send('**Fallback mód.**');
+		this.emit('announcement', '**Fallback mód.**');
 		const fallbackMode = getFallbackMode(this.ownerGuild.id);
 		switch (fallbackMode) {
 			case 'radio':
 				const fallbackMusic = getFallbackChannel(this.ownerGuild.id);
 				if (!fallbackMusic)
-					this.announcementChannel.send('**Nincs beállítva rádióadó, silence fallback.**');
+					this.emit('announcement', '**Nincs beállítva rádióadó, silence fallback.**');
 				await this.setPlayingElement(fallbackMusic);
 				break;
 			case 'leave':

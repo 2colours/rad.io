@@ -1,5 +1,5 @@
 ﻿import { actions, Command, Filter, CommandExtraData, DeepReadonly, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam } from '../internal.js';
-import { SlashCommandBuilder } from '@discordjs/builders';
+import { SlashCommandBuilder } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import tsObjectEntries from 'ts-type-object-entries';
@@ -395,20 +395,6 @@ const commandData = constrainedCommandData({
 		type: 'adminOnly',
 		filters: new Set([Filter.adminNeeded])
 	},
-	'granteveryone': {
-		aliases: ['ge'],
-		params: [
-			{
-				name: 'commandSet',
-				description: 'parancs1|parancs2|... / all',
-				required: true,
-				type: 'String'
-			}
-		],
-		descrip: 'Új parancsok elérhetővé tétele mindenki (az @everyone role) számára. Alapértelmezésben egyes parancsok csak adminisztrátoroknak elérhetők, ezt lehet felülírni ezzel a paranccsal.',
-		type: 'adminOnly',
-		filters: new Set([Filter.adminNeeded])
-	},
 	'deny': {
 		aliases: ['d'],
 		params: [
@@ -426,20 +412,6 @@ const commandData = constrainedCommandData({
 			}
 		],
 		descrip: 'Parancshasználat visszavonása egy role-tól. (Lásd még: `grant` parancs.)',
-		type: 'adminOnly',
-		filters: new Set([Filter.adminNeeded])
-	},
-	'denyeveryone': {
-		aliases: ['de'],
-		params: [
-			{
-				name: 'commandSet',
-				description: 'parancs1|parancs2|... / all',
-				required: true,
-				type: 'String'
-			}
-		],
-		descrip: 'Parancshasználat visszavonása az @everyone role - tól. (Lásd még: `grant` parancs.)',
 		type: 'adminOnly',
 		filters: new Set([Filter.adminNeeded])
 	},
@@ -490,6 +462,7 @@ export type Actions = {
 	[commandName in keyof CommandData]: (this: ThisBinding, ...args: ActionArgs<commandName>) => Resolvable<void>;
 };
 export type Action = Actions[keyof Actions];
+export type ActionParams = Parameters<Action>; //TODO: fix this
 /*
 
 setupMessageCommand({

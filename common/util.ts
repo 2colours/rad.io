@@ -1,7 +1,7 @@
-﻿import { Snowflake, Guild, TextChannel, MessageEmbed, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, MessageActionRow, MessageButton, CommandInteractionOption, Role } from 'discord.js';
+﻿import { Snowflake, Guild, TextChannel, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
-import { LegacyCommand, CommandType, PlayableData, database, LegacyDecorator, UserHolder, TextChannelHolder, client, embedC, GuildPlayerHolder, MusicData,
-	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command } from '../internal.js';
+import { CommandType, PlayableData, database, UserHolder, TextChannelHolder, client, embedC, MusicData,
+	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding } from '../internal.js';
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import PasteClient from 'pastebin-api';
@@ -28,7 +28,6 @@ export function hourMinSec(seconds: number) {
 	seconds %= 60;
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
-export const aggregateLegacyDecorators: (decorators: LegacyDecorator[]) => LegacyDecorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
 export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
 export async function sendGuild(guild: Guild, content: string, options?: MessageOptions) {
 	for (const channel of guild.channels.cache.values()) {
@@ -42,7 +41,7 @@ export async function sendGuild(guild: Guild, content: string, options?: Message
 		}
 	}
 }
-export async function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildVoiceChannel, holder: GuildPlayerHolder, playableData: MusicData[]) {
+export function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildVoiceChannel, actionThis: ThisBinding, playableData: MusicData[]) {
 	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
 		joinVoiceChannel({
 			channelId: voiceChannel.id,
@@ -50,13 +49,15 @@ export async function forceSchedule(textChannel: TextChannel, voiceChannel: Base
 			//@ts-ignore
 			adapterCreator: voiceChannel.guild.voiceAdapterCreator
 		});
-		holder.guildPlayer = new GuildPlayer(voiceChannel.guild, textChannel, playableData);
-		return;
+		actionThis.guildPlayer = new GuildPlayer(voiceChannel.guild);
 	}
+	actionThis.guildPlayer.removeAllListeners();
+	actionThis.guildPlayer.once('announcement', (message: string) => actionThis.editReply(message));
 	if (playableData.length == 1)
-		holder.guildPlayer.schedule(playableData[0]);
+		actionThis.guildPlayer.schedule(playableData[0]);
 	else
-		holder.guildPlayer.bulkSchedule(playableData);
+		actionThis.guildPlayer.bulkSchedule(playableData);
+	actionThis.guildPlayer.on('announcement', (message: string) => textChannel.send(message).catch());
 };
 interface CommonEmbedThisBinding {
 	guild: Guild;
@@ -64,38 +65,38 @@ interface CommonEmbedThisBinding {
 };
 export function commonEmbed(this: CommonEmbedThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
 	const prefix = getPrefix(this.guild.id);
-	return new MessageEmbed()
+	return new EmbedBuilder()
 		.setColor(embedC)
 		.setFooter({ text: `${prefix}${this.commandName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
 }
-export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: MessageEmbed, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
+export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: EmbedBuilder, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
 	let currentPage = 1;
 	const maxPage = Math.ceil(linesForDescription.length / elementsPerPage);
 	const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
 	const completeEmbed = baseEmbed
 		.setTitle(titleResolver(currentPage, maxPage))
 		.setDescription(currentDescription);
-	const prevButton = new MessageButton()
+	const prevButton = new ButtonBuilder()
 		.setCustomId('previous')
 		.setLabel('Előző')
-		.setStyle('PRIMARY')
+		.setStyle(ButtonStyle.Primary)
 		.setEmoji('◀️');
-	const nextButton = new MessageButton()
+	const nextButton = new ButtonBuilder()
 		.setCustomId('next')
 		.setLabel('Következő')
-		.setStyle('PRIMARY')
+		.setStyle(ButtonStyle.Primary)
 		.setEmoji('▶️');
 	function setButtonsDisabled() {
 		prevButton.setDisabled(currentPage <= 1);
 		nextButton.setDisabled(currentPage >= maxPage)
 	}
 	setButtonsDisabled();
-	const row = new MessageActionRow().addComponents(prevButton, nextButton);
+	const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(prevButton, nextButton);
 	const message = await ctx.channel.send({ embeds: [completeEmbed], components: [row] }) as Message;
 	const filter =  (i: MessageComponentInteraction) => (i.deferUpdate(), ['previous', 'next'].includes(i.customId) && i.user.id == ctx.user.id);
-	const collector = message.createMessageComponentCollector({filter, time: 60000 });
-	for await (const i of collector) {
+	const collector = message.createMessageComponentCollector({filter, time: 60000, componentType: ComponentType.Button });
+	for await (const [i, _] of collector) {
 		currentPage = i.customId == 'previous' ? currentPage - 1 : currentPage + 1;
 		const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
 		setButtonsDisabled();
@@ -165,12 +166,12 @@ export function starterSeconds(data: PlayableData): number {
 	return parseInt(new URL(data.url).searchParams.get('t')) || 0
 }
 
-export function commandNamesByTypes(commandMap: Map<string, LegacyCommand | Command>, ...types: CommandType[]) {
+export function commandNamesByTypes(commandMap: Map<string, Command>, ...types: CommandType[]) {
 	return [...commandMap].filter(([_, command]) => types.includes(command.type)).map(([name, _]) => name);
 }
 type SupportedCommandValueTypes = TypeFromParam<SupportedCommandOptionTypes>;
 export function retrieveCommandOptionValue(option: CommandInteractionOption): SupportedCommandValueTypes {
-	return ['BOOLEAN', 'STRING', 'NUMBER'].includes(option.type) ? option.value :
-	option.type == 'ROLE' ? option.role as Role :
+	return [ApplicationCommandOptionType.Boolean, ApplicationCommandOptionType.String, ApplicationCommandOptionType.Number].includes(option.type) ? option.value :
+	option.type == ApplicationCommandOptionType.Role ? option.role as Role :
 	null;
 }

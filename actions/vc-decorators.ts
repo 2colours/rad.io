@@ -1,13 +1,13 @@
-﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators } from '../internal.js';
+﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators, ActionParams } from '../internal.js';
 import { getVoiceConnection } from '@discordjs/voice';
-import { VoiceBasedChannel } from 'discord.js';
-export const isAdmin: Predicate = ctx => ctx.memberPermissions?.has('ADMINISTRATOR');
+import { PermissionsBitField, VoiceBasedChannel } from 'discord.js';
+export const isAdmin: Predicate = ctx => ctx.memberPermissions?.has(PermissionsBitField.Flags.Administrator);
 const isVcUser: Predicate = ctx => !!ctx.guild.members.resolve(ctx.user.id).voice.channel;
 const isDifferentVc: Predicate = ctx => client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) != ctx.guild.members.resolve(ctx.user.id).voice.channel;
 const isVcBot: Predicate = ctx => !!getVoiceConnection(ctx.guildId);
-const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (...args: Parameters<Action>) {
+const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (...args: ActionParams) {
 	const currentDecorator = await Promise.resolve(pred(this)) ? dec1 : dec2;
-	await currentDecorator(action).call(this,...args as any);
+	await currentDecorator(action).call(this, ...args as any); //TODO: erre a castra nem kéne, hogy szükség legyen
 };
 const hasPermission: Predicate = ctx => {
 	const guildRoles = getRoles(ctx.guild.id);
@@ -18,8 +18,8 @@ const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.u
 const isAloneUser: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot && member != ctx.guild.members.resolve(ctx.user.id));
 const isAloneBot: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
-const rejectReply=(replyMessage:string)=>(_:Action)=> async function(_:Parameters<Action>) {
-	await this.editReply(`**${replyMessage}**`);
+const rejectReply=(replyMessage:string)=>(_:Action)=> async function(this: ThisBinding, _:Parameters<Action>) {
+	await this.reply({ content: `**${replyMessage}**`, ephemeral: true });
 };
 const nop:Decorator=()=>()=>{};
 const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
@@ -33,11 +33,11 @@ const sameOrNoBotVcNeeded:Decorator=choiceFilter(any(not(isVcBot),not(isDifferen
 const permissionNeeded:Decorator=choiceFilter(hasPermission,pass,rejectReply('Nincs jogod a parancs használatához.'));
 const adminOrPermissionNeeded:Decorator=choiceFilter(isAdmin,pass,permissionNeeded);
 const creatorNeeded:Decorator=choiceFilter(isCreator,pass,nop);
-const vcPermissionNeeded:Decorator=action=>async function(...args: Parameters<Action>) {
+const vcPermissionNeeded:Decorator=action=>async function(...args: ActionParams) {
 	if (!hasVcPermission(this))
 		await this.channel.send(`**Nincs jogom csatlakozni a** \`${this.guild.members.resolve(this.user.id).voice.channel.name}\` **csatornához!**`).catch(console.error);
 	else
-		await action.call(this,...args as any);
+		await action.call(this, ...args as any); //TODO: erre a castra nem kéne, hogy szükség legyen
 };
 const eventualVcBotNeeded: Decorator = choiceFilter(isVcBot, pass, vcPermissionNeeded);
 const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
@@ -48,13 +48,13 @@ const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('Ez a pa
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));
 const isPlayingFallbackSet: Predicate = ctx => getFallbackMode(ctx.guild.id) == 'radio';
 const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('Ez a parancs nem használható a jelenlegi fallback beállítással.'));
-const naturalErrors: Decorator = action => async function (...args: Parameters<Action>): Promise<void> {
+const naturalErrors: Decorator = action => async function (this: ThisBinding, ...args: ActionParams): Promise<void> {
 	try {
-		await Promise.resolve(action.call(this, args));
+		await Promise.resolve(action.call(this, ...args as any)); //TODO: cast...
 	}
 	catch (e) {
 		if (typeof e == 'string')
-			return void (await this.editReply(`**hiba - ${e}**`));
+			return void await this.reply({ content: `**hiba - ${e}**`, ephemeral: true});
 		console.error(e);
 	}
 };

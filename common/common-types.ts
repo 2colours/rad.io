@@ -1,4 +1,4 @@
-import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, CommandInteraction, Role } from 'discord.js';
+import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, CommandInteraction, Role, GuildTextBasedChannel } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v9';
 import { Readable } from 'stream';
 import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../internal.js';
@@ -14,7 +14,7 @@ export interface Config {
 	fallbackChannels: Map<Snowflake, MusicData>;
 	roles: Map<Snowflake, Map<Snowflake,string[]>>; //TODO az a string[] specifikusan parancsnév a debatedCommands-ból
 }
-type TextBasedChannels = DMChannel | TextChannel | NewsChannel | ThreadChannel;
+type TextBasedChannels = DMChannel | TextChannel | NewsChannel | ThreadChannel | GuildTextBasedChannel;
 export type Resolvable<T> = T | Promise<T>;
 export type Predicate = (ctx: ThisBinding) => Resolvable<boolean>;
 export type Decorator = (toDecorate:Action) => Action;
