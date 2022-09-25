@@ -269,7 +269,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		await this.deferReply();
 		this.guildPlayer.removeAllListeners();
 		this.guildPlayer.once('announcement', (message: string) => this.editReply(message));
-		await this.guildPlayer.skip(amountToSkip);
+		this.guildPlayer.skip(amountToSkip);
 		this.guildPlayer.on('announcement', (message: string) => this.channel.send(message).catch());
 	},
 	async pause() {
