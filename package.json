@@ -19,7 +19,7 @@
     "moment": "2.29.1",
     "node-gyp": "9.1.0",
     "pastebin-api": "5.1.2",
-    "play-dl": "1.2.8",
+    "play-dl": "1.9.5",
     "popyt": "5",
     "scanf": "1",
     "sequelize": "6.6.5",
