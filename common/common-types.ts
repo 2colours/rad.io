@@ -2,6 +2,7 @@ import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, Thre
 import { ApplicationCommandOptionType } from 'discord-api-types/v9';
 import { Readable } from 'stream';
 import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../internal.js';
+import { AudioResource } from '@discordjs/voice';
 export type SupportedCommandOptionTypes = ApplicationCommandOptionTypes & 'String' | 'Number' | 'Boolean' | 'Role';
 export type TypeFromParam<T> =
 			('Number' extends T ? number : never) |
@@ -23,6 +24,7 @@ export type PlayableCallbackVoid = () => void;
 export type PlayableCallbackBoolean = () => boolean;
 export type PlayableCallbackNumber = () => number;
 export type StreamProvider = (url:string) => Resolvable<string | Readable>;
+export type AudioResourceProvider = (url:string) => Resolvable<AudioResource>;
 export interface GuildPlayerHolder {
 	guildPlayer: GuildPlayer;
 }
@@ -53,7 +55,7 @@ export interface RoleTableData {
 	roleID: Snowflake;
 	commands: string;
 }
-export type StreamType = 'yt' | 'custom' | 'radio' | 'sc';
+export type StreamType = 'yt' | 'custom' | 'radio' /* | 'sc' */;
 export interface PlayableData {
 	url: string;
 	type: StreamType;
