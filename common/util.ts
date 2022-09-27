@@ -1,4 +1,4 @@
-﻿import { Snowflake, Guild, TextChannel, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder } from 'discord.js';
+﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { CommandType, PlayableData, database, UserHolder, TextChannelHolder, client, embedC, MusicData,
 	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding } from '../internal.js';
@@ -29,7 +29,7 @@ export function hourMinSec(seconds: number) {
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
 export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
-export async function sendGuild(guild: Guild, content: string, options?: MessageOptions) {
+export async function sendGuild(guild: Guild, content: string, options?: MessageCreateOptions) {
 	for (const channel of guild.channels.cache.values()) {
 		if (!(channel instanceof TextChannel))
 			continue;
