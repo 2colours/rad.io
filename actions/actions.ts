@@ -10,6 +10,7 @@ import { YouTube } from 'popyt';
 import axios from 'axios';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
+import { ComponentType } from 'discord.js';
 export const actions: Actions = {
 	async setprefix(newPrefix) {
 		newPrefix = newPrefix.toLowerCase();
@@ -455,7 +456,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 		return i.user.id == this.user.id;
 	};
 	try {
-		const selectInteraction = await message.awaitMessageComponent({filter, time: 30000 });
+		const selectInteraction = await message.awaitMessageComponent({ filter, time: 30000, componentType: ComponentType.SelectMenu });
 		videoChooser.setDisabled(true);
 		message.edit({ components: [row] });
 		return +(selectInteraction as Discord.SelectMenuInteraction).values[0];
