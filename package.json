@@ -14,7 +14,7 @@
     "@types/ws": "8.5.3",
     "axios": "0.27.2",
     "discord.js": "14.5.0",
-    "dotenv": "16.0.1",
+    "dotenv": "16.0.2",
     "ffmpeg-static": "4.4.0",
     "libsodium-wrappers": "^0.7.10",
     "moment": "2.29.1",
