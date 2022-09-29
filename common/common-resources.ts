@@ -12,12 +12,10 @@ export const database = new Sequelize({
 });
 
 async function loadCFG(): Promise<Config> {
-	const prefixes: Map<Snowflake, string> = new Map();
 	const fallbackModes: Map<Snowflake, FallbackType> = new Map();
 	const fallbackData: Map<Snowflake, MusicData> = new Map();
 	const roles: Map<Snowflake, Map<Snowflake, string[]>> = new Map();
 	const selectPromises: Promise<void>[] = [
-		database.query('SELECT * FROM prefix', { type: QueryTypes.SELECT }).then(prefixRows => prefixRows.forEach((prefixRow: any) => prefixes.set(prefixRow.guildID, prefixRow.prefix))),
 		database.query('SELECT * FROM fallbackModes', { type: QueryTypes.SELECT }).then(fbmRows => fbmRows.forEach((fbmRow: any) => fallbackModes.set(fbmRow.guildID, fbmRow.type))),
 		database.query('SELECT * FROM fallbackData', { type: QueryTypes.SELECT }).then(fbdRows => fbdRows.forEach((fbdRow: any) => fallbackData.set(fbdRow.guildID, {
 			type: fbdRow.type,
@@ -31,10 +29,9 @@ async function loadCFG(): Promise<Config> {
 	await Promise.all(selectPromises);
 
 	const config = {
-		prefixes: prefixes,
 		fallbackModes: fallbackModes,
 		fallbackChannels: fallbackData,
-		roles: roles
+		roles
 	};
 	return config;
 };

@@ -10,7 +10,6 @@ export type TypeFromParam<T> =
 			('Role' extends T ? Role : never) |
 			('Boolean' extends T ? boolean : never);
 export interface Config {
-	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, FallbackType>;
 	fallbackChannels: Map<Snowflake, MusicData>;
 	roles: Map<Snowflake, Map<Snowflake,string[]>>; //TODO az a string[] specifikusan parancsnév a debatedCommands-ból
@@ -36,10 +35,6 @@ export interface TextChannelHolder {
 }
 export interface ThisBinding extends CommandInteraction, GuildPlayerHolder { }
 export type FallbackType = 'leave' | 'radio' | 'silence';
-export interface PrefixTableData {
-	guildID: Snowflake;
-	prefix: string;
-}
 export interface FallbackModesTableData {
 	guildID: Snowflake;
 	type: FallbackType;
