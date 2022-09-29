@@ -1,7 +1,7 @@
 ﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { CommandType, PlayableData, database, UserHolder, TextChannelHolder, client, embedC, MusicData,
-	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding } from '../internal.js';
+	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding } from '../internal.js';
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import PasteClient from 'pastebin-api';
@@ -64,10 +64,9 @@ interface CommonEmbedThisBinding {
 	commandName: string;
 };
 export function commonEmbed(this: CommonEmbedThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
-	const prefix = getPrefix(this.guild.id);
 	return new EmbedBuilder()
 		.setColor(embedC)
-		.setFooter({ text: `${prefix}${this.commandName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
+		.setFooter({ text: `${this.commandName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
 }
 export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: EmbedBuilder, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {

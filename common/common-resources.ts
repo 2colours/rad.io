@@ -2,6 +2,7 @@ import { Snowflake, Client, GatewayIntentBits } from 'discord.js';
 import { attach, FallbackType, Config, radios, defaultRadio, MusicData } from '../internal.js';
 import { Umzug, SequelizeStorage } from 'umzug';
 import sequelize from 'sequelize';
+import { readFile, writeFile } from 'node:fs/promises';
 const { Sequelize, QueryTypes, DataTypes } = sequelize; //Workaround (CommonJS -> ES modul)
 export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessageReactions] });
 
@@ -110,7 +111,7 @@ const umzug = new Umzug({
 		{
 			name: '01-fallback-data-fix',
 			async up({ context }) {
-				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: QueryTypes.SELECT }));
+				const fbdRows = (await context.sequelize.query('SELECT * FROM `fallbackData`', { type: QueryTypes.SELECT }));
 				await context.renameColumn('fallbackData', 'url', 'data');
 				fbdRows.forEach((fbdRow: any) => {
 					fbdRow.data = fbdRow.url;
@@ -150,6 +151,36 @@ const umzug = new Umzug({
 				await context.bulkDelete('fallbackData', {});
 				if (fbdRows.length > 0)
 					await context.bulkInsert('fallbackData', fbdRows);
+			}
+		},
+		{
+			name: '02-prefix-removal',
+			async up({ context }) {
+				const prefixRows = await context.sequelize.query('SELECT * FROM `prefix`', { type: QueryTypes.SELECT });
+				await Promise.all([
+					writeFile('./data/02-prefix-removal-backup.json', JSON.stringify(prefixRows)),
+					context.dropTable('prefix')
+				]);
+			},
+			async down({ context }) {
+				await context.createTable('prefix', {
+					guildID: {
+						type: DataTypes.STRING,
+						allowNull: false,
+						primaryKey: true
+					},
+					prefix: {
+						type: DataTypes.STRING,
+						allowNull: false
+					}
+				});
+				try {
+					const content = await readFile('./data/02-prefix-removal-backup.json');
+					context.bulkInsert('prefix', JSON.parse(content.toString()));
+				}
+				catch (e) {
+					console.error(e);
+				}
 			}
 		}
 	],
