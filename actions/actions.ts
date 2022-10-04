@@ -200,7 +200,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	},
 	async testradios() {
 		await this.deferReply({ ephemeral: true });
-		const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, await got.get(data.url, { timeout: { response: 5000 } }).then(response => response.statusCode == 200, _ => false)]));
+		const idAndAvailables = await Promise.all([...radios].map(([id, data]) => [id, got.stream(data.url, { timeout: { response: 5000 } }).errored]));
 		const offRadios = idAndAvailables.filter(([_, available]) => !available).map(([id, _]) => id);
 		await createPastebin(`${offRadios.length} radios went offline`, offRadios.join('\n'))
 			.then(link => this.editReply({ content: link }));

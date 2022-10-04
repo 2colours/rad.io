@@ -7,7 +7,7 @@ import { getEmoji, MusicData, StreamType, shuffle, getFallbackMode,
 import { Collection, GuildMember, VoiceChannel } from 'discord.js';
 import got from 'got';
 import EventEmitter from 'node:events';
-const fetchHttpStream = async (url: string) => (await got.get(url, { timeout: { response: 5000 } })).body as unknown as Readable;
+const fetchHttpStream = async (url: string) => got.stream(url, { timeout: { response: 5000 } }) as Readable;
 //const clientId = process.env.soundcloudClientId;
 const resourceProducers = new Map<StreamType, AudioResourceProvider>([
 	['yt', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true})) ],
