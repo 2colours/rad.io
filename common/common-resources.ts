@@ -186,5 +186,5 @@ const umzug = new Umzug({
 	logger: console,
 });
 
-await umzug.up();
+await umzug.up({ to: '01-fallback-data-fix' });
 export const config = await loadCFG();
