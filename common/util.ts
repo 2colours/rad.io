@@ -5,6 +5,7 @@ import { CommandType, PlayableData, database, UserHolder, TextChannelHolder, cli
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import PasteClient from 'pastebin-api';
+import got, { HTTPError } from 'got';
 const pastebin = new PasteClient(process.env.pastebin);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
 	baseDict = baseDict.get(guildId) ? baseDict : baseDict.set(guildId, defaultValue);
@@ -17,6 +18,16 @@ export function shuffle(array: any[]) {
 	for (let i = array.length - 1; i > 0; i--) {
 		const j = Math.floor(Math.random() * (i + 1));
 		[array[i], array[j]] = [array[j], array[i]];
+	}
+}
+export function couldPing(url: string) {
+	try {
+		got.stream(url, { timeout: { response: 5000 } });
+		return true;
+	} catch (e) {
+		if (!(e instanceof HTTPError))
+			console.error(e);
+		return false;
 	}
 }
 export function hourMinSec(seconds: number) {

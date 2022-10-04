@@ -4,10 +4,9 @@ import moment from 'moment';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, commands, creators, getEmoji, radios as radiosList, translateAlias, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, setPrefix, tickEmoji,
-	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands } from '../internal.js';
+	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
-import got from 'got';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
 import { ComponentType } from 'discord.js';
@@ -200,7 +199,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	},
 	async testradios() {
 		await this.deferReply({ ephemeral: true });
-		const idAndAvailables = await Promise.all([...radios].map(([id, data]) => [id, got.stream(data.url, { timeout: { response: 5000 } }).errored]));
+		const idAndAvailables = await Promise.all([...radios].map(([id, data]) => [id, couldPing(data.url)]));
 		const offRadios = idAndAvailables.filter(([_, available]) => !available).map(([id, _]) => id);
 		await createPastebin(`${offRadios.length} radios went offline`, offRadios.join('\n'))
 			.then(link => this.editReply({ content: link }));
