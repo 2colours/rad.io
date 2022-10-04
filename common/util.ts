@@ -20,15 +20,12 @@ export function shuffle(array: any[]) {
 		[array[i], array[j]] = [array[j], array[i]];
 	}
 }
-export function couldPing(url: string) {
-	try {
-		got.stream(url, { timeout: { response: 5000 } });
-		return true;
-	} catch (e) {
-		if (!(e instanceof HTTPError || e instanceof RequestError))
-			console.error(e);
-		return false;
-	}
+export function couldPing(url: string):Promise<boolean> {
+	return new Promise((resolve, _) => {
+		got.stream(url, { timeout: { response: 5000 } })
+			.on('readable', _ => resolve(true))
+			.on('error', _ => resolve(false));
+	});
 }
 export function hourMinSec(seconds: number) {
 	if (seconds == undefined)

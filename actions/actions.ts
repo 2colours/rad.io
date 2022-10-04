@@ -199,7 +199,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	},
 	async testradios() {
 		await this.deferReply({ ephemeral: true });
-		const idAndAvailables = await Promise.all([...radios].map(([id, data]) => [id, couldPing(data.url)]));
+		const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, await couldPing(data.url)]));
 		const offRadios = idAndAvailables.filter(([_, available]) => !available).map(([id, _]) => id);
 		await createPastebin(`${offRadios.length} radios went offline`, offRadios.join('\n'))
 			.then(link => this.editReply({ content: link }));
