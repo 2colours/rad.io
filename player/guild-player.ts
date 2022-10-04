@@ -5,9 +5,9 @@ import * as play from 'play-dl'; //Nem illik közvetlenül hívni
 import { getEmoji, MusicData, StreamType, shuffle, getFallbackMode,
 	getFallbackChannel, PlayingData, AudioResourceProvider } from '../internal.js';
 import { Collection, GuildMember, VoiceChannel } from 'discord.js';
-import axios from 'axios'
+import got from 'got';
 import EventEmitter from 'node:events';
-const fetchHttpStream = async (url: string) => (await axios.get(url, { timeout: 5000, responseType: 'stream' })).data as Readable;
+const fetchHttpStream = async (url: string) => (await got.get(url, { timeout: { response: 5000 } })).body as unknown as Readable;
 //const clientId = process.env.soundcloudClientId;
 const resourceProducers = new Map<StreamType, AudioResourceProvider>([
 	['yt', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true})) ],

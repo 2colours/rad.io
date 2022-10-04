@@ -7,7 +7,7 @@ import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, St
 	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
-import axios from 'axios';
+import got from 'got';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
 import { ComponentType } from 'discord.js';
@@ -200,7 +200,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	},
 	async testradios() {
 		await this.deferReply({ ephemeral: true });
-		const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, await axios.get(data.url, { timeout: 5000, responseType: 'stream' }).then(response => response.status == 200, _ => false)]));
+		const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, await got.get(data.url, { timeout: { response: 5000 } }).then(response => response.statusCode == 200, _ => false)]));
 		const offRadios = idAndAvailables.filter(([_, available]) => !available).map(([id, _]) => id);
 		await createPastebin(`${offRadios.length} radios went offline`, offRadios.join('\n'))
 			.then(link => this.editReply({ content: link }));
