@@ -5,7 +5,7 @@ import { CommandType, PlayableData, database, UserHolder, TextChannelHolder, cli
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import PasteClient from 'pastebin-api';
-import got, { HTTPError } from 'got';
+import got, { HTTPError, RequestError } from 'got';
 const pastebin = new PasteClient(process.env.pastebin);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
 	baseDict = baseDict.get(guildId) ? baseDict : baseDict.set(guildId, defaultValue);
@@ -25,7 +25,7 @@ export function couldPing(url: string) {
 		got.stream(url, { timeout: { response: 5000 } });
 		return true;
 	} catch (e) {
-		if (!(e instanceof HTTPError))
+		if (!(e instanceof HTTPError || e instanceof RequestError))
 			console.error(e);
 		return false;
 	}
