@@ -1,7 +1,6 @@
 ﻿import { FallbackType, StreamType, Creator, RadioConstantData } from '../internal.js';
 import { WebhookClient, EmojiIdentifierResolvable } from 'discord.js';
 export const defaultConfig = {
-	prefix: '.',
 	fallback: 'radio' as FallbackType
 };
 const radios = {
