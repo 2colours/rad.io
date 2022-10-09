@@ -109,7 +109,7 @@ export const actions: Actions = {
 				.join('\n');
 		}
 		let baseEmbed: Discord.EmbedBuilder = commonEmbed.call(this);
-		baseEmbed = baseEmbed.addFields({name: '❯ Használat', value: `\`$/join <ID>\`\n\`$/tune <ID>\``});
+		baseEmbed = baseEmbed.addFields({name: '❯ Használat', value: `\`$join <ID>\`\n\`$tune <ID>\``});
 		await this.reply({
 			embeds: [Discord.EmbedBuilder.from(baseEmbed)
 				.setTitle('❯ Magyar rádiók')
@@ -146,7 +146,7 @@ export const actions: Actions = {
 				.addFields(
 				{name: '❯ Felhasználói parancsok', value: userCommands.map(cmd => `\`${cmd}\``).join(' ')},
 				{name: '❯ Adminisztratív parancsok', value: adminCommands.map(cmd => `\`${cmd}\``).join(' ')},
-				{name: '❯ Részletes leírás', value: `\`/help <command>\``},
+				{name: '❯ Részletes leírás', value: `\`help <command>\``},
 				{name: '❯ Egyéb információk', value: `RAD.io meghívása saját szerverre: [Ide kattintva](https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=274881334336&scope=bot%20applications.commands)
 Meghívó a RAD.io Development szerverre: [${devServerInvite.substring('https://'.length)}](${devServerInvite})
 A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`}
