@@ -153,7 +153,7 @@ const umzug = new Umzug({
 		{
 			name: '02-prefix-removal',
 			async up({ context }) {
-				const prefixRows = await context.sequelize.query('SELECT * FROM `prefix`', { type: QueryTypes.SELECT });
+				const prefixRows = await context.sequelize.query('SELECT DISTINCT * FROM `prefix`', { type: QueryTypes.SELECT }); //sajnos a lekérés adott duplikátumokat - 
 				await Promise.all([
 					writeFile('./data/02-prefix-removal-backup.json', JSON.stringify(prefixRows)),
 					context.dropTable('prefix')
