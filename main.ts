@@ -5,7 +5,7 @@ const token = process.env.radioToken;
 import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue } from './internal.js';
 import moment from 'moment';
 
-const devChannel = () => client.channels.resolve(devChanId);
+const devChannel = () => client.channels.resolve(devChanId) as Discord.TextChannel;
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
 client.on('ready', async () => {
@@ -20,7 +20,7 @@ client.on('ready', async () => {
 
 
 client.on('interactionCreate', async interaction => {
-	if (!interaction.isCommand() || !commands.has(interaction.commandName))
+	if (!interaction.isChatInputCommand() || !interaction.inGuild() || !commands.has(interaction.commandName))
 		return;
 	const { decoratedAction: commandFunction } = commands.get(interaction.commandName);
 	const thisBinding: ThisBinding = Object.defineProperty(interaction, 'guildPlayer',{
@@ -60,7 +60,7 @@ client.on('guildCreate', guild => {
 });
 
 client.on('guildDelete', guild => {
-	(devChannel() as Discord.TextChannel).send(`**${client.user.tag}** left \`${guild.name}\``);
+	(devChannel() as Discord.TextBasedChannel).send(`**${client.user.tag}** left \`${guild.name}\``);
 	setPStatus();
 	updateStatusChannels()
 });
@@ -81,7 +81,7 @@ Members: ${guild.memberCount}
 Owner: ${guild.members.resolve(guild.ownerId)?.user?.tag ?? 'unable to fetch'}
 Created At: ${created}
 Icon: [Link](${guild.iconURL() ? guild.iconURL() : client.user.displayAvatarURL()})`);
-	(devChannel() as Discord.TextChannel).send({ content: `**${client.user.tag}** joined \`${guild.name}\``, embeds: [embed] });
+	devChannel().send({ content: `**${client.user.tag}** joined \`${guild.name}\``, embeds: [embed] });
 }
 
 async function sendWelcome(guild: Discord.Guild) {

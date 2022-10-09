@@ -1,4 +1,4 @@
-import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, CommandInteraction, Role, GuildTextBasedChannel } from 'discord.js';
+import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, Role, GuildTextBasedChannel, ChatInputCommandInteraction } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v9';
 import { Readable } from 'stream';
 import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../internal.js';
@@ -34,7 +34,7 @@ export interface UserHolder {
 export interface TextChannelHolder {
 	channel: TextBasedChannels | PartialDMChannel;
 }
-export interface ThisBinding extends CommandInteraction, GuildPlayerHolder { }
+export interface ThisBinding extends ChatInputCommandInteraction, GuildPlayerHolder { }
 export type FallbackType = 'leave' | 'radio' | 'silence';
 export interface PrefixTableData {
 	guildID: Snowflake;
