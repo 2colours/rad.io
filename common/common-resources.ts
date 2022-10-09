@@ -186,5 +186,5 @@ const umzug = new Umzug({
 	logger: console,
 });
 
-await umzug.up({ migrations: ['00-initial', '01-fallback-data-fix'], rerun: 'SKIP' });
+await umzug.up();
 export const config = await loadCFG();
