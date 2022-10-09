@@ -3,27 +3,14 @@ import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
 import moment from 'moment';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, commands, creators, getEmoji, radios as radiosList, translateAlias, forceSchedule,
-	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, setPrefix, tickEmoji,
-	discordEscape, maxPlaylistSize, getPrefix, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing } from '../internal.js';
+	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, tickEmoji,
+	discordEscape, maxPlaylistSize, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
 const youtube = new YouTube(apiKey);
 import { sscanf } from 'scanf';
 import { ComponentType } from 'discord.js';
 export const actions: Actions = {
-	async setprefix(newPrefix) {
-		newPrefix = newPrefix.toLowerCase();
-		setPrefix(this.guild.id, newPrefix);
-		try {
-			await saveRow.prefix({ guildID: this.guild.id, prefix: newPrefix });
-			await this.reply(`${newPrefix} **az új prefix.**`);
-		}
-		catch (e) {
-			console.error('Elmenteni nem sikerült a configot!');
-			console.error(e);
-			await this.reply(`${newPrefix} **a prefix, de csak leállásig...**`);
-		}
-	},
 	async join(stationId) {
 		const channelToPlay = extractChannel(this, stationId);
 		joinAndStartup.call(this, (gp: GuildPlayer) => {
@@ -121,9 +108,8 @@ export const actions: Actions = {
 				.sort()
 				.join('\n');
 		}
-		const prefix = getPrefix(this.guild.id);
 		let baseEmbed: Discord.EmbedBuilder = commonEmbed.call(this);
-		baseEmbed = baseEmbed.addFields({name: '❯ Használat', value: `\`${prefix}join <ID>\`\n\`${prefix}tune <ID>\``});
+		baseEmbed = baseEmbed.addFields({name: '❯ Használat', value: `\`$join <ID>\`\n\`$tune <ID>\``});
 		await this.reply({
 			embeds: [Discord.EmbedBuilder.from(baseEmbed)
 				.setTitle('❯ Magyar rádiók')
@@ -150,7 +136,6 @@ export const actions: Actions = {
 		await this.reply(tickEmoji);
 	},
 	async help(helpCommand) {
-		const prefix = getPrefix(this.guild.id);
 		if (!helpCommand) {
 			const userCommands = commandNamesByTypes(commands, 'grantable', 'unlimited');
 			userCommands.sort();
@@ -161,7 +146,7 @@ export const actions: Actions = {
 				.addFields(
 				{name: '❯ Felhasználói parancsok', value: userCommands.map(cmd => `\`${cmd}\``).join(' ')},
 				{name: '❯ Adminisztratív parancsok', value: adminCommands.map(cmd => `\`${cmd}\``).join(' ')},
-				{name: '❯ Részletes leírás', value: `\`${prefix}help <command>\``},
+				{name: '❯ Részletes leírás', value: `\`help <command>\``},
 				{name: '❯ Egyéb információk', value: `RAD.io meghívása saját szerverre: [Ide kattintva](https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=274881334336&scope=bot%20applications.commands)
 Meghívó a RAD.io Development szerverre: [${devServerInvite.substring('https://'.length)}](${devServerInvite})
 A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`}
@@ -178,9 +163,9 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			embed = embed
 				.addFields(
 				{name: '❯ Részletes leírás', value: currentCommand.helpRelated.ownDescription},
-				{name: '❯ Teljes parancs', value: `\`${prefix}${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``},
+				{name: '❯ Teljes parancs', value: `\`/${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``},
 				{name: '❯ Használat feltételei', value: currentRequirements.length == 0 ? '-' : currentRequirements.join(' ')},
-				{name: '❯ Alias-ok', value: currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`${prefix}${alias}\``).join(' ')}
+				{name: '❯ Alias-ok', value: currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`/${alias}\``).join(' ')}
 				);
 			return void await this.reply({ embeds: [embed] });
 		}

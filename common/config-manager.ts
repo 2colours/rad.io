@@ -1,16 +1,10 @@
 import { Snowflake } from "discord.js";
 import { config, defaultConfig, attach, FallbackType, MusicData} from '../internal.js';
-export function getPrefix(id: Snowflake) {
-	return config.prefixes.get(id) ?? defaultConfig.prefix;
-}
 export function getFallbackMode(id: Snowflake) {
 	return config.fallbackModes.get(id) ?? defaultConfig.fallback;
 }
 export function getFallbackChannel(id: Snowflake) {
 	return config.fallbackChannels.get(id);
-}
-export function setPrefix(id: Snowflake, newPrefix: string) {
-	config.prefixes.set(id, newPrefix);
 }
 export function setFallbackMode(id: Snowflake, newMode: FallbackType) {
 	config.fallbackModes.set(id, newMode);

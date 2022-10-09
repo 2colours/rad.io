@@ -81,19 +81,6 @@ const commandData = constrainedCommandData({
 		type: 'unlimited',
 		filters: new Set([Filter.vcBotNeeded])
 	},
-	'setprefix': {
-		aliases: ['sp'],
-		params: [{
-				name: 'prefix',
-				description: 'prefix',
-				required: true,
-				type: 'String'
-			}
-		],
-		descrip: 'Bot prefixének átállítása.',
-		type: 'adminOnly',
-		filters: new Set([Filter.adminNeeded])
-	},
 	'join': {
 		aliases: ['j'],
 		params: [{
