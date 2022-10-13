@@ -23,7 +23,7 @@
     "popyt": "5",
     "scanf": "1",
     "sequelize": "6.6.5",
-    "sqlite3": "5.1.1",
+    "sqlite3": "5.1.2",
     "ts-type-object-entries": "1.0.7",
     "typescript": "4.8.4",
     "umzug": "3.2.1"
