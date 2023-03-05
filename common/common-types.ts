@@ -1,7 +1,8 @@
-import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, CommandInteraction, Role, GuildTextBasedChannel } from 'discord.js';
+import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, Role, GuildTextBasedChannel, ChatInputCommandInteraction } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v9';
 import { Readable } from 'stream';
 import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../internal.js';
+import { AudioResource } from '@discordjs/voice';
 export type SupportedCommandOptionTypes = ApplicationCommandOptionTypes & 'String' | 'Number' | 'Boolean' | 'Role';
 export type TypeFromParam<T> =
 			('Number' extends T ? number : never) |
@@ -9,7 +10,6 @@ export type TypeFromParam<T> =
 			('Role' extends T ? Role : never) |
 			('Boolean' extends T ? boolean : never);
 export interface Config {
-	prefixes: Map<Snowflake, string>;
 	fallbackModes: Map<Snowflake, FallbackType>;
 	fallbackChannels: Map<Snowflake, MusicData>;
 	roles: Map<Snowflake, Map<Snowflake,string[]>>; //TODO az a string[] specifikusan parancsnév a debatedCommands-ból
@@ -23,6 +23,7 @@ export type PlayableCallbackVoid = () => void;
 export type PlayableCallbackBoolean = () => boolean;
 export type PlayableCallbackNumber = () => number;
 export type StreamProvider = (url:string) => Resolvable<string | Readable>;
+export type AudioResourceProvider = (url:string) => Resolvable<AudioResource>;
 export interface GuildPlayerHolder {
 	guildPlayer: GuildPlayer;
 }
@@ -32,12 +33,8 @@ export interface UserHolder {
 export interface TextChannelHolder {
 	channel: TextBasedChannels | PartialDMChannel;
 }
-export interface ThisBinding extends CommandInteraction, GuildPlayerHolder { }
+export interface ThisBinding extends ChatInputCommandInteraction, GuildPlayerHolder { }
 export type FallbackType = 'leave' | 'radio' | 'silence';
-export interface PrefixTableData {
-	guildID: Snowflake;
-	prefix: string;
-}
 export interface FallbackModesTableData {
 	guildID: Snowflake;
 	type: FallbackType;
@@ -53,7 +50,7 @@ export interface RoleTableData {
 	roleID: Snowflake;
 	commands: string;
 }
-export type StreamType = 'yt' | 'custom' | 'radio' | 'sc';
+export type StreamType = 'yt' | 'custom' | 'radio' /* | 'sc' */;
 export interface PlayableData {
 	url: string;
 	type: StreamType;

@@ -1,7 +1,6 @@
 ﻿import { FallbackType, StreamType, Creator, RadioConstantData } from '../internal.js';
 import { WebhookClient, EmojiIdentifierResolvable } from 'discord.js';
 export const defaultConfig = {
-	prefix: '.',
 	fallback: 'radio' as FallbackType
 };
 const radios = {
@@ -378,13 +377,13 @@ export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;
 const youtubeEmoji = '<:youtube:506897247145951233>';
-const soundcloudEmoji = '<:sc:595619676827025408>';
+//const soundcloudEmoji = '<:sc:595619676827025408>';
 export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	const emojis: Map<StreamType, EmojiIdentifierResolvable> = new Map<StreamType, EmojiIdentifierResolvable>([
 		['yt', youtubeEmoji],
 		['radio', ':radio:'],
-		['custom', ':radio:'],
-		['sc', soundcloudEmoji]
+		['custom', ':radio:']/*,
+		['sc', soundcloudEmoji]*/
 	]);
 	return emojis.get(type);
 }

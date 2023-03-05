@@ -2,6 +2,7 @@ import { Snowflake, Client, GatewayIntentBits } from 'discord.js';
 import { attach, FallbackType, Config, radios, defaultRadio, MusicData } from '../internal.js';
 import { Umzug, SequelizeStorage } from 'umzug';
 import sequelize from 'sequelize';
+import { readFile, writeFile } from 'node:fs/promises';
 const { Sequelize, QueryTypes, DataTypes } = sequelize; //Workaround (CommonJS -> ES modul)
 export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildVoiceStates, GatewayIntentBits.GuildMessageReactions] });
 
@@ -11,12 +12,10 @@ export const database = new Sequelize({
 });
 
 async function loadCFG(): Promise<Config> {
-	const prefixes: Map<Snowflake, string> = new Map();
 	const fallbackModes: Map<Snowflake, FallbackType> = new Map();
 	const fallbackData: Map<Snowflake, MusicData> = new Map();
 	const roles: Map<Snowflake, Map<Snowflake, string[]>> = new Map();
 	const selectPromises: Promise<void>[] = [
-		database.query('SELECT * FROM prefix', { type: QueryTypes.SELECT }).then(prefixRows => prefixRows.forEach((prefixRow: any) => prefixes.set(prefixRow.guildID, prefixRow.prefix))),
 		database.query('SELECT * FROM fallbackModes', { type: QueryTypes.SELECT }).then(fbmRows => fbmRows.forEach((fbmRow: any) => fallbackModes.set(fbmRow.guildID, fbmRow.type))),
 		database.query('SELECT * FROM fallbackData', { type: QueryTypes.SELECT }).then(fbdRows => fbdRows.forEach((fbdRow: any) => fallbackData.set(fbdRow.guildID, {
 			type: fbdRow.type,
@@ -30,10 +29,9 @@ async function loadCFG(): Promise<Config> {
 	await Promise.all(selectPromises);
 
 	const config = {
-		prefixes: prefixes,
 		fallbackModes: fallbackModes,
 		fallbackChannels: fallbackData,
-		roles: roles
+		roles
 	};
 	return config;
 };
@@ -110,7 +108,7 @@ const umzug = new Umzug({
 		{
 			name: '01-fallback-data-fix',
 			async up({ context }) {
-				const fbdRows = (await context.sequelize.query("SELECT * FROM `fallbackData`", { type: QueryTypes.SELECT }));
+				const fbdRows = (await context.sequelize.query('SELECT * FROM `fallbackData`', { type: QueryTypes.SELECT }));
 				await context.renameColumn('fallbackData', 'url', 'data');
 				fbdRows.forEach((fbdRow: any) => {
 					fbdRow.data = fbdRow.url;
@@ -150,6 +148,36 @@ const umzug = new Umzug({
 				await context.bulkDelete('fallbackData', {});
 				if (fbdRows.length > 0)
 					await context.bulkInsert('fallbackData', fbdRows);
+			}
+		},
+		{
+			name: '02-prefix-removal',
+			async up({ context }) {
+				const prefixRows = await context.sequelize.query('SELECT DISTINCT * FROM `prefix`', { type: QueryTypes.SELECT }); //sajnos a lekérés adott duplikátumokat - 
+				await Promise.all([
+					writeFile('./data/02-prefix-removal-backup.json', JSON.stringify(prefixRows)),
+					context.dropTable('prefix')
+				]);
+			},
+			async down({ context }) {
+				await context.createTable('prefix', {
+					guildID: {
+						type: DataTypes.STRING,
+						allowNull: false,
+						primaryKey: true
+					},
+					prefix: {
+						type: DataTypes.STRING,
+						allowNull: false
+					}
+				});
+				try {
+					const content = await readFile('./data/02-prefix-removal-backup.json');
+					context.bulkInsert('prefix', JSON.parse(content.toString()));
+				}
+				catch (e) {
+					console.error(e);
+				}
 			}
 		}
 	],

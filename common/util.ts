@@ -1,10 +1,11 @@
-﻿import { Snowflake, Guild, TextChannel, MessageOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder } from 'discord.js';
+﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { CommandType, PlayableData, database, UserHolder, TextChannelHolder, client, embedC, MusicData,
-	GuildPlayer, ScrollableEmbedTitleResolver, PrefixTableData, FallbackModesTableData, FallbackDataTableData, RoleTableData, getPrefix, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding } from '../internal.js';
+	GuildPlayer, ScrollableEmbedTitleResolver, FallbackModesTableData, FallbackDataTableData, RoleTableData, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding } from '../internal.js';
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import PasteClient from 'pastebin-api';
+import got from 'got';
 const pastebin = new PasteClient(process.env.pastebin);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
 	baseDict = baseDict.get(guildId) ? baseDict : baseDict.set(guildId, defaultValue);
@@ -19,6 +20,13 @@ export function shuffle(array: any[]) {
 		[array[i], array[j]] = [array[j], array[i]];
 	}
 }
+export function couldPing(url: string):Promise<boolean> {
+	return new Promise((resolve, _) => {
+		got.stream(url, { timeout: { response: 5000 } })
+			.on('readable', () => resolve(true))
+			.on('error', _ => resolve(false));
+	});
+}
 export function hourMinSec(seconds: number) {
 	if (seconds == undefined)
 		return 'N/A';
@@ -29,7 +37,7 @@ export function hourMinSec(seconds: number) {
 	return [hours, minutes, seconds].map(amount => amount.toString().padStart(2, '0')).join(':');
 };
 export const aggregateDecorators: (decorators: Decorator[]) => Decorator = (decorators) => (action) => decorators.reduceRight((act, dec) => dec(act), action);
-export async function sendGuild(guild: Guild, content: string, options?: MessageOptions) {
+export async function sendGuild(guild: Guild, content: string, options?: MessageCreateOptions) {
 	for (const channel of guild.channels.cache.values()) {
 		if (!(channel instanceof TextChannel))
 			continue;
@@ -64,10 +72,9 @@ interface CommonEmbedThisBinding {
 	commandName: string;
 };
 export function commonEmbed(this: CommonEmbedThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
-	const prefix = getPrefix(this.guild.id);
 	return new EmbedBuilder()
 		.setColor(embedC)
-		.setFooter({ text: `${prefix}${this.commandName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
+		.setFooter({ text: `${this.commandName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
 }
 export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: EmbedBuilder, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
@@ -110,16 +117,6 @@ export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, ba
 	await message.edit({ embeds: [completeEmbed], components: [row] });	
 }
 export const saveRow = {
-	async prefix(rowObj: PrefixTableData) {
-		await database.query(`DELETE FROM prefix WHERE guildID = $1`, {
-			type: QueryTypes.DELETE,
-			bind: [rowObj.guildID]
-		});
-		await database.query(`INSERT INTO prefix (guildID, prefix) VALUES ($1, $2)`, {
-			type: QueryTypes.INSERT,
-			bind: [rowObj.guildID, rowObj.prefix]
-		});
-	},
 	async fallbackModes(rowObj: FallbackModesTableData) {
 		await database.query(`DELETE FROM fallbackModes WHERE guildID = $1`, {
 			type: QueryTypes.DELETE,

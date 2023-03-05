@@ -2,20 +2,20 @@ import * as Discord from 'discord.js';
 import { AudioPlayer, AudioPlayerPlayingState, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, getVoiceConnection, VoiceConnectionReadyState } from '@discordjs/voice';
 import { Readable } from 'stream';
 import * as play from 'play-dl'; //Nem illik közvetlenül hívni
-import { getEmoji, MusicData, StreamType, StreamProvider, shuffle, getFallbackMode,
-	getFallbackChannel, PlayingData } from '../internal.js';
+import { getEmoji, MusicData, StreamType, shuffle, getFallbackMode,
+	getFallbackChannel, PlayingData, AudioResourceProvider } from '../internal.js';
 import { Collection, GuildMember, VoiceChannel } from 'discord.js';
-import axios from 'axios'
+import got from 'got';
 import EventEmitter from 'node:events';
-const ytdl = async (url: string) => (await play.stream(url)).stream;
-const clientId = process.env.soundcloudClientId;
-const downloadMethods = new Map<StreamType, StreamProvider>([
-	['yt', ytdl],
-	['custom', async (url: string) => (await axios.get(url, { timeout: 5000, responseType: 'stream' })).data as Readable],
-	['radio', async (url: string) => (await axios.get(url, { timeout: 5000, responseType: 'stream' })).data as Readable],
-	['sc', (url: string) => `${url}?client_id=${clientId}`]]);
+const fetchHttpStream = async (url: string) => got.stream(url, { timeout: { response: 5000 } }) as Readable;
+//const clientId = process.env.soundcloudClientId;
+const resourceProducers = new Map<StreamType, AudioResourceProvider>([
+	['yt', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true})) ],
+	['custom', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}))],
+	['radio', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}))]/*,
+	['sc', (url: string) => `${url}?client_id=${clientId}`]*/]);
 function isDefinite(data:MusicData) {
-	const definiteTypes: StreamType[] = ['yt', 'custom', 'sc'];
+	const definiteTypes: StreamType[] = ['yt', 'custom'/*, 'sc'*/];
 	return data && definiteTypes.includes(data.type);
 }
 type ReadyHandler = (a: AudioResource) => void;
@@ -24,8 +24,7 @@ class Playable {
 	private readyEmitter: EventEmitter = new EventEmitter();
 	constructor(private streamType: StreamType, private url: string, private volume: number) {}
 	async loadResource() {
-		const stream = await Promise.resolve(downloadMethods.get(this.streamType)(this.url));
-		this.resource = createAudioResource(stream, {inlineVolume:true});
+		this.resource = await resourceProducers.get(this.streamType)(this.url);
 		this.resource.volume.setVolume(this.volume);
 		this.readyEmitter.emit('ready', this.resource);
 	}
@@ -148,7 +147,7 @@ export class GuildPlayer extends EventEmitter {
 			}
 		}
 		else if (this.playingElement)
-			this.fallbackPlayed = false
+			this.fallbackPlayed = false;
 	}
 	repeat(maxTimes?: number) {
 		if (!isDefinite(this.playingElement))
