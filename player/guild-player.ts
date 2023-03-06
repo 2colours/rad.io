@@ -101,7 +101,23 @@ export class GuildPlayer extends EventEmitter {
 					return await this.startNext();
 				await this.resetPlayingElement();
 			});
-		getVoiceConnection(this.ownerGuild.id).subscribe(this.engine);
+		const connection = getVoiceConnection(this.ownerGuild.id);
+		//TODO remove this workaround when fixed
+		connection.on('stateChange', (oldState, newState) => {
+			console.log('state change triggered...');
+			const oldNetworking = Reflect.get(oldState, 'networking');
+			const newNetworking = Reflect.get(newState, 'networking');
+		  
+			const networkStateChangeHandler = (_oldNetworkState: any, newNetworkState: any) => {
+			  const newUdp = Reflect.get(newNetworkState, 'udp');
+			  clearInterval(newUdp?.keepAliveInterval);
+			}
+		  
+			oldNetworking?.off('stateChange', networkStateChangeHandler);
+			newNetworking?.on('stateChange', networkStateChangeHandler);
+		  });
+		//END of workaround
+		connection.subscribe(this.engine);
 	}
 	mute() {
 		if (this.volume == 0)
