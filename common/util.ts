@@ -51,12 +51,26 @@ export async function sendGuild(guild: Guild, content: string, options?: Message
 }
 export function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildVoiceChannel, actionThis: ThisBinding, playableData: MusicData[]) {
 	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
-		joinVoiceChannel({
+		//TODO remove this workaround once things work again
+		const connection = joinVoiceChannel({
 			channelId: voiceChannel.id,
 			guildId: voiceChannel.guildId,
 			//@ts-ignore
 			adapterCreator: voiceChannel.guild.voiceAdapterCreator
 		});
+		connection.on('stateChange', (oldState, newState) => {
+			const oldNetworking = Reflect.get(oldState, 'networking');
+			const newNetworking = Reflect.get(newState, 'networking');
+		  
+			const networkStateChangeHandler = (_oldNetworkState: any, newNetworkState: any) => {
+			  const newUdp = Reflect.get(newNetworkState, 'udp');
+			  clearInterval(newUdp?.keepAliveInterval);
+			}
+		  
+			oldNetworking?.off('stateChange', networkStateChangeHandler);
+			newNetworking?.on('stateChange', networkStateChangeHandler);
+		  });
+		//END of workaround
 		actionThis.guildPlayer = new GuildPlayer(voiceChannel.guild);
 	}
 	actionThis.guildPlayer.removeAllListeners();
