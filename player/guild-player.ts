@@ -104,7 +104,6 @@ export class GuildPlayer extends EventEmitter {
 		const connection = getVoiceConnection(this.ownerGuild.id);
 		//TODO remove this workaround when fixed
 		connection.on('stateChange', (oldState, newState) => {
-			console.log('state change triggered...');
 			const oldNetworking = Reflect.get(oldState, 'networking');
 			const newNetworking = Reflect.get(newState, 'networking');
 		  
