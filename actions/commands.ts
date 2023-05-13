@@ -1,4 +1,4 @@
-﻿import { actions, Command, Filter, CommandExtraData, DeepReadonly, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam } from '../internal.js';
+﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam } from '../internal.js';
 import { SlashCommandBuilder } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
@@ -51,16 +51,8 @@ async function setupMessageCommands(allCommandData: CommandData) {
 	await rest.put(Routes.applicationCommands(clientId), { body: setupCommands(publicCommands, true) });
 	await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: setupCommands(devCommands, false) });
 }
-type CommandValueData = Omit<DeepReadonly<CommandExtraData>, 'name'>;
-type CommandDataConstraint = {
-	[name: CommandExtraData['name']]: CommandValueData
-}
 
-function constrainedCommandData<T extends CommandDataConstraint>(arg: T) {
-	return arg;
-}
-
-const commandData = constrainedCommandData({
+const commandData = {
 	'skip': {
 		aliases: ['s'],
 		params: [{
@@ -437,7 +429,7 @@ const commandData = constrainedCommandData({
 		type: 'grantable',
 		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
 	}
-} as const);
+} as const;
 
 type CommandData = typeof commandData;
 type CompileTimeArray<T, V> = {
