@@ -422,7 +422,7 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 	embed = embed
 		.setTitle("❯ Találatok")
 		.setDescription(topResults.join('\n'));
-	const videoChooser = new Discord.SelectMenuBuilder()
+	const videoChooser = new Discord.StringSelectMenuBuilder()
 		.setCustomId('select')
 		.setPlaceholder('Válassz egy videót')
 		.setMinValues(1)
@@ -435,15 +435,15 @@ async function searchPick(this: ThisBinding, results: SearchResultView[]): Promi
 	await this.deferReply();
 	const row = new Discord.ActionRowBuilder<Discord.MessageActionRowComponentBuilder>().addComponents(videoChooser);
 	const message = await this.channel.send({ embeds: [embed], components: [row]});
-	const filter = (i: Discord.SelectMenuInteraction) => {
+	const filter = (i: Discord.StringSelectMenuInteraction) => {
 		i.deferUpdate();
 		return i.user.id == this.user.id;
 	};
 	try {
-		const selectInteraction = await message.awaitMessageComponent({ filter, time: 30000, componentType: ComponentType.SelectMenu });
+		const selectInteraction = await message.awaitMessageComponent({ filter, time: 30000, componentType: ComponentType.StringSelect });
 		videoChooser.setDisabled(true);
 		message.edit({ components: [row] });
-		return +(selectInteraction as Discord.SelectMenuInteraction).values[0];
+		return +(selectInteraction as Discord.StringSelectMenuInteraction).values[0];
 	}
 	catch (e) {
 		const timeouted = e.message.endsWith('ending with reason: time');
