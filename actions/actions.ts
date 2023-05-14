@@ -466,9 +466,8 @@ async function joinAndStartup(this: ThisBinding, startup: (guildPlayer: GuildPla
 			adapterCreator: voiceChannel.guild.voiceAdapterCreator
 		});
 		this.guildPlayer = new GuildPlayer(this.guild);
-		this.guildPlayer.once('announcement', (message: string) => this.editReply(message));
-		startup(this.guildPlayer);
 		this.guildPlayer.on('announcement', (message: string) => this.channel.send(message).catch());
+		startup(this.guildPlayer);
 	}
 	catch (e) {
 		console.error(e);
