@@ -387,7 +387,7 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	]);
 	return emojis.get(type);
 }
-export const tickEmoji = '_☑_';
+export const tickEmoji = '\☑';
 export const maxPlaylistSize = 0; //Workaround a popyt 4-hez
 export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800'),new Creator('236922361918652416','Peketr#4324')];
 export const dedicatedClientId = '430326522146979861';
