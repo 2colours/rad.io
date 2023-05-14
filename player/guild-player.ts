@@ -102,20 +102,6 @@ export class GuildPlayer extends EventEmitter {
 				await this.resetPlayingElement();
 			});
 		const connection = getVoiceConnection(this.ownerGuild.id);
-		//TODO remove this workaround when fixed
-		connection.on('stateChange', (oldState, newState) => {
-			const oldNetworking = Reflect.get(oldState, 'networking');
-			const newNetworking = Reflect.get(newState, 'networking');
-		  
-			const networkStateChangeHandler = (_oldNetworkState: any, newNetworkState: any) => {
-			  const newUdp = Reflect.get(newNetworkState, 'udp');
-			  clearInterval(newUdp?.keepAliveInterval);
-			}
-		  
-			oldNetworking?.off('stateChange', networkStateChangeHandler);
-			newNetworking?.on('stateChange', networkStateChangeHandler);
-		  });
-		//END of workaround
 		connection.subscribe(this.engine);
 	}
 	mute() {
