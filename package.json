@@ -19,7 +19,7 @@
     "node-gyp": "9.4.0",
     "pastebin-api": "5.1.6",
     "play-dl": "1.9.6",
-    "popyt": "5",
+    "popyt": "6",
     "scanf": "1",
     "sequelize": "6.32.1",
     "sqlite3": "5.1.6",
