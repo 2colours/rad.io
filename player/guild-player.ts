@@ -173,10 +173,9 @@ export class GuildPlayer extends EventEmitter {
 		const autoSkip = this.autoSkip();
 		for (const musicData of musicDatas)
 			this.queue.push(musicData);
+		this.emit('announcement', `**${musicDatas.length} elem került a sorba.**`);
 		if (autoSkip)
 			this.startNext()
-		else
-			this.emit('announcement', `**${musicDatas.length} elem került a sorba.**`);
 	}
 	shuffle() {
 		if (this.queue.length >= 2)
