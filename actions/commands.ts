@@ -2,7 +2,7 @@
 import { SlashCommandBuilder } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import tsObjectEntries from 'ts-type-object-entries';
+import { tsObjectEntries } from 'ts-type-object-entries';
 
 const token = process.env.radioToken;
 const clientId = process.env.botId;

@@ -4,7 +4,7 @@ import { CommandType, PlayableData, database, UserHolder, TextChannelHolder, cli
 	GuildPlayer, ScrollableEmbedTitleResolver, FallbackModesTableData, FallbackDataTableData, RoleTableData, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding } from '../internal.js';
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
-import PasteClient from 'pastebin-api';
+import { PasteClient } from 'pastebin-api';
 import got from 'got';
 const pastebin = new PasteClient(process.env.pastebin);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
