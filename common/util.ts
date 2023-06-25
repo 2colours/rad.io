@@ -1,4 +1,4 @@
-﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder } from 'discord.js';
+﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { CommandType, PlayableData, database, UserHolder, TextChannelHolder, client, embedC, MusicData,
 	GuildPlayer, ScrollableEmbedTitleResolver, FallbackModesTableData, FallbackDataTableData, RoleTableData, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding } from '../internal.js';
@@ -60,13 +60,24 @@ export function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildV
 		actionThis.guildPlayer = new GuildPlayer(voiceChannel.guild);
 	}
 	actionThis.guildPlayer.removeAllListeners();
-	actionThis.guildPlayer.once('announcement', (message: string) => actionThis.editReply(message));
+	actionThis.guildPlayer.on('announcement', replyFirstSendRest(actionThis, textChannel));
 	if (playableData.length == 1)
 		actionThis.guildPlayer.schedule(playableData[0]);
 	else
 		actionThis.guildPlayer.bulkSchedule(playableData);
-	actionThis.guildPlayer.on('announcement', (message: string) => textChannel.send(message).catch());
-};
+}
+export function replyFirstSendRest(interactionForReply: ChatInputCommandInteraction, channelForSend: TextChannel) {
+	let repliedAlready = false;
+	return (message: string):void => {
+		switch (repliedAlready) {
+			case false:
+				repliedAlready = true;
+				return void interactionForReply.editReply(message);
+			case true:
+				return void channelForSend.send(message).catch();
+		}
+	};
+}
 interface CommonEmbedThisBinding {
 	guild: Guild;
 	commandName: string;

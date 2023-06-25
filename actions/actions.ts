@@ -4,7 +4,7 @@ import moment from 'moment';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, commands, creators, getEmoji, radios as radiosList, translateAlias, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, tickEmoji,
-	discordEscape, maxPlaylistSize, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing } from '../internal.js';
+	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
 const youtube = new YouTube(apiKey);
@@ -41,16 +41,18 @@ export const actions: Actions = {
 		}
 		const ytString = sscanf(ytQuery, '%S') ?? '';
 		try {
-			var { results } = await youtube.searchVideos(ytString, 5);
-			if (!results || results.length == 0)
+			var { items } = await youtube.searchVideos(ytString, {
+				pageOptions: { maxPerPage: 5, pages: 1 }
+			});
+			if (!items || items.length == 0)
 				return void await this.reply({content: '**Nincs találat.**', ephemeral: true});
 		}
 		catch (e) {
 			console.error(e);
 			await this.reply({content: '**Hiba a keresés során.**', ephemeral: true});
 		}
-		await Promise.all(results.map(elem => elem.fetch()));
-		const resultsView: SearchResultView[] = results.map(elem => ({
+		await Promise.all(items.map(elem => elem.fetch()));
+		const resultsView: SearchResultView[] = items.map(elem => ({
 			title: elem.title,
 			duration: elem.minutes * 60 + elem.seconds,
 			uploaderName: elem.channel.name
@@ -67,7 +69,7 @@ export const actions: Actions = {
 			}
 			return;
 		}
-		const selectedResult = results[index];
+		const selectedResult = items[index];
 		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
 			name: selectedResult.title,
 			url: selectedResult.url,
@@ -253,9 +255,8 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			amountToSkip=1;
 		await this.deferReply();
 		this.guildPlayer.removeAllListeners();
-		this.guildPlayer.once('announcement', (message: string) => this.editReply(message));
+		this.guildPlayer.on('announcement', replyFirstSendRest(this, this.channel as Discord.TextChannel));
 		this.guildPlayer.skip(amountToSkip);
-		this.guildPlayer.on('announcement', (message: string) => this.channel.send(message).catch());
 	},
 	async pause() {
 		this.guildPlayer.pause();
@@ -391,7 +392,9 @@ function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
 async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): Promise<MusicData[]> {
 	try {
 		const ytPlaylist = await youtube.getPlaylist(url);
-		const videos = await ytPlaylist.fetchVideos(maxPlaylistSize);
+		const videos = await ytPlaylist.fetchVideos({
+			pages: 0 // workaround: minden page
+		});
 		const fetchedVideos = (await Promise.all(videos.map(elem => elem.fetch().catch(_ => null)))).filter(x => x);
 		return fetchedVideos.map(elem => Object.assign({}, {
 			name: elem.title,
