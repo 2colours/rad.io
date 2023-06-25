@@ -4,7 +4,7 @@ import moment from 'moment';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, commands, creators, getEmoji, radios as radiosList, translateAlias, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, tickEmoji,
-	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing } from '../internal.js';
+	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
 const youtube = new YouTube(apiKey);
@@ -255,9 +255,8 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			amountToSkip=1;
 		await this.deferReply();
 		this.guildPlayer.removeAllListeners();
-		this.guildPlayer.once('announcement', (message: string) => this.editReply(message));
+		this.guildPlayer.on('announcement', replyFirstSendRest(this, this.channel as Discord.TextChannel));
 		this.guildPlayer.skip(amountToSkip);
-		this.guildPlayer.on('announcement', (message: string) => this.channel.send(message).catch());
 	},
 	async pause() {
 		this.guildPlayer.pause();
