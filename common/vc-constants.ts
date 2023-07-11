@@ -26,7 +26,7 @@ const radios = {
 	},
 	'csango': {
 		name: 'Csángó Rádió',
-		url: 'http://roservers.ro:8018/stream',
+		url: 'https://sonic.xservere.net/8082/stream',
 		cult: 'hun'
 	},
 	'bocskai': {
@@ -110,8 +110,8 @@ const radios = {
 		cult: 'hun'
 	},
 	'pecsfm': {
-		name: 'Pécs FM',
-		url: 'http://pecs.fm:8000/1017.mp3',
+		name: 'Best FM Pécs',
+		url: 'https://icast.connectmedia.hu/5118/live.mp3',
 		cult: 'hun'
 	},
 	'klasszik': {
@@ -166,17 +166,12 @@ const radios = {
 	},
 	'jazzy': {
 		name: 'Jazzy Rádió',
-		url: 'https://s04.diazol.hu:9502/live.mp3',
+		url: 'https://radio.musorok.org/listen/jazzy/jazzy.mp3',
 		cult: 'hun'
 	},
 	'rock': {
 		name: 'Rock Rádió',
 		url: 'https://icast.connectmedia.hu/5301/live.mp3/',
-		cult: 'hun'
-	},
-	'mez': {
-		name: 'Méz Rádió Veszprém',
-		url: 'http://stream.mezradio.hu:7812/mezfm128.mp3',
 		cult: 'hun'
 	},
 	'aktiv': {
@@ -274,11 +269,6 @@ const radios = {
 		url: 'https://live.rockfm.ro:8443/rockfm.aacp',
 		cult: 'eng'
 	},
-	'rainbow': {
-		name: 'Rainbow Sound UK (Oldies)',
-		url: 'https://stream.radio.co/s82994a596/listen',
-		cult: 'eng'
-	},
 	'kissfm': {
 		name: 'Kiss FM Romania',
 		url: 'https://live.kissfm.ro:8443/kissfm.aacp',
@@ -289,11 +279,6 @@ const radios = {
 		url: 'http://stream3.radiocenter.si:8000/center',
 		cult: 'eng'
 	},
-	'abc50s': {
-		name: 'ABC 50s (50s)',
-		url: 'https://igor.torontocast.com:1875/stream',
-		cult: 'eng'
-	},
 	'iluminafm': {
 		name: 'Ilumina fm (Christian)',
 		url: 'https://ss.redradios.net:8026/stream',
@@ -301,7 +286,7 @@ const radios = {
 	},
 	'sunshinelive': {
 		name: 'Sunshine Live 90er',
-		url: 'https://sunshinelive.hoerradar.de/sunshinelive-90er-mp3-hq',
+		url: 'https://sunsl.streamabc.net/sunsl-90er-mp3-192-1681158',
 		cult: 'eng'
 	},
 	'magicflorida': {
@@ -331,7 +316,7 @@ const radios = {
 	},
 	'hitserbia': {
 		name: 'Hit Music FM',
-		url: 'http://streaming11.tdiradio.com:8000/hit',
+		url: 'https://streaming.tdiradio.com/hit.mp3',
 		cult: 'eng'
 	},
 	'asfm': {
@@ -351,7 +336,7 @@ const radios = {
 	},
 	'fajn': {
 		name: 'Fajn radio',
-		url: 'https://20423.live.streamtheworld.com/FAJN_RADIO_128.mp3',
+		url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/FAJN_RADIO.aac',
 		cult: 'eng'
 	},
 	'hot108': {
