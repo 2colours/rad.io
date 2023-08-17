@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-
     "declaration": true,
     "emitDecoratorMetadata": false,
     "experimentalDecorators": false,
@@ -18,6 +17,6 @@
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true
   },
-	"compileOnSave": true,
-	"exclude": ["**/*.spec.ts","node_modules"]
+  "compileOnSave": true,
+  "exclude": ["**/*.spec.ts","node_modules/"]
 }
