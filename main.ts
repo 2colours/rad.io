@@ -1,4 +1,5 @@
-﻿import * as Discord from 'discord.js';
+﻿import 'dotenv/config';
+import * as Discord from 'discord.js';
 import { getVoiceConnection } from '@discordjs/voice';
 const token = process.env.radioToken;
 
