@@ -2,7 +2,7 @@ import * as Discord from 'discord.js';
 import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
 import moment from 'moment';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
-	client, channels, commands, creators, getEmoji, radios as radiosList, translateAlias, forceSchedule,
+	client, channels, commands, creators, getEmoji, radios as radiosList, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, tickEmoji,
 	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest } from '../internal.js';
 const apiKey = process.env.youtubeApiKey;
@@ -155,19 +155,15 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 				);
 			return void await this.reply({ embeds: [embed] });
 		}
-		helpCommand = translateAlias(helpCommand);
 		if (commands.has(helpCommand)) {
 			const currentCommand = commands.get(helpCommand);
-			const currentAliases = currentCommand.aliases;
 			const currentRequirements = currentCommand.helpRelated.requirements;
-			currentAliases.sort();
 			let embed: Discord.EmbedBuilder = commonEmbed.call(this, ` ${helpCommand}`);
 			embed = embed
 				.addFields(
 				{name: '❯ Részletes leírás', value: currentCommand.helpRelated.ownDescription},
 				{name: '❯ Teljes parancs', value: `\`/${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``},
-				{name: '❯ Használat feltételei', value: currentRequirements.length == 0 ? '-' : currentRequirements.join(' ')},
-				{name: '❯ Alias-ok', value: currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`/${alias}\``).join(' ')}
+				{name: '❯ Használat feltételei', value: currentRequirements.length == 0 ? '-' : currentRequirements.join(' ')}
 				);
 			return void await this.reply({ embeds: [embed] });
 		}
@@ -363,7 +359,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	}
 };
 async function permissionReused(this: ThisBinding, permCommands: string, role: Discord.Role, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
-	const commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|').map(translateAlias);
+	const commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|');
 	const firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void await this.reply({ content: `**\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.**`, ephemeral: true });

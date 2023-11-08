@@ -78,7 +78,6 @@ export interface ParameterData {
 export interface CommandExtraData {
 	type: CommandType;
 	name: string; //Biztos? Még mindig a validálás kérdése
-	aliases: string[];
 	filters: Set<Filter>;
 	params: ParameterData[];
 	descrip: string;
@@ -88,14 +87,12 @@ interface CommandRawData extends CommandExtraData {
 }
 export class Command {
 	readonly decoratedAction: Action;
-	readonly aliases: string[];
 	readonly name: string;
 	readonly helpRelated: HelpInfo;
 	readonly type: CommandType;
 	constructor(baseData: DeepReadonly<CommandRawData>) {
 		this.type = baseData.type;
 		this.name = baseData.name;
-		this.aliases = baseData.aliases as string[];
 		let orderedFilters = Array.from(baseData.filters as Set<Filter>);
 		orderedFilters.sort(Filter.compare);
 		this.decoratedAction = aggregateDecorators(orderedFilters.map(elem => elem.decorator))(baseData.action as Action);
