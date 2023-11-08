@@ -8,6 +8,7 @@ import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, St
 const apiKey = process.env.youtubeApiKey;
 import { YouTube } from 'popyt';
 const youtube = new YouTube(apiKey);
+import * as play from 'play-dl';
 import { sscanf } from 'scanf';
 import { ComponentType } from 'discord.js';
 export const actions: Actions = {
@@ -41,8 +42,8 @@ export const actions: Actions = {
 		}
 		const ytString = sscanf(ytQuery, '%S') ?? '';
 		try {
-			var { items } = await youtube.searchVideos(ytString, {
-				pageOptions: { maxPerPage: 5, pages: 1 }
+			var items = await play.search(ytString, {
+				limit: 5
 			});
 			if (!items || items.length == 0)
 				return void await this.reply({content: '**Nincs találat.**', ephemeral: true});
@@ -51,10 +52,9 @@ export const actions: Actions = {
 			console.error(e);
 			await this.reply({content: '**Hiba a keresés során.**', ephemeral: true});
 		}
-		await Promise.all(items.map(elem => elem.fetch()));
 		const resultsView: SearchResultView[] = items.map(elem => ({
 			title: elem.title,
-			duration: elem.minutes * 60 + elem.seconds,
+			duration: elem.durationInSec,
 			uploaderName: elem.channel.name
 		}));
 		try {
@@ -74,7 +74,7 @@ export const actions: Actions = {
 			name: selectedResult.title,
 			url: selectedResult.url,
 			type: 'yt',
-			lengthSeconds: moment.duration(selectedResult._length).asSeconds(),
+			lengthSeconds: selectedResult.durationInSec,
 			requester: this.member as Discord.GuildMember
 		}]);
 	},
