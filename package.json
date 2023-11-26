@@ -16,7 +16,7 @@
     "got": "13.0.0",
     "libsodium-wrappers": "0.7.13",
     "moment": "2.29.4",
-    "node-gyp": "9.4.0",
+    "node-gyp": "10.0.1",
     "pastebin-api": "7.0.0",
     "play-dl": "1.9.7",
     "popyt": "7",
