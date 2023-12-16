@@ -21,7 +21,7 @@
     "play-dl": "1.9.7",
     "popyt": "7",
     "scanf": "1",
-    "sequelize": "6.35.1",
+    "sequelize": "6.35.2",
     "sqlite3": "5.1.6",
     "ts-type-object-entries": "1.0.7",
     "tsx": "4.6.2",
