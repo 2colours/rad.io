@@ -1,7 +1,7 @@
 ﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam } from '../internal.js';
 import { SlashCommandBuilder } from 'discord.js';
 import { REST } from '@discordjs/rest';
-import { Routes } from 'discord-api-types/v9';
+import { Routes } from 'discord-api-types/v10';
 import { tsObjectEntries } from 'ts-type-object-entries';
 
 const token = process.env.radioToken;
