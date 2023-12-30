@@ -7,7 +7,7 @@ import { tsObjectEntries } from 'ts-type-object-entries';
 const token = process.env.radioToken;
 const clientId = process.env.botId;
 const guildId = process.env.testServerId;
-const rest = new REST({ version: '9' }).setToken(token);
+const rest = new REST({ version: '10' }).setToken(token);
 
 export const commands: Map<string, Command> = new Map();
 
