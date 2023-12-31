@@ -1,13 +1,17 @@
-﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam } from '../internal.js';
-import { SlashCommandBuilder } from 'discord.js';
+﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam, commandsCachePath } from '../internal.js';
+import { SlashCommandBuilder, Snowflake } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
 import { tsObjectEntries } from 'ts-type-object-entries';
+import { readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import stringify from 'json-stringify-deterministic';
 
 const token = process.env.radioToken;
 const clientId = process.env.botId;
 const guildId = process.env.testServerId;
 const rest = new REST({ version: '10' }).setToken(token);
+const hash = createHash('sha256');
 
 export const commands: Map<string, Command> = new Map();
 
@@ -23,26 +27,60 @@ function addParam(commandBuilder: SlashCommandBuilder, param: ParameterData) {
 	}
 	currentMethod.call(commandBuilder, optionBuilder);
 }
+
+type CommandDataEntries = [keyof CommandData, CommandData[keyof CommandData]][];
+const setupCommands = (commandList: CommandDataEntries, defPermission: boolean) => commandList.map(([cmdName, cmdInfo]) => {
+	commands.set(cmdName, new Command(Object.assign({
+		action: actions[cmdName],
+		name: cmdName
+	}, cmdInfo)));
+	const res = new SlashCommandBuilder()
+		.setName(cmdName.toLowerCase())
+		.setDefaultPermission(defPermission)
+		.setDescription(cmdInfo.descrip.slice(0, 100));
+	for (const param of cmdInfo.params) {
+		addParam(res, param);
+	}
+	return res;
+}).map(command => command.toJSON());
+
+const commandsCache = await readFile(commandsCachePath, { encoding: 'utf-8' })
+							.then(data => JSON.parse(data), _ => null)
+						?? {};
+async function installGlobalCommands(commands: unknown): Promise<boolean> { //érték: cache frissül vagy nem
+	hash.update(stringify(commands));
+	const commandsHashed = hash.digest('base64');
+	if (commandsCache['global'] == commandsHashed) {
+		console.log('Cache hit for global commands.\nNo need to register commands.');
+		return false;
+	}
+	await rest.put(Routes.applicationCommands(clientId), { body: commands });
+	commandsCache['global'] = commandsHashed;
+	return true;
+}
+async function installGuildedCommands(guildId: Snowflake, commands: unknown): Promise<boolean> { //érték: cache frissül vagy nem
+	hash.update(stringify(commands));
+	const commandsHashed = hash.digest('base64');
+	if (commandsCache['guilded']?.[guildId] == commandsHashed) {
+		console.log(`Cache hit for commands for guild ${guildId}.\nNo need to register commands.`);
+		return false;
+	}
+	await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
+	commandsCache['guilded'] ??= {};
+	commandsCache['guilded'][guildId] = commandsHashed;
+	return true;
+}
+
 async function setupMessageCommands(allCommandData: CommandData) {
-	const devCommands = tsObjectEntries(allCommandData).filter(([_name, info]) => info.type == 'creatorsOnly');
+	const devCommands:CommandDataEntries = tsObjectEntries(allCommandData).filter(([_name, info]) => info.type == 'creatorsOnly');
+	const devCommandsSerial = setupCommands(devCommands, false);
 	const publicCommands:CommandDataEntries = tsObjectEntries(allCommandData).filter(([_name, info]) => info.type != 'creatorsOnly');
-	type CommandDataEntries = [keyof CommandData, CommandData[keyof CommandData]][];
-	const setupCommands = (commandList: CommandDataEntries, defPermission: boolean) => commandList.map(([cmdName, cmdInfo]) => {
-		commands.set(cmdName, new Command(Object.assign({
-			action: actions[cmdName],
-			name: cmdName
-		}, cmdInfo)));
-		const res = new SlashCommandBuilder()
-			.setName(cmdName.toLowerCase())
-			.setDefaultPermission(defPermission)
-			.setDescription(cmdInfo.descrip.slice(0, 100));
-		for (const param of cmdInfo.params) {
-			addParam(res, param);
-		}
-		return res;
-	}).map(command => command.toJSON());
-	await rest.put(Routes.applicationCommands(clientId), { body: setupCommands(publicCommands, true) });
-	await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: setupCommands(devCommands, false) });
+	const publicCommandsSerial = setupCommands(publicCommands, true);
+	let cacheUpdate = false;
+	cacheUpdate ||= await installGlobalCommands(publicCommandsSerial);
+	cacheUpdate ||= await installGuildedCommands(guildId, devCommandsSerial);
+	if (cacheUpdate)
+		await writeFile(commandsCachePath, commandsCache);
 }
 
 const commandData = {
