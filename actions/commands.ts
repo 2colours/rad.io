@@ -80,7 +80,7 @@ async function setupMessageCommands(allCommandData: CommandData) {
 	cacheUpdate ||= await installGlobalCommands(publicCommandsSerial);
 	cacheUpdate ||= await installGuildedCommands(guildId, devCommandsSerial);
 	if (cacheUpdate)
-		await writeFile(commandsCachePath, commandsCache);
+		await writeFile(commandsCachePath, JSON.stringify(commandsCache));
 }
 
 const commandData = {
