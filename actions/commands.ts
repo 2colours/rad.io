@@ -11,7 +11,8 @@ const token = process.env.radioToken;
 const clientId = process.env.botId;
 const guildId = process.env.testServerId;
 const rest = new REST({ version: '10' }).setToken(token);
-const hash = createHash('sha256');
+const hashAlgorithm = 'sha256';
+const textualForm = 'base64'
 
 export const commands: Map<string, Command> = new Map();
 
@@ -48,8 +49,9 @@ const commandsCache = await readFile(commandsCachePath, { encoding: 'utf-8' })
 							.then(data => JSON.parse(data), _ => null)
 						?? {};
 async function installGlobalCommands(commands: unknown): Promise<boolean> { //érték: cache frissül vagy nem
-	hash.update(stringify(commands));
-	const commandsHashed = hash.digest('base64');
+	const commandsHashed = createHash(hashAlgorithm)
+							.update(stringify(commands))
+							.digest(textualForm);
 	if (commandsCache['global'] == commandsHashed) {
 		console.log('Cache hit for global commands.\nNo need to register commands.');
 		return false;
@@ -59,8 +61,9 @@ async function installGlobalCommands(commands: unknown): Promise<boolean> { //é
 	return true;
 }
 async function installGuildedCommands(guildId: Snowflake, commands: unknown): Promise<boolean> { //érték: cache frissül vagy nem
-	hash.update(stringify(commands));
-	const commandsHashed = hash.digest('base64');
+	const commandsHashed = createHash(hashAlgorithm)
+							.update(stringify(commands))
+							.digest(textualForm);
 	if (commandsCache['guilded']?.[guildId] == commandsHashed) {
 		console.log(`Cache hit for commands for guild ${guildId}.\nNo need to register commands.`);
 		return false;
