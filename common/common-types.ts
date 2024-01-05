@@ -111,8 +111,7 @@ export interface HelpInfo {
 	ownDescription: string;
 }
 export class Creator {
-	constructor(readonly id: Snowflake, private alias: string, private link?: string) {
-	}
+	constructor(readonly id: Snowflake, private alias: string, private link?: string) { }
 	resolveMarkdown() {
 		const user = client.users.resolve(this.id);
 		const text = user ? user.tag : this.alias;
@@ -123,4 +122,8 @@ export interface SearchResultView {
 	title: string;
 	uploaderName: string;
 	duration: number; //másodpercben
+}
+
+export class StateError {
+	constructor(readonly message: string) { }
 }
