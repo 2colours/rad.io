@@ -1,13 +1,9 @@
 import * as Discord from 'discord.js';
 import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
-import moment from 'moment';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, commands, creators, getEmoji, radios as radiosList, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, tickEmoji,
 	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest } from '../internal.js';
-const apiKey = process.env.youtubeApiKey;
-import { YouTube } from 'popyt';
-const youtube = new YouTube(apiKey);
 import * as play from 'play-dl';
 import { sscanf } from 'scanf';
 import { ComponentType } from 'discord.js';
@@ -387,27 +383,24 @@ function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
 
 async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): Promise<MusicData[]> {
 	try {
-		const ytPlaylist = await youtube.getPlaylist(url);
-		const videos = (await ytPlaylist.fetchVideos({
-			pages: 0 // workaround: minden page
-		})).items;
-		const fetchedVideos = (await Promise.all(videos.map(elem => elem.fetch().catch(_ => null)))).filter(x => x);
-		return fetchedVideos.map(elem => Object.assign({}, {
+		const ytPlaylist = await play.playlist_info(url, { incomplete: true });
+		const fetchedVideos = await ytPlaylist.all_videos();
+		return fetchedVideos.map(elem => ({
 			name: elem.title,
 			url: elem.url,
 			type: 'yt',
-			lengthSeconds: moment.duration(elem._length).asSeconds(),
+			lengthSeconds: elem.durationInSec,
 			requester
 		}) as MusicData);
 	}
 	catch (e) {
 		//Not a playlist
-		const ytVideo = await youtube.getVideo(url);
+		const ytVideo = (await play.video_info(url)).video_details;
 		return [{
 			name: ytVideo.title,
 			url,
 			type: 'yt',
-			lengthSeconds: moment.duration(ytVideo._length).asSeconds(),
+			lengthSeconds: ytVideo.durationInSec,
 			requester
 		}];
 	}
