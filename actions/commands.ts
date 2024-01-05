@@ -166,7 +166,7 @@ const commandData = {
 		],
 		descrip: 'Az épp szóló szám ismétlése. Ha nincs megadva, hogy hányszor, akkor a szám korlátlan alkalommal ismétlődhet.',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded])
 	},
 	'radios': {
 		params: [],
@@ -178,19 +178,19 @@ const commandData = {
 		params: [],
 		descrip: 'Várakozási sor megkeverése.',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded])
 	},
 	'clear': {
 		params: [],
 		descrip: 'Várakozási sor törlése.',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded])
 	},
 	'toplast': {
 		params: [],
 		descrip: 'A sor utolsó elemének a sor elejére helyezése.',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded])
 	},
 	'remove': {
 		params: [
@@ -203,7 +203,7 @@ const commandData = {
 		],
 		descrip: 'A várakozási sor adott elemének törlése sorszám szerint.',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded])
 	},
 	'help': {
 		params: [
@@ -340,13 +340,13 @@ const commandData = {
 		params: [],
 		descrip: 'Az aktuálisan játszott stream szüneteltetése. (Figyelem: online stream eközben tovább haladhat.)',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.nonSilenceNeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.nonSilenceNeded])
 	},
 	'resume': {
 		params: [],
 		descrip: 'Felfüggesztett stream folytatása. (Figyelem: online stream esetében ez ugrással járhat.)',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.nonSilenceNeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.nonSilenceNeded])
 	},
 	'tune': {
 		params: [
@@ -416,19 +416,19 @@ const commandData = {
 		],
 		descrip: 'A bot hangerejének állítása. A beállítás a bot kilépéséig érvényes, a kezdőérték 5, ahol a 10 jelenti a teljes hangerőt, a 10 fölötti értékek arányos erősítést.',
 		type: 'grantable',
-		filters: new Set([Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
+		filters: new Set([Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.dedicationNeeded])
 	},
 	'mute': {
 		params: [],
 		descrip: 'A bot némítása - a megelőző hangerő visszaállítható (lásd `unmute` parancs).',
 		type: 'grantable',
-		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
+		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.dedicationNeeded])
 	},
 	'unmute': {
 		params: [],
 		descrip: 'A bot hangerejének visszaállítása a némítás előtti értékre.',
 		type: 'grantable',
-		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
+		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.dedicationNeeded])
 	}
 } as const;
 
