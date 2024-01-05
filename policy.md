@@ -22,3 +22,6 @@ catch ág hibája: _e_
 ## null vs undefined:
 A null értelmes értéket jelent, értelmes válasz a kérdésre, amit az adateléréssel felteszünk. Például ha az a kérdés, hogy "Milyen zene szól éppen?", amikor csönd van, arra értelmes válasz az, hogy "Semmilyen.", tehát null.  
 Az undefined azt jelenti, hogy az adateléréshez vezető kérdésnek az adott kontextusban nincs értelme. Például annak a kérdésnek, hogy "Mennyi ideje szól a zene?", nincs értelme akkor, ha semmi nem szól, és ezért nem mérhető az előrehaladás. Ugyancsak nincs értelme annak a kérdésnek, hogy "Ki kérte ezt a zenét?", ha éppen a fallback szól vagy semmi nem szól - ezeket ugyanis nem is lehet "kérni".
+## Formázás
+- kapcsos zárójelek alapvetően JS-ben megszokott módon
+- üres zárójelpár: `{ }`
