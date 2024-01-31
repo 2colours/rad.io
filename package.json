@@ -26,7 +26,7 @@
     "ts-type-object-entries": "1.0.7",
     "tsx": "4.7.0",
     "typescript": "5.3.3",
-    "umzug": "3.5.1"
+    "umzug": "3.6.1"
   },
   "engines": {
     "node": "^20"
