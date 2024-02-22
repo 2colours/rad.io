@@ -423,7 +423,7 @@ async function resolveSoundcloudUrl(url: string, requester: Discord.GuildMember)
         name: track.name,
         requester,
         type: 'sc',
-        url
+        url: track.url
     });
     const scInfo = await play.soundcloud(url);
     switch (scInfo.type) {
