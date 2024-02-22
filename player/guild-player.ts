@@ -8,14 +8,14 @@ import { Collection, GuildMember, VoiceChannel } from 'discord.js';
 import got from 'got';
 import EventEmitter from 'node:events';
 const fetchHttpStream = async (url: string) => got.stream(url, { timeout: { response: 5000 } }) as Readable;
-//const clientId = process.env.soundcloudClientId;
 const resourceProducers = new Map<StreamType, AudioResourceProvider>([
-	['yt', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true})) ],
+	['yt', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true}))],
 	['custom', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}))],
-	['radio', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}))]/*,
-	['sc', (url: string) => `${url}?client_id=${clientId}`]*/]);
+	['radio', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}))],
+    ['sc', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true}))]
+]);
 function isDefinite(data:MusicData) {
-	const definiteTypes: StreamType[] = ['yt', 'custom'/*, 'sc'*/];
+	const definiteTypes: StreamType[] = ['yt', 'custom', 'sc'];
 	return data && definiteTypes.includes(data.type);
 }
 type ReadyHandler = (a: AudioResource) => void;

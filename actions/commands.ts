@@ -124,7 +124,8 @@ const commandData = {
 		filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.playingFallbackNeeded])
 	},
 	'yt': {
-		params: [{
+		params: [
+            {
 				name: 'ytQuery',
 				description: 'URL / cím',
 				required: true,
@@ -132,10 +133,23 @@ const commandData = {
 				
 			}
 		],
-		descrip: 'Youtube stream sorba ütemezése URL vagy keresőszó alapján. Keresőszó esetén a választás a bot által elhelyezett reakciók szerint történik.',
+		descrip: 'Youtube stream sorba ütemezése URL vagy keresőszó alapján. Keresőszó esetén a választás a lenyíló menüvel történik.',
 		type: 'unlimited',
 		filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded])
 	},
+    'soundcloud': {
+        params: [
+            {
+                name: 'scQuery',
+                description: 'soundcloud URL',
+                required: true,
+                type: 'String'
+            }
+        ],
+        descrip: 'Soundcloud stream sorba ütemezése URL alapján.',
+        type: 'unlimited',
+        filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded])
+    },
 	'custom': {
 		params: [
 			{

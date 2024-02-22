@@ -50,7 +50,7 @@ export interface RoleTableData {
 	roleID: Snowflake;
 	commands: string;
 }
-export type StreamType = 'yt' | 'custom' | 'radio' /* | 'sc' */;
+export type StreamType = 'yt' | 'custom' | 'radio'  | 'sc' ;
 export interface PlayableData {
 	url: string;
 	type: StreamType;

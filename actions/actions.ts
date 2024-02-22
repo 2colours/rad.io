@@ -74,6 +74,17 @@ export const actions: Actions = {
 			requester: this.member as Discord.GuildMember
 		}]);
 	},
+    async soundcloud(scQuery) {
+		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
+        try {
+            var toSchedule = await resolveSoundcloudUrl(scQuery, this.member as Discord.GuildMember);
+        }
+        catch (e) {
+            return void await this.reply({content: '**Érvénytelen soundcloud url.**', ephemeral: true});
+        }
+        await this.deferReply();
+        forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
+    },
 	async custom(url) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		url = sscanf(url, '%s') ?? '';
@@ -404,6 +415,26 @@ async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): P
 			requester
 		}];
 	}
+}
+
+async function resolveSoundcloudUrl(url: string, requester: Discord.GuildMember): Promise<MusicData[]> {
+    const trackToMusicData = (track: play.SoundCloud):MusicData => ({
+        lengthSeconds: track.durationInSec,
+        name: track.name,
+        requester,
+        type: 'sc',
+        url
+    });
+    const scInfo = await play.soundcloud(url);
+    switch (scInfo.type) {
+        case 'user':
+            throw 'unsupported SC link type';
+        case 'playlist':
+            const allTracks = await (scInfo as play.SoundCloudPlaylist).all_tracks();
+            return allTracks.map(trackToMusicData);
+        case 'track':
+            return [trackToMusicData(scInfo)];
+    }
 }
 
 async function searchPick(this: ThisBinding, results: SearchResultView[]): Promise<number> {
