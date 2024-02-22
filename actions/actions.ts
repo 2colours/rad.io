@@ -5,6 +5,11 @@ import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, St
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, tickEmoji,
 	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest } from '../internal.js';
 import * as play from 'play-dl';
+play.setToken({
+    soundcloud: {
+        client_id: await play.getFreeClientID()
+    }
+});
 import { sscanf } from 'scanf';
 import { ComponentType } from 'discord.js';
 export const actions: Actions = {
