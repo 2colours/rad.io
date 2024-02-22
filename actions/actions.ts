@@ -1,13 +1,10 @@
 import * as Discord from 'discord.js';
 import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
-import moment from 'moment';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
-	client, channels, commands, creators, getEmoji, radios as radiosList, translateAlias, forceSchedule,
+	client, channels, commands, creators, getEmoji, radios as radiosList, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, tickEmoji,
 	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest } from '../internal.js';
-const apiKey = process.env.youtubeApiKey;
-import { YouTube } from 'popyt';
-const youtube = new YouTube(apiKey);
+import * as play from 'play-dl';
 import { sscanf } from 'scanf';
 import { ComponentType } from 'discord.js';
 export const actions: Actions = {
@@ -41,8 +38,8 @@ export const actions: Actions = {
 		}
 		const ytString = sscanf(ytQuery, '%S') ?? '';
 		try {
-			var { items } = await youtube.searchVideos(ytString, {
-				pageOptions: { maxPerPage: 5, pages: 1 }
+			var items = await play.search(ytString, {
+				limit: 5
 			});
 			if (!items || items.length == 0)
 				return void await this.reply({content: '**Nincs találat.**', ephemeral: true});
@@ -51,10 +48,9 @@ export const actions: Actions = {
 			console.error(e);
 			await this.reply({content: '**Hiba a keresés során.**', ephemeral: true});
 		}
-		await Promise.all(items.map(elem => elem.fetch()));
 		const resultsView: SearchResultView[] = items.map(elem => ({
 			title: elem.title,
-			duration: elem.minutes * 60 + elem.seconds,
+			duration: elem.durationInSec,
 			uploaderName: elem.channel.name
 		}));
 		try {
@@ -74,10 +70,21 @@ export const actions: Actions = {
 			name: selectedResult.title,
 			url: selectedResult.url,
 			type: 'yt',
-			lengthSeconds: moment.duration(selectedResult._length).asSeconds(),
+			lengthSeconds: selectedResult.durationInSec,
 			requester: this.member as Discord.GuildMember
 		}]);
 	},
+    async soundcloud(scQuery) {
+		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
+        try {
+            var toSchedule = await resolveSoundcloudUrl(scQuery, this.member as Discord.GuildMember);
+        }
+        catch (e) {
+            return void await this.reply({content: '**Érvénytelen soundcloud url.**', ephemeral: true});
+        }
+        await this.deferReply();
+        forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
+    },
 	async custom(url) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		url = sscanf(url, '%s') ?? '';
@@ -155,19 +162,15 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 				);
 			return void await this.reply({ embeds: [embed] });
 		}
-		helpCommand = translateAlias(helpCommand);
 		if (commands.has(helpCommand)) {
 			const currentCommand = commands.get(helpCommand);
-			const currentAliases = currentCommand.aliases;
 			const currentRequirements = currentCommand.helpRelated.requirements;
-			currentAliases.sort();
 			let embed: Discord.EmbedBuilder = commonEmbed.call(this, ` ${helpCommand}`);
 			embed = embed
 				.addFields(
 				{name: '❯ Részletes leírás', value: currentCommand.helpRelated.ownDescription},
 				{name: '❯ Teljes parancs', value: `\`/${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``},
-				{name: '❯ Használat feltételei', value: currentRequirements.length == 0 ? '-' : currentRequirements.join(' ')},
-				{name: '❯ Alias-ok', value: currentAliases.length == 0 ? 'Nincs alias a parancshoz.' : currentAliases.map(alias => `\`/${alias}\``).join(' ')}
+				{name: '❯ Használat feltételei', value: currentRequirements.length == 0 ? '-' : currentRequirements.join(' ')}
 				);
 			return void await this.reply({ embeds: [embed] });
 		}
@@ -363,7 +366,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	}
 };
 async function permissionReused(this: ThisBinding, permCommands: string, role: Discord.Role, filler: (affectedCommands: string[], configedCommands: string[]) => void): Promise<void> {
-	const commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|').map(translateAlias);
+	const commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|');
 	const firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
 		return void await this.reply({ content: `**\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.**`, ephemeral: true });
@@ -391,30 +394,47 @@ function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
 
 async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): Promise<MusicData[]> {
 	try {
-		const ytPlaylist = await youtube.getPlaylist(url);
-		const videos = (await ytPlaylist.fetchVideos({
-			pages: 0 // workaround: minden page
-		})).items;
-		const fetchedVideos = (await Promise.all(videos.map(elem => elem.fetch().catch(_ => null)))).filter(x => x);
-		return fetchedVideos.map(elem => Object.assign({}, {
+		const ytPlaylist = await play.playlist_info(url, { incomplete: true });
+		const fetchedVideos = await ytPlaylist.all_videos();
+		return fetchedVideos.map(elem => ({
 			name: elem.title,
 			url: elem.url,
 			type: 'yt',
-			lengthSeconds: moment.duration(elem._length).asSeconds(),
+			lengthSeconds: elem.durationInSec,
 			requester
 		}) as MusicData);
 	}
 	catch (e) {
 		//Not a playlist
-		const ytVideo = await youtube.getVideo(url);
+		const ytVideo = (await play.video_info(url)).video_details;
 		return [{
 			name: ytVideo.title,
 			url,
 			type: 'yt',
-			lengthSeconds: moment.duration(ytVideo._length).asSeconds(),
+			lengthSeconds: ytVideo.durationInSec,
 			requester
 		}];
 	}
+}
+
+async function resolveSoundcloudUrl(url: string, requester: Discord.GuildMember): Promise<MusicData[]> {
+    const trackToMusicData = (track: play.SoundCloud):MusicData => ({
+        lengthSeconds: track.durationInSec,
+        name: track.name,
+        requester,
+        type: 'sc',
+        url: track.url
+    });
+    const scInfo = await play.soundcloud(url);
+    switch (scInfo.type) {
+        case 'user':
+            throw 'unsupported SC link type';
+        case 'playlist':
+            const allTracks = await (scInfo as play.SoundCloudPlaylist).all_tracks();
+            return allTracks.map(trackToMusicData);
+        case 'track':
+            return [trackToMusicData(scInfo)];
+    }
 }
 
 async function searchPick(this: ThisBinding, results: SearchResultView[]): Promise<number> {
@@ -485,3 +505,9 @@ function sendToPartnerHook(link: string, content: string, username: string, serv
 	embed.setDescription(content);
 	partnerHook.send({ content: link, embeds: [embed], username, avatarURL }).catch(console.error);
 }
+
+await play.setToken({
+    soundcloud: {
+        client_id: await play.getFreeClientID()
+    }
+});

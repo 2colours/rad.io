@@ -3,19 +3,19 @@ import { AudioPlayer, AudioPlayerPlayingState, AudioPlayerStatus, AudioResource,
 import { Readable } from 'stream';
 import * as play from 'play-dl'; //Nem illik közvetlenül hívni
 import { getEmoji, MusicData, StreamType, shuffle, getFallbackMode,
-	getFallbackChannel, PlayingData, AudioResourceProvider } from '../internal.js';
+	getFallbackChannel, PlayingData, AudioResourceProvider, StateError } from '../internal.js';
 import { Collection, GuildMember, VoiceChannel } from 'discord.js';
 import got from 'got';
 import EventEmitter from 'node:events';
 const fetchHttpStream = async (url: string) => got.stream(url, { timeout: { response: 5000 } }) as Readable;
-//const clientId = process.env.soundcloudClientId;
 const resourceProducers = new Map<StreamType, AudioResourceProvider>([
-	['yt', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true})) ],
+	['yt', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true}))],
 	['custom', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}))],
-	['radio', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}))]/*,
-	['sc', (url: string) => `${url}?client_id=${clientId}`]*/]);
+	['radio', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}))],
+    ['sc', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true}))]
+]);
 function isDefinite(data:MusicData) {
-	const definiteTypes: StreamType[] = ['yt', 'custom'/*, 'sc'*/];
+	const definiteTypes: StreamType[] = ['yt', 'custom', 'sc'];
 	return data && definiteTypes.includes(data.type);
 }
 type ReadyHandler = (a: AudioResource) => void;
@@ -69,14 +69,17 @@ export class GuildPlayer extends EventEmitter {
 		this._playingElement = value;
 		if (!value)
 			return;
-		this.emit('announcement', `**Lejátszás alatt: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``);
+		this.announce(`**Lejátszás alatt: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``);
 		this.currentPlay = new Playable(this.playingElement.type, this.playingElement.url, this.volume);
 		this.currentPlay.onReady(resource => this.engine.play(resource));
 		await this.currentPlay.loadResource();
 	}
 	private async resetPlayingElement() {
-		this.emit('announcement', `**Ismétllődik: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``);
+		this.announce(`**Ismétlődik: ** ${getEmoji(this.playingElement.type)} \`${this.playingElement.name}\``);
 		await this.currentPlay.loadResource();
+	}
+	private announce(message: string) {
+		this.emit('announcement', message);
 	}
 	queue: MusicData[];
 	fallbackPlayed: boolean;
@@ -106,20 +109,20 @@ export class GuildPlayer extends EventEmitter {
 	}
 	mute() {
 		if (this.volume == 0)
-			throw 'Már le van némítva a bot.';
+			throw new StateError('Már le van némítva a bot.');
 		this.oldVolume = this.volume;
 		this.setVolume(0);
 	}
 	unmute() {
 		if (this.volume != 0)
-			throw 'Nincs lenémítva a bot.';
+			throw new StateError('Nincs lenémítva a bot.');
 		this.setVolume(this.oldVolume);
 	}
 	setVolume(vol: number) {
 		const connectionState = getVoiceConnection(this.ownerGuild.id).state as VoiceConnectionReadyState;
 		const playerState = connectionState.subscription.player.state as AudioPlayerPlayingState;
 		if (!playerState)
-			throw 'Semmi nincs lejátszás alatt.';
+			throw new StateError('Semmi nincs lejátszás alatt.');
 		playerState.resource.volume.setVolume(vol);
 		this.volume = vol;
 	}
@@ -138,7 +141,7 @@ export class GuildPlayer extends EventEmitter {
 			}
 			catch (e) {
 				console.log(e);
-				this.emit('announcement', '**Az indítás során hiba lépett fel.**');
+				this.announce('**Az indítás során hiba lépett fel.**');
 			}
 		}
 		if (!this.fallbackPlayed){
@@ -152,7 +155,7 @@ export class GuildPlayer extends EventEmitter {
 	}
 	repeat(maxTimes?: number) {
 		if (!isDefinite(this.playingElement))
-			throw 'Végtelen streameket nem lehet loopoltatni.';
+			throw new StateError('Végtelen streameket nem lehet loopoltatni.');
 		if (!maxTimes)
 			this.currentPlay.askRepeat = () => true;
 		else
@@ -167,13 +170,13 @@ export class GuildPlayer extends EventEmitter {
 		if (autoSkip)
 			this.startNext();
 		else
-			this.emit('announcement', `**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
+			this.announce(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
 	bulkSchedule(musicDatas: MusicData[]) {
 		const autoSkip = this.autoSkip();
 		for (const musicData of musicDatas)
 			this.queue.push(musicData);
-		this.emit('announcement', `**${musicDatas.length} elem került a sorba.**`);
+		this.announce(`**${musicDatas.length} elem került a sorba.**`);
 		if (autoSkip)
 			this.startNext()
 	}
@@ -181,36 +184,36 @@ export class GuildPlayer extends EventEmitter {
 		if (this.queue.length >= 2)
 			shuffle(this.queue);
 		else
-			throw 'Nincs mit megkeverni.';
+			throw new StateError('Nincs mit megkeverni.');
 	}
 	clear() {
 		if (this.queue.length == 0)
-			throw 'Már üres volt a sor.';
+			throw new StateError('Már üres volt a sor.');
 		this.queue = [];
 	}
 	topLast() {
 		if (this.queue.length < 2)
-			throw 'Nincs mit a sor elejére rakni.';
+			throw new StateError('Nincs mit a sor elejére rakni.');
 		const elementToMove = this.queue.pop();
 		this.queue.unshift(elementToMove);
 	}
 	remove(queuePosition: number) {
 		if (this.queue.length == 0)
-			throw 'Már üres volt a sor.';
+			throw new StateError('Már üres volt a sor.');
 		if (queuePosition <= 0)
-			throw 'A pozíciónak pozitív számnak kell lennie.';
+			throw new StateError('A pozíciónak pozitív számnak kell lennie.');
 		if (this.queue.length < queuePosition)
-			throw 'Nincs ennyi elem a sorban.';
+			throw new StateError('Nincs ennyi elem a sorban.');
 		this.queue.splice(queuePosition - 1, 1);
 	}
 	private async fallbackMode() {
-		this.emit('announcement', '**Fallback mód.**');
+		this.announce('**Fallback mód.**');
 		const fallbackMode = getFallbackMode(this.ownerGuild.id);
 		switch (fallbackMode) {
 			case 'radio':
 				const fallbackMusic = getFallbackChannel(this.ownerGuild.id);
 				if (!fallbackMusic)
-					this.emit('announcement', '**Nincs beállítva rádióadó, silence fallback.**');
+					this.announce('**Nincs beállítva rádióadó, silence fallback.**');
 				await this.setPlayingElement(fallbackMusic);
 				break;
 			case 'leave':
@@ -232,12 +235,12 @@ export class GuildPlayer extends EventEmitter {
 	}
 	pause() {
 		if (this.engine.state.status != AudioPlayerStatus.Playing)
-			throw 'Csak lejátszás alatt álló stream szüneteltethető.';
+			throw new StateError('Csak lejátszás alatt álló stream szüneteltethető.');
 		this.engine.pause();
 	}
 	resume() {
 		if (this.engine.state.status != AudioPlayerStatus.Paused || !this.engine.unpause())
-			throw 'Ez a stream nem folytatható. (Nincs leállítva?)';
+			throw new StateError('Ez a stream nem folytatható. (Nincs leállítva?)');
 	}
 	nowPlaying(): PlayingData {
 		const playingSecondsMixin = Object.defineProperty({}, 'playingSeconds', {

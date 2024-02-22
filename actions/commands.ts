@@ -1,20 +1,20 @@
-﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam } from '../internal.js';
-import { SlashCommandBuilder } from 'discord.js';
+﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam, commandsCachePath } from '../internal.js';
+import { SlashCommandBuilder, Snowflake } from 'discord.js';
 import { REST } from '@discordjs/rest';
-import { Routes } from 'discord-api-types/v9';
+import { Routes } from 'discord-api-types/v10';
 import { tsObjectEntries } from 'ts-type-object-entries';
+import { readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import stringify from 'json-stringify-deterministic';
 
 const token = process.env.radioToken;
 const clientId = process.env.botId;
 const guildId = process.env.testServerId;
-const rest = new REST({ version: '9' }).setToken(token);
+const rest = new REST({ version: '10' }).setToken(token);
+const hashAlgorithm = 'sha256';
+const textualForm = 'base64'
 
-const aliases: Map<string, string> = new Map();
 export const commands: Map<string, Command> = new Map();
-
-export function translateAlias(cmdOrAlias: string): string {
-	return aliases.get(cmdOrAlias) || cmdOrAlias;
-}
 
 function addParam(commandBuilder: SlashCommandBuilder, param: ParameterData) {
 	type SupportedAddOptionName = `add${SupportedCommandOptionTypes}Option`;
@@ -28,33 +28,66 @@ function addParam(commandBuilder: SlashCommandBuilder, param: ParameterData) {
 	}
 	currentMethod.call(commandBuilder, optionBuilder);
 }
+
+type CommandDataEntries = [keyof CommandData, CommandData[keyof CommandData]][];
+const setupCommands = (commandList: CommandDataEntries, defPermission: boolean) => commandList.map(([cmdName, cmdInfo]) => {
+	commands.set(cmdName, new Command(Object.assign({
+		action: actions[cmdName],
+		name: cmdName
+	}, cmdInfo)));
+	const res = new SlashCommandBuilder()
+		.setName(cmdName.toLowerCase())
+		.setDefaultPermission(defPermission)
+		.setDescription(cmdInfo.descrip.slice(0, 100));
+	for (const param of cmdInfo.params) {
+		addParam(res, param);
+	}
+	return res;
+}).map(command => command.toJSON());
+
+const commandsCache = await readFile(commandsCachePath, { encoding: 'utf-8' })
+							.then(data => JSON.parse(data), _ => null)
+						?? {};
+async function installGlobalCommands(commands: unknown): Promise<boolean> { //érték: cache frissül vagy nem
+	const commandsHashed = createHash(hashAlgorithm)
+							.update(stringify(commands))
+							.digest(textualForm);
+	if (commandsCache['global'] == commandsHashed) {
+		console.log('Cache hit for global commands.\nNo need to register commands.');
+		return false;
+	}
+	await rest.put(Routes.applicationCommands(clientId), { body: commands });
+	commandsCache['global'] = commandsHashed;
+	return true;
+}
+async function installGuildedCommands(guildId: Snowflake, commands: unknown): Promise<boolean> { //érték: cache frissül vagy nem
+	const commandsHashed = createHash(hashAlgorithm)
+							.update(stringify(commands))
+							.digest(textualForm);
+	if (commandsCache['guilded']?.[guildId] == commandsHashed) {
+		console.log(`Cache hit for commands for guild ${guildId}.\nNo need to register commands.`);
+		return false;
+	}
+	await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
+	commandsCache['guilded'] ??= {};
+	commandsCache['guilded'][guildId] = commandsHashed;
+	return true;
+}
+
 async function setupMessageCommands(allCommandData: CommandData) {
-	const devCommands = tsObjectEntries(allCommandData).filter(([_name, info]) => info.type == 'creatorsOnly');
+	const devCommands:CommandDataEntries = tsObjectEntries(allCommandData).filter(([_name, info]) => info.type == 'creatorsOnly');
+	const devCommandsSerial = setupCommands(devCommands, false);
 	const publicCommands:CommandDataEntries = tsObjectEntries(allCommandData).filter(([_name, info]) => info.type != 'creatorsOnly');
-	type CommandDataEntries = [keyof CommandData, CommandData[keyof CommandData]][];
-	const setupCommands = (commandList: CommandDataEntries, defPermission: boolean) => commandList.map(([cmdName, cmdInfo]) => {
-		for (const alias of cmdInfo.aliases)
-			aliases.set(alias, cmdName);
-		commands.set(cmdName, new Command(Object.assign({
-			action: actions[cmdName],
-			name: cmdName
-		}, cmdInfo)));
-		const res = new SlashCommandBuilder()
-			.setName(cmdName.toLowerCase())
-			.setDefaultPermission(defPermission)
-			.setDescription(cmdInfo.descrip.slice(0, 100));
-		for (const param of cmdInfo.params) {
-			addParam(res, param);
-		}
-		return res;
-	}).map(command => command.toJSON());
-	await rest.put(Routes.applicationCommands(clientId), { body: setupCommands(publicCommands, true) });
-	await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: setupCommands(devCommands, false) });
+	const publicCommandsSerial = setupCommands(publicCommands, true);
+	let cacheUpdate = false;
+	cacheUpdate ||= await installGlobalCommands(publicCommandsSerial);
+	cacheUpdate ||= await installGuildedCommands(guildId, devCommandsSerial);
+	if (cacheUpdate)
+		await writeFile(commandsCachePath, JSON.stringify(commandsCache));
 }
 
 const commandData = {
 	'skip': {
-		aliases: ['s'],
 		params: [{
 				name: 'n',
 				description: 'n (opcionális)',
@@ -67,14 +100,12 @@ const commandData = {
 		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.nonFallbackNeeded, Filter.nonSilenceNeded])
 	},
 	'queue': {
-		aliases: ['q'],
 		params: [],
 		descrip: 'A várakozási sor tartalmának kiírása.',
 		type: 'unlimited',
 		filters: new Set([Filter.vcBotNeeded])
 	},
 	'join': {
-		aliases: ['j'],
 		params: [{
 				name: 'id',
 				description: 'id (opcionális)',
@@ -87,15 +118,14 @@ const commandData = {
 		filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.eventualVcBotNeeded])
 	},
 	'joinfallback': {
-		aliases: ['joinf', 'jf'],
 		params: [],
 		descrip: 'Bot csatlakoztatása egyből fallback állapotban.',
 		type: 'unlimited',
 		filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.playingFallbackNeeded])
 	},
 	'yt': {
-		aliases: [],
-		params: [{
+		params: [
+            {
 				name: 'ytQuery',
 				description: 'URL / cím',
 				required: true,
@@ -103,12 +133,24 @@ const commandData = {
 				
 			}
 		],
-		descrip: 'Youtube stream sorba ütemezése URL vagy keresőszó alapján. Keresőszó esetén a választás a bot által elhelyezett reakciók szerint történik.',
+		descrip: 'Youtube stream sorba ütemezése URL vagy keresőszó alapján. Keresőszó esetén a választás a lenyíló menüvel történik.',
 		type: 'unlimited',
 		filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded])
 	},
+    'soundcloud': {
+        params: [
+            {
+                name: 'scQuery',
+                description: 'soundcloud URL',
+                required: true,
+                type: 'String'
+            }
+        ],
+        descrip: 'Soundcloud stream sorba ütemezése URL alapján.',
+        type: 'unlimited',
+        filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded])
+    },
 	'custom': {
-		aliases: ['c'],
 		params: [
 			{
 				name: 'streamURL',
@@ -122,14 +164,12 @@ const commandData = {
 		filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded])
 	},
 	'leave': {
-		aliases: ['l'],
 		params: [],
 		descrip: 'Bot lecsatlakoztatása.',
 		type: 'grantable',
 		filters: new Set([Filter.vcBotNeeded, Filter.leaveCriteria])
 	},
 	'repeat': {
-		aliases: [],
 		params: [
 			{
 				name: 'max',
@@ -140,38 +180,33 @@ const commandData = {
 		],
 		descrip: 'Az épp szóló szám ismétlése. Ha nincs megadva, hogy hányszor, akkor a szám korlátlan alkalommal ismétlődhet.',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded])
 	},
 	'radios': {
-		aliases: [],
 		params: [],
 		descrip: 'Rádió lista megjelenítése.',
 		type: 'unlimited',
 		filters: new Set()
 	},
 	'shuffle': {
-		aliases: ['sh'],
 		params: [],
 		descrip: 'Várakozási sor megkeverése.',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded])
 	},
 	'clear': {
-		aliases: ['cl'],
 		params: [],
 		descrip: 'Várakozási sor törlése.',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded])
 	},
 	'toplast': {
-		aliases: ['top'],
 		params: [],
 		descrip: 'A sor utolsó elemének a sor elejére helyezése.',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded])
 	},
 	'remove': {
-		aliases: ['rm'],
 		params: [
 			{
 				name: 'no',
@@ -182,10 +217,9 @@ const commandData = {
 		],
 		descrip: 'A várakozási sor adott elemének törlése sorszám szerint.',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded])
 	},
 	'help': {
-		aliases: ['h'],
 		params: [
 			{
 				name: 'cmd',
@@ -199,35 +233,30 @@ const commandData = {
 		filters: new Set()
 	},
 	'perms': {
-		aliases: ['powers'],
 		params: [],
 		descrip: 'A parancsot kiadó felhasználó jogosultságainak listázása.',
 		type: 'unlimited',
 		filters: new Set()
 	},
 	'guilds': {
-		aliases: [],
 		params: [],
 		descrip: 'A bot által elért szerverek listázása.',
 		type: 'creatorsOnly',
 		filters: new Set([Filter.creatorNeeded])
 	},
 	'connections': {
-		aliases: ['conn'],
 		params: [],
 		descrip: 'A bot által éppen használt voice csatornák listázása.',
 		type: 'creatorsOnly',
 		filters: new Set([Filter.creatorNeeded])
 	},
 	'testradios': {
-		aliases: ['tr'],
 		params: [],
 		descrip: 'A bot által éppen használt voice csatornák listázása.',
 		type: 'creatorsOnly',
 		filters: new Set([Filter.creatorNeeded])
 	},
 	'announce': {
-		aliases: ['a'],
 		params: [
 			{
 				name: 'target',
@@ -247,7 +276,6 @@ const commandData = {
 		filters: new Set([Filter.creatorNeeded])
 	},
 	'partner': {
-		aliases: [],
 		params: [
 			{
 				name: 'inv',
@@ -278,7 +306,6 @@ const commandData = {
 		filters: new Set([Filter.creatorNeeded])
 	},
 	'leaveguild': {
-		aliases: ['lg'],
 		params: [
 			{
 				name: 'id',
@@ -292,14 +319,12 @@ const commandData = {
 		filters: new Set([Filter.creatorNeeded])
 	},
 	'voicecount': {
-		aliases: ['vc'],
 		params: [],
 		descrip: 'Az aktív voice csatlakozások összeszámolása.',
 		type: 'creatorsOnly',
 		filters: new Set([Filter.creatorNeeded])
 	},
 	'fallback': {	
-		aliases: ['f'],
 		params: [
 			{
 				name: 'choice',
@@ -313,7 +338,6 @@ const commandData = {
 		filters: new Set([Filter.dedicationNeeded])
 	},
 	'fallbackradio': {
-		aliases: ['fr'],
 		params: [
 			{
 				name: 'idOrStreamUrl',
@@ -327,21 +351,18 @@ const commandData = {
 		filters: new Set([Filter.dedicationNeeded])
 	},
 	'pause': {
-		aliases: [],
 		params: [],
 		descrip: 'Az aktuálisan játszott stream szüneteltetése. (Figyelem: online stream eközben tovább haladhat.)',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.nonSilenceNeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.nonSilenceNeded])
 	},
 	'resume': {
-		aliases: ['r'],
 		params: [],
 		descrip: 'Felfüggesztett stream folytatása. (Figyelem: online stream esetében ez ugrással járhat.)',
 		type: 'grantable',
-		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.nonSilenceNeded])
+		filters: new Set([Filter.dedicationNeeded, Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.nonSilenceNeded])
 	},
 	'tune': {
-		aliases: ['t'],
 		params: [
 			{
 				name: 'id',
@@ -355,7 +376,6 @@ const commandData = {
 		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded])
 	},
 	'grant': {
-		aliases: ['g'],
 		params: [
 			{
 				name: 'commandSet',
@@ -375,7 +395,6 @@ const commandData = {
 		filters: new Set([Filter.adminNeeded])
 	},
 	'deny': {
-		aliases: ['d'],
 		params: [
 			{
 				name: 'commandSet',
@@ -395,14 +414,12 @@ const commandData = {
 		filters: new Set([Filter.adminNeeded])
 	},
 	'nowplaying': {
-		aliases: ['np'],
 		params: [],
 		descrip: 'Az aktuálisan játszott stream lekérése.',
 		type: 'unlimited',
 		filters: new Set([Filter.vcBotNeeded])
 	},
 	'volume': {
-		aliases: ['vol'],
 		params: [
 			{
 				name: 'vol',
@@ -413,21 +430,19 @@ const commandData = {
 		],
 		descrip: 'A bot hangerejének állítása. A beállítás a bot kilépéséig érvényes, a kezdőérték 5, ahol a 10 jelenti a teljes hangerőt, a 10 fölötti értékek arányos erősítést.',
 		type: 'grantable',
-		filters: new Set([Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
+		filters: new Set([Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.dedicationNeeded])
 	},
 	'mute': {
-		aliases: [],
 		params: [],
 		descrip: 'A bot némítása - a megelőző hangerő visszaállítható (lásd `unmute` parancs).',
 		type: 'grantable',
-		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
+		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.dedicationNeeded])
 	},
 	'unmute': {
-		aliases: [],
 		params: [],
 		descrip: 'A bot hangerejének visszaállítása a némítás előtti értékre.',
 		type: 'grantable',
-		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded])
+		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.dedicationNeeded])
 	}
 } as const;
 
@@ -446,7 +461,6 @@ export type ActionParams = Parameters<Action>; //TODO: fix this
 
 setupMessageCommand({
 	name: 'seek',
-	aliases: [],
 	params: ['időpont (másodperc)'],
 	descrip: 'Az éppen játszott stream pozíciójának állítása.',
 	type: 'grantable',

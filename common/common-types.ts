@@ -1,5 +1,5 @@
 import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, Role, GuildTextBasedChannel, ChatInputCommandInteraction } from 'discord.js';
-import { ApplicationCommandOptionType } from 'discord-api-types/v9';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { Readable } from 'stream';
 import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../internal.js';
 import { AudioResource } from '@discordjs/voice';
@@ -50,7 +50,7 @@ export interface RoleTableData {
 	roleID: Snowflake;
 	commands: string;
 }
-export type StreamType = 'yt' | 'custom' | 'radio' /* | 'sc' */;
+export type StreamType = 'yt' | 'custom' | 'radio'  | 'sc' ;
 export interface PlayableData {
 	url: string;
 	type: StreamType;
@@ -78,7 +78,6 @@ export interface ParameterData {
 export interface CommandExtraData {
 	type: CommandType;
 	name: string; //Biztos? Még mindig a validálás kérdése
-	aliases: string[];
 	filters: Set<Filter>;
 	params: ParameterData[];
 	descrip: string;
@@ -88,14 +87,12 @@ interface CommandRawData extends CommandExtraData {
 }
 export class Command {
 	readonly decoratedAction: Action;
-	readonly aliases: string[];
 	readonly name: string;
 	readonly helpRelated: HelpInfo;
 	readonly type: CommandType;
 	constructor(baseData: DeepReadonly<CommandRawData>) {
 		this.type = baseData.type;
 		this.name = baseData.name;
-		this.aliases = baseData.aliases as string[];
 		let orderedFilters = Array.from(baseData.filters as Set<Filter>);
 		orderedFilters.sort(Filter.compare);
 		this.decoratedAction = aggregateDecorators(orderedFilters.map(elem => elem.decorator))(baseData.action as Action);
@@ -114,8 +111,7 @@ export interface HelpInfo {
 	ownDescription: string;
 }
 export class Creator {
-	constructor(readonly id: Snowflake, private alias: string, private link?: string) {
-	}
+	constructor(readonly id: Snowflake, private alias: string, private link?: string) { }
 	resolveMarkdown() {
 		const user = client.users.resolve(this.id);
 		const text = user ? user.tag : this.alias;
@@ -126,4 +122,8 @@ export interface SearchResultView {
 	title: string;
 	uploaderName: string;
 	duration: number; //másodpercben
+}
+
+export class StateError {
+	constructor(readonly message: string) { }
 }

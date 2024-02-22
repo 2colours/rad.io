@@ -1,4 +1,4 @@
-﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators, ActionParams } from '../internal.js';
+﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators, ActionParams, StateError } from '../internal.js';
 import { getVoiceConnection } from '@discordjs/voice';
 import { PermissionsBitField, VoiceBasedChannel } from 'discord.js';
 export const isAdmin: Predicate = ctx => ctx.memberPermissions?.has(PermissionsBitField.Flags.Administrator);
@@ -48,14 +48,14 @@ const nonSilenceNeeded: Decorator = choiceFilter(isSilence, rejectReply('Ez a pa
 const leaveCriteria: Decorator = choiceFilter(isAloneBot, pass, aggregateDecorators([dedicationNeeded, vcUserNeeded, sameVcNeeded]));
 const isPlayingFallbackSet: Predicate = ctx => getFallbackMode(ctx.guild.id) == 'radio';
 const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('Ez a parancs nem használható a jelenlegi fallback beállítással.'));
-const naturalErrors: Decorator = action => async function (this: ThisBinding, ...args: ActionParams): Promise<void> {
+const stateErrors: Decorator = action => async function (this: ThisBinding, ...args: ActionParams): Promise<void> {
 	try {
-		await Promise.resolve(action.call(this, ...args as any)); //TODO: cast...
+		await action.call(this, ...args as any); //TODO: cast...
 	}
 	catch (e) {
-		if (typeof e == 'string')
-			return void await this.reply({ content: `**hiba - ${e}**`, ephemeral: true});
-		console.error(e);
+		if (e instanceof StateError)
+			return void await this.reply({ content: `**hiba - ${e.message}**`, ephemeral: true});
+		throw e;
 	}
 };
 
@@ -74,7 +74,7 @@ export class Filter {
 	static readonly leaveCriteria = new Filter(leaveCriteria, '');
 	static readonly nonFallbackNeeded = new Filter(nonFallbackNeeded, '');
 	static readonly nonSilenceNeded = new Filter(nonSilenceNeeded, '');
-	static readonly naturalErrorNoNeeded = new Filter(naturalErrors, '');
+	static readonly stateErrorNoNeeded = new Filter(stateErrors, '');
 	private constructor(readonly decorator: Decorator, readonly description: string) {
 		this.priority = ++Filter.counter;
 	}

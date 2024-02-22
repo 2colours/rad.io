@@ -113,7 +113,7 @@ export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, ba
 	const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(prevButton, nextButton);
 	const message = await ctx.channel.send({ embeds: [completeEmbed], components: [row] }) as Message;
 	const filter =  (i: MessageComponentInteraction) => (i.deferUpdate(), ['previous', 'next'].includes(i.customId) && i.user.id == ctx.user.id);
-	const collector = message.createMessageComponentCollector({filter, time: 60000, componentType: ComponentType.Button });
+	const collector = message.createMessageComponentCollector({filter, idle: 60000, componentType: ComponentType.Button });
 	for await (const [i, _] of collector) {
 		currentPage = i.customId == 'previous' ? currentPage - 1 : currentPage + 1;
 		const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
