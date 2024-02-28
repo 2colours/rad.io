@@ -1,0 +1,43 @@
+---
+- name: Deploy rad.io bot
+  hosts: webservers
+  remote_user: bots
+  current_databank: '{{ lookup('env', 'HOME') }}/private_databank/debug'
+  current_instance: '{{ lookup('env', 'HOME') }}/rad.io-debug'
+
+  tasks:
+
+  - name: Example clone of a single branch
+    ansible.builtin.git:
+      repo: https://github.com/2colours/rad.io.git
+      dest: '{{ current_instance }}'
+      single_branch: yes
+      version: debug
+  
+  - name: Create link for .env file
+    ansible.builtin.file:
+      src: '{{ current_databank }}/.env'
+      dest: '{{ current_instance }}/.env'
+      state: link
+
+  - name: Create link for data folder
+    ansible.builtin.file:
+      src: '{{ current_databank }}/data'
+      dest: '{{ current_instance }}/data'
+      state: link
+
+  - name: Create link for pm2 config
+    ansible.builtin.file:
+      src: '{{ current_databank }}/ecosystem.json'
+      dest: '{{ current_instance }}/ecosystem.json'
+      state: link
+
+  - name: Install packages using yarn
+    community.general.yarn:
+      path: '{{ current_instance }}'
+
+  - name: Restart bot instance
+    pm2:
+      name: rad.io-debug
+      script: '{{ current_instance }}/ecosystem.json'
+      state: restarted
