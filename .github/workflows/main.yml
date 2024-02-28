@@ -1,0 +1,13 @@
+name: main
+
+on:
+  push:
+    branches:
+      - 'debug'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ansible control node
+        run: sudo apt install ansible-core
