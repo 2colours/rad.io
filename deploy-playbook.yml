@@ -1,10 +1,9 @@
 ---
 - name: Deploy rad.io bot
   hosts: bot_host
-  remote_user: bots
   vars:
-    current_databank: '{{ lookup("env", "HOME") }}/private_databank/debug'
-    current_instance: '{{ lookup("env", "HOME") }}/rad.io-debug'
+    current_databank: '/home/{{ ansible_user }}/private_databank/debug'
+    current_instance: '/home/{{ ansible_user }}/rad.io-debug'
 
   tasks:
 
