@@ -21,7 +21,7 @@ jobs:
           # Ansible playbook filepath
           playbook: deploy-playbook.yml
           # SSH private key used to connect to the host
-          key: '{{ secrets.HOST_PRIVATE_KEY }}'
+          key: ${{ secrets.HOST_PRIVATE_KEY }}
           # Custom content to write into hosts
           inventory: |
             [bot_host]
