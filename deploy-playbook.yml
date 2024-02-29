@@ -37,7 +37,6 @@
       path: '{{ current_instance }}'
 
   - name: Restart bot instance
-    pm2:
-      name: rad.io-debug
-      script: '{{ current_instance }}/ecosystem.json'
-      state: restarted
+    ansible.builtin.shell: pm2 startOrRestart ecosystem.json
+    args:
+      chdir: '{{ current_instance }}'
