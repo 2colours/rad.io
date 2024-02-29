@@ -2,8 +2,9 @@
 - name: Deploy rad.io bot
   hosts: bot_host
   remote_user: bots
-  current_databank: '{{ lookup("env", "HOME") }}/private_databank/debug'
-  current_instance: '{{ lookup("env", "HOME") }}/rad.io-debug'
+  vars:
+    current_databank: '{{ lookup("env", "HOME") }}/private_databank/debug'
+    current_instance: '{{ lookup("env", "HOME") }}/rad.io-debug'
 
   tasks:
 
