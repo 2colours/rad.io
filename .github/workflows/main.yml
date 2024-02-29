@@ -23,7 +23,7 @@ jobs:
           # Custom content to write into hosts
           inventory: |
             [bot_host]
-            vps.contabo
+            vps.contabo ansible_user=bots
           # Contents of SSH known_hosts file
           known_hosts: |
             vps.contabo ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC89CXXwoQmHZBJXMLAl9GPrQaGuF2PQ2tfTTqiPIvelxbAG3QJ+biXkSObrCE/At6hfAsNUMpzZw8MGwFM1VRempk+Hxpqbzevexb4HtX1Cv1tGRU5KbwbMhyewUAlyr6YQkLfTe4W9vphbJNIcmejDZVyPDH4n60i674duNgexwrbrC33GZkR07QgcSLy4wv8nSGdN5JRJ0hvC12LbXUIWKJYIyGjnziIONhQNSV/C8S53S78dALFwK04+qmNqdsgM6ML9gT7x0iapdCaG8NESqhvtjICC857Xbb+KJMkQbjPdP1XpBILqYP8vRLYnL4QOfkZh7kIEIR+JrFA9lZRmvbQtH2U+LSCsrTA7RNevPb3m1rvdAqOvxWQqRTzbQTb7SapZTWd0XX/hL2HBvCyOHisit9YPD4ksCyux+MrS9KyDiFxjONZGu4fLib+yC6sW9NiTDDWNfxglsjWL7gFUCQlvH2myBtEaFom1F2jHSHRaYRXOxyBotE1LRRHdd8qhQ9z5ZTVGaPoKWO8iVm5tbfyClBZrE+Vas9QRWlSq+sY4aI1JeuDIMyZgmZCabEDdShZe6gEZMRnYB8xZQw5m+d70anUjnSMNQAI2l9Hbl7M30nSmnuk7p8wyZ4LRiYoF7DYIyVv+/BqftVf6j2Sse4syRIV3qDzGeiiq+XBSQ==
