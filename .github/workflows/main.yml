@@ -13,9 +13,9 @@ jobs:
         run: sudo apt install ansible-core
       - name: Add hosts to /etc/hosts
         run: |
-          sudo echo "{{ secrets.SERVICE_HOST }} vps.contabo" | sudo tee -a /etc/hosts > /dev/null
+          sudo echo "${{ secrets.SERVICE_HOST }} vps.contabo" | sudo tee -a /etc/hosts > /dev/null
       - name: Ping host
-        run: sudo cat /etc/hosts
+        run: ping -c 10 vps.contabo
       - uses: dawidd6/action-ansible-playbook@v2.8.0
         with:
           # Ansible playbook filepath
