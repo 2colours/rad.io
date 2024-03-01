@@ -49,7 +49,8 @@ export async function sendGuild(guild: Guild, content: string, options?: Message
 		}
 	}
 }
-export function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildVoiceChannel, actionThis: ThisBinding, playableData: MusicData[]) {
+export function forceSchedule({ textChannel, voiceChannel, actionContext, playableData, preshuffle = false } : { textChannel?: TextChannel, voiceChannel: BaseGuildVoiceChannel, actionContext: ThisBinding, playableData: MusicData[], preshuffle?: boolean }) {
+    textChannel ??= actionContext.channel as TextChannel;
 	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
 		joinVoiceChannel({
 			channelId: voiceChannel.id,
@@ -57,14 +58,14 @@ export function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildV
 			//@ts-ignore
 			adapterCreator: voiceChannel.guild.voiceAdapterCreator
 		});
-		actionThis.guildPlayer = new GuildPlayer(voiceChannel.guild);
+		actionContext.guildPlayer = new GuildPlayer(voiceChannel.guild);
 	}
-	actionThis.guildPlayer.removeAllListeners();
-	actionThis.guildPlayer.on('announcement', replyFirstSendRest(actionThis, textChannel));
+	actionContext.guildPlayer.removeAllListeners();
+	actionContext.guildPlayer.on('announcement', replyFirstSendRest(actionContext, textChannel));
 	if (playableData.length == 1)
-		actionThis.guildPlayer.schedule(playableData[0]);
+		actionContext.guildPlayer.schedule(playableData[0]);
 	else
-		actionThis.guildPlayer.bulkSchedule(playableData);
+		actionContext.guildPlayer.bulkSchedule(playableData, preshuffle);
 }
 export function replyFirstSendRest(interactionForReply: ChatInputCommandInteraction, channelForSend: TextChannel) {
 	let repliedAlready = false;

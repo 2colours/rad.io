@@ -172,10 +172,11 @@ export class GuildPlayer extends EventEmitter {
 		else
 			this.announce(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
-	bulkSchedule(musicDatas: MusicData[]) {
+	bulkSchedule(musicDatas: MusicData[], preshuffle: boolean) {
 		const autoSkip = this.autoSkip();
-		for (const musicData of musicDatas)
-			this.queue.push(musicData);
+        if (preshuffle)
+            shuffle(musicDatas);
+        this.queue.push(...musicDatas);
 		this.announce(`**${musicDatas.length} elem került a sorba.**`);
 		if (autoSkip)
 			this.startNext()

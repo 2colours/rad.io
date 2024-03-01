@@ -130,8 +130,13 @@ const commandData = {
 				description: 'URL / cím',
 				required: true,
 				type: 'String'
-				
-			}
+			},
+            {
+                name: 'preshuffle',
+                description: 'Lejátszási lista megkeverése (opcionális)',
+                required: false,
+                type: 'Boolean'
+            }
 		],
 		descrip: 'Youtube stream sorba ütemezése URL vagy keresőszó alapján. Keresőszó esetén a választás a lenyíló menüvel történik.',
 		type: 'unlimited',

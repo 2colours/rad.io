@@ -23,7 +23,7 @@ export const actions: Actions = {
 		joinAndStartup.call(this, (gp: GuildPlayer) => gp.skip());
 	},
 
-	async yt(ytQuery) {
+	async yt(ytQuery, preshuffle) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		ytQuery = ytQuery.trim();
 		if (isLink(ytQuery)) {
@@ -34,7 +34,7 @@ export const actions: Actions = {
 				return void await this.reply({content: '**Érvénytelen youtube url.**', ephemeral: true});
 			}
 			await this.deferReply();
-			return void forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
+			return void forceSchedule({ voiceChannel, actionContext: this, playableData: toSchedule, preshuffle });
 		}
 		const ytString = sscanf(ytQuery, '%S') ?? '';
 		try {
@@ -66,13 +66,17 @@ export const actions: Actions = {
 			return;
 		}
 		const selectedResult = items[index];
-		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
-			name: selectedResult.title,
-			url: selectedResult.url,
-			type: 'yt',
-			lengthSeconds: selectedResult.durationInSec,
-			requester: this.member as Discord.GuildMember
-		}]);
+		forceSchedule({
+            voiceChannel,
+            actionContext: this,
+            playableData: [{
+                name: selectedResult.title,
+                url: selectedResult.url,
+                type: 'yt',
+                lengthSeconds: selectedResult.durationInSec,
+                requester: this.member as Discord.GuildMember
+		    }]
+        });
 	},
     async soundcloud(scQuery) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
@@ -83,19 +87,23 @@ export const actions: Actions = {
             return void await this.reply({content: '**Érvénytelen soundcloud url.**', ephemeral: true});
         }
         await this.deferReply();
-        forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
+        forceSchedule({ voiceChannel, actionContext: this, playableData: toSchedule });
     },
 	async custom(url) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		url = sscanf(url, '%s') ?? '';
 		await this.deferReply();
-		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
-			name: 'Custom',
-			url,
-			type: 'custom',
-			lengthSeconds: undefined,
-			requester: this.member as Discord.GuildMember
-		}]);
+		forceSchedule({
+            voiceChannel,
+            actionContext: this,
+            playableData: [{
+                name: 'Custom',
+                url,
+                type: 'custom',
+                lengthSeconds: undefined,
+                requester: this.member as Discord.GuildMember
+            }]
+        });
 	},
 	async leave() {
 		const guildPlayer: GuildPlayer = this.guildPlayer;
@@ -273,11 +281,15 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		const channel = extractChannel(this, param);
 		await this.deferReply();
-		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [Object.assign({
-			type: 'radio' as StreamType,
-			lengthSeconds: undefined,
-			requester: this.member as Discord.GuildMember
-		}, radiosList.get(channel))]);
+		forceSchedule({
+            voiceChannel,
+            actionContext: this,
+            playableData: [Object.assign({
+                type: 'radio' as StreamType,
+                lengthSeconds: undefined,
+                requester: this.member as Discord.GuildMember
+            }, radiosList.get(channel))]
+        });
 	},
 	grant(commandSet, role) {
 		permissionReused.call(this, commandSet, role, (commands: string[], roleCommands: string[]) =>
