@@ -29,7 +29,7 @@ client.on('interactionCreate', async interaction => {
 			set(value) { return guildPlayers.set(this.guild.id, value); }
 		}) as ThisBinding;
 	const args = interaction.options.data.map(retrieveCommandOptionValue);
-	await Promise.resolve(commandFunction.call(thisBinding, ...args));
+	await commandFunction.call(thisBinding, ...args);
 });
 
 

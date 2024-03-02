@@ -316,7 +316,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		await this.reply({ embeds: [embed] });
 	},
 	async perms() {
-		const adminRight = await Promise.resolve(isAdmin(this));
+		const adminRight = await isAdmin(this);
 		const adminCommands = commandNamesByTypes(commands, 'adminOnly', 'grantable');
 		adminCommands.sort();
 		const unlimitedCommands = commandNamesByTypes(commands, 'unlimited');

@@ -6,7 +6,7 @@ const isVcUser: Predicate = ctx => !!ctx.guild.members.resolve(ctx.user.id).voic
 const isDifferentVc: Predicate = ctx => client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) != ctx.guild.members.resolve(ctx.user.id).voice.channel;
 const isVcBot: Predicate = ctx => !!getVoiceConnection(ctx.guildId);
 const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (...args: ActionParams) {
-	const currentDecorator = await Promise.resolve(pred(this)) ? dec1 : dec2;
+	const currentDecorator = await pred(this) ? dec1 : dec2;
 	await currentDecorator(action).call(this, ...args as any); //TODO: erre a castra nem kéne, hogy szükség legyen
 };
 const hasPermission: Predicate = ctx => {
@@ -22,7 +22,7 @@ const rejectReply=(replyMessage:string)=>(_:Action)=> async function(this: ThisB
 	await this.reply({ content: `**${replyMessage}**`, ephemeral: true });
 };
 const nop:Decorator=()=>()=>{};
-const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>Promise.resolve(pred(ctx)))).then(predValues=>predValues.includes(true));
+const any=(...preds:Predicate[])=>(ctx:ThisBinding)=>Promise.all(preds.map(pred=>pred(ctx))).then(predValues=>predValues.includes(true));
 const not=(pred:Predicate)=>(ctx:ThisBinding)=>!pred(ctx);
 const adminNeeded:Decorator=choiceFilter(isAdmin,pass,rejectReply('Ezt a parancsot csak adminisztrátorok használhatják.'));
 const vcUserNeeded:Decorator=choiceFilter(isVcUser,pass,rejectReply('Nem vagy voice csatornán.'));
