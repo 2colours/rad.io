@@ -32,8 +32,8 @@
       dest: '{{ current_instance }}/ecosystem.json'
       state: link
 
-  - name: Install packages using yarn
-    community.general.yarn:
+  - name: Install packages using npm
+    community.general.npm:
       path: '{{ current_instance }}'
 
   - name: Restart bot instance
