@@ -1,4 +1,4 @@
-﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam, commandsCachePath } from '../internal.js';
+﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam, commandsCachePath, CommandExtraData } from '../internal.js';
 import { SlashCommandBuilder, Snowflake } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
@@ -84,6 +84,11 @@ async function setupMessageCommands(allCommandData: CommandData) {
 	cacheUpdate ||= await installGuildedCommands(guildId, devCommandsSerial);
 	if (cacheUpdate)
 		await writeFile(commandsCachePath, JSON.stringify(commandsCache));
+}
+
+type CommandValueData = Omit<CommandExtraData, 'name'>;
+type CommandDataConstraint = {
+	[name: CommandExtraData['name']]: CommandValueData
 }
 
 const commandData = {
@@ -449,7 +454,7 @@ const commandData = {
 		type: 'grantable',
 		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.dedicationNeeded])
 	}
-} as const;
+} as const satisfies CommandDataConstraint;
 
 type CommandData = typeof commandData;
 type CompileTimeArray<T, V> = {
