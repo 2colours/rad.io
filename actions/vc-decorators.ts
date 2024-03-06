@@ -7,7 +7,7 @@ const isDifferentVc: Predicate = ctx => client.channels.resolve(getVoiceConnecti
 const isVcBot: Predicate = ctx => !!getVoiceConnection(ctx.guildId);
 const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (...args: ActionParams) {
 	const currentDecorator = await pred(this) ? dec1 : dec2;
-	await currentDecorator(action).call(this, ...args as any); //TODO: erre a castra nem kéne, hogy szükség legyen
+	await currentDecorator(action).call(this, ...args);
 };
 const hasPermission: Predicate = ctx => {
 	const guildRoles = getRoles(ctx.guild.id);
@@ -18,7 +18,7 @@ const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.u
 const isAloneUser: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot && member != ctx.guild.members.resolve(ctx.user.id));
 const isAloneBot: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot);
 const pass:Decorator=action=>action;
-const rejectReply=(replyMessage:string)=>(_:Action)=> async function(this: ThisBinding, _:Parameters<Action>) {
+const rejectReply=(replyMessage:string)=>(_:Action)=> async function(this: ThisBinding, ..._args:ActionParams) {
 	await this.reply({ content: `**${replyMessage}**`, ephemeral: true });
 };
 const nop:Decorator=()=>()=>{};
@@ -37,7 +37,7 @@ const vcPermissionNeeded:Decorator=action=>async function(...args: ActionParams)
 	if (!hasVcPermission(this))
 		await this.channel.send(`**Nincs jogom csatlakozni a** \`${this.guild.members.resolve(this.user.id).voice.channel.name}\` **csatornához!**`).catch(console.error);
 	else
-		await action.call(this, ...args as any); //TODO: erre a castra nem kéne, hogy szükség legyen
+		await action.call(this, ...args);
 };
 const eventualVcBotNeeded: Decorator = choiceFilter(isVcBot, pass, vcPermissionNeeded);
 const dedicationNeeded: Decorator = choiceFilter(isAloneUser, pass, adminOrPermissionNeeded);
@@ -50,7 +50,7 @@ const isPlayingFallbackSet: Predicate = ctx => getFallbackMode(ctx.guild.id) == 
 const playingFallbackNeeded: Decorator = choiceFilter(isPlayingFallbackSet, pass, rejectReply('Ez a parancs nem használható a jelenlegi fallback beállítással.'));
 const stateErrors: Decorator = action => async function (this: ThisBinding, ...args: ActionParams): Promise<void> {
 	try {
-		await action.call(this, ...args as any); //TODO: cast...
+		await action.call(this, ...args);
 	}
 	catch (e) {
 		if (e instanceof StateError)

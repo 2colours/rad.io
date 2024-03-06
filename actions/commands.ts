@@ -461,7 +461,7 @@ type CompileTimeArray<T, V> = {
 	[K in keyof T]: V
 };
 type MappedArgs<T extends CompileTimeArray<C, ParameterData>, C> = { [K in keyof T]: TypeFromParam<T[K]['type']> };
-type ActionArgs<Key extends keyof CommandData> = MappedArgs<CommandData[Key]['params'], CommandData[keyof CommandData]['params']> & MappedArgs<CommandData[keyof CommandData]['params'], CommandData[keyof CommandData]['params']>;
+type ActionArgs<Key extends keyof CommandData> = MappedArgs<CommandData[Key]['params'], CommandData[keyof CommandData]['params']> & Array<unknown>;
 export type Actions = {
 	[commandName in keyof CommandData]: (this: ThisBinding, ...args: ActionArgs<commandName>) => Resolvable<void>;
 };

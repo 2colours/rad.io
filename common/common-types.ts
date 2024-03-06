@@ -3,8 +3,9 @@ import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { Readable } from 'stream';
 import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../internal.js';
 import { AudioResource } from '@discordjs/voice';
-export type SupportedCommandOptionTypes = ApplicationCommandOptionTypes & 'String' | 'Number' | 'Boolean' | 'Role';
-export type TypeFromParam<T> =
+type MappableTypes = 'String' | 'Number' | 'Boolean' | 'Role';
+export type SupportedCommandOptionTypes = ApplicationCommandOptionTypes & MappableTypes;
+export type TypeFromParam<T extends SupportedCommandOptionTypes> =
 			('Number' extends T ? number : never) |
 			('String' extends T ? string : never) |
 			('Role' extends T ? Role : never) |
@@ -73,7 +74,7 @@ export interface ParameterData {
 	name: string;
 	description: string;
 	required: boolean;
-	type: ApplicationCommandOptionTypes;
+	type: SupportedCommandOptionTypes;
 }
 export interface CommandExtraData {
 	type: CommandType;
