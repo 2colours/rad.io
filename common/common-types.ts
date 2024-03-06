@@ -90,20 +90,19 @@ export class Command {
 	readonly name: string;
 	readonly helpRelated: HelpInfo;
 	readonly type: CommandType;
-	constructor(baseData: DeepReadonly<CommandRawData>) {
+	constructor(baseData: CommandRawData) {
 		this.type = baseData.type;
 		this.name = baseData.name;
-		let orderedFilters = Array.from(baseData.filters as Set<Filter>);
+		let orderedFilters = Array.from(baseData.filters);
 		orderedFilters.sort(Filter.compare);
-		this.decoratedAction = aggregateDecorators(orderedFilters.map(elem => elem.decorator))(baseData.action as Action);
+		this.decoratedAction = aggregateDecorators(orderedFilters.map(elem => elem.decorator))(baseData.action);
 		this.helpRelated = {
 			requirements: orderedFilters.map(elem => elem.description),
-			params: baseData.params as ParameterData[],
+			params: baseData.params,
 			ownDescription: baseData.descrip
 		};
 	}
 }
-export type DeepReadonly<T> = { readonly [K in keyof T]: DeepReadonly<T[K]> }
 export type CommandType = 'unlimited' | 'adminOnly' | 'grantable' | 'creatorsOnly';
 export interface HelpInfo {
 	requirements: string[];
