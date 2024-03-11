@@ -219,6 +219,11 @@ const radios = {
 		url: 'https://stream.sepsiradio.ro:8001/SepsiRadio',
 		cult: 'hun'
 	},
+	'szunet': {
+		name: 'Szünet Rádió',
+		url: 'https://stream.szunetradio.hu:8000/stream.mp3',
+		cult: 'hun'
+	},
 	'therapmixx': {
 		name: 'The Rap MIXX (Classic HipHop)',
 		url: 'http://ais-sa2.cdnstream1.com/1988_128.mp3',
@@ -373,7 +378,7 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	return emojis.get(type);
 }
 export const tickEmoji = '_☑️_';
-export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800'),new Creator('236922361918652416','Peketr#4324')];
+export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800'), new Creator('236922361918652416', 'Peketr#4324')];
 export const dedicatedClientId = '430326522146979861';
 export const guildsChanId = '470522240551616523';
 export const usersChanId = '470522309132943360';
