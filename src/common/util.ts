@@ -83,10 +83,10 @@ interface CommonEmbedThisBinding {
 	guild: Guild;
 	commandName: string;
 };
-export function commonEmbed(this: CommonEmbedThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
+export function commonEmbed(this: CommonEmbedThisBinding, argText: string = '') {
 	return new EmbedBuilder()
 		.setColor(embedC)
-		.setFooter({ text: `${this.commandName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
+		.setFooter({ text: `${this.commandName}${argText} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
 }
 export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: EmbedBuilder, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
@@ -161,7 +161,7 @@ export const saveRow = {
 	}
 };
 export async function createPastebin(title: string, content: string): Promise<string> {
-	let paste: string = await pastebin.createPaste({ code: content, name: title });
+	const paste = await pastebin.createPaste({ code: content, name: title });
 	return paste;
 }
 export function isLink(text: string) {
