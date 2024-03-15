@@ -16,6 +16,7 @@ jobs:
           sudo echo "${{ secrets.SERVICE_HOST }} vps.contabo" | sudo tee -a /etc/hosts > /dev/null
       - uses: dawidd6/action-ansible-playbook@v2.8.0
         with:
+          directory: ansible
           # Ansible playbook filepath
           playbook: deploy-playbook.yml
           # SSH private key used to connect to the host
