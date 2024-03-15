@@ -3,7 +3,7 @@ import { AudioPlayer, AudioPlayerPlayingState, AudioPlayerStatus, AudioResource,
 import { Readable } from 'stream';
 import * as play from 'play-dl'; //Nem illik közvetlenül hívni
 import { getEmoji, MusicData, StreamType, shuffle, getFallbackMode,
-	getFallbackChannel, PlayingData, AudioResourceProvider, StateError } from '../internal.js';
+	getFallbackChannel, PlayingData, AudioResourceProvider, StateError } from '../index.js';
 import { Collection, GuildMember, VoiceChannel } from 'discord.js';
 import got from 'got';
 import EventEmitter from 'node:events';

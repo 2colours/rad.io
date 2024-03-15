@@ -1,4 +1,4 @@
-﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam, commandsCachePath, CommandExtraData } from '../internal.js';
+﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam, commandsCachePath, CommandExtraData } from '../index.js';
 import { SlashCommandBuilder, Snowflake } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';

@@ -1,4 +1,4 @@
-﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators, ActionParams, StateError } from '../internal.js';
+﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators, ActionParams, StateError } from '../index.js';
 import { getVoiceConnection } from '@discordjs/voice';
 import { PermissionsBitField, VoiceBasedChannel } from 'discord.js';
 export const isAdmin: Predicate = ctx => ctx.memberPermissions?.has(PermissionsBitField.Flags.Administrator);
