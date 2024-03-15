@@ -2,8 +2,7 @@
   "license": "GPL-3.0",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "tsx main.ts"
+    "start": "tsx src/main.ts"
   },
   "dependencies": {
     "@discordjs/opus": "0.9.0",
