@@ -1,7 +1,7 @@
 import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, Role, GuildTextBasedChannel, ChatInputCommandInteraction } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { Readable } from 'stream';
-import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../internal.js';
+import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../index.js';
 import { AudioResource } from '@discordjs/voice';
 type MappableTypes = 'String' | 'Number' | 'Boolean' | 'Role';
 export type SupportedCommandOptionTypes = ApplicationCommandOptionTypes & MappableTypes;

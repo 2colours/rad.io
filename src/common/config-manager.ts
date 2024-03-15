@@ -1,5 +1,5 @@
 import { Snowflake } from "discord.js";
-import { config, defaultConfig, attach, FallbackType, MusicData} from '../internal.js';
+import { config, defaultConfig, attach, FallbackType, MusicData} from '../index.js';
 export function getFallbackMode(id: Snowflake) {
 	return config.fallbackModes.get(id) ?? defaultConfig.fallback;
 }

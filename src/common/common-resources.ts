@@ -1,5 +1,5 @@
 import { Snowflake, Client, GatewayIntentBits } from 'discord.js';
-import { attach, FallbackType, Config, radios, defaultRadio, MusicData } from '../internal.js';
+import { attach, FallbackType, Config, radios, defaultRadio, MusicData } from '../index.js';
 import { Umzug, SequelizeStorage } from 'umzug';
 import sequelize from 'sequelize';
 import { readFile, writeFile } from 'node:fs/promises';

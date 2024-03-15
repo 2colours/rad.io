@@ -3,7 +3,7 @@ import * as Discord from 'discord.js';
 import { getVoiceConnection } from '@discordjs/voice';
 const token = process.env.radioToken;
 
-import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue } from './internal.js';
+import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue } from './index.js';
 import moment from 'moment';
 
 const devChannel = () => client.channels.resolve(devChanId) as Discord.TextChannel;
