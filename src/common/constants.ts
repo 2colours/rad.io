@@ -387,3 +387,4 @@ export const devServerInvite = 'https://discord.gg/C83h4Sk';
 export const partnerHook = new WebhookClient({ id: '663426173552033802', token: process.env.partnerWebhookToken });
 export const avatarURL = 'https://i.imgur.com/FXgwVII.png';
 export const commandsCachePath = './data/commands-cache.json';
+export const dbPath = './data/radio.sqlite';
