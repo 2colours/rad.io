@@ -1,5 +1,5 @@
 export * from './common/common-types.js';
-export * from './common/vc-constants.js';
+export * from './common/constants.js';
 export * from './common/common-resources.js';
 export * from './common/config-manager.js';
 export * from './common/util.js';
