@@ -224,6 +224,11 @@ const radios = {
 		url: 'https://stream.szunetradio.hu:8000/stream.mp3',
 		cult: 'hun'
 	},
+    'bezs': {
+        name: 'Rádió Bézs',
+        url: 'https://stream.radiobezs.hu:8011/bezs',
+        cult: 'hun'
+    },
 	'therapmixx': {
 		name: 'The Rap MIXX (Classic HipHop)',
 		url: 'http://ais-sa2.cdnstream1.com/1988_128.mp3',
