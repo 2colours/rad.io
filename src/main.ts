@@ -10,10 +10,6 @@ const devChannel = () => client.channels.resolve(devChanId) as Discord.TextChann
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
 client.on('ready', async () => {
-	/*client.guilds.cache.forEach(guild => {
-		if (guild.voice?.channel)
-			guild.voice.channel.leave();
-	}); Discord.js v12 legacy*/
 	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();

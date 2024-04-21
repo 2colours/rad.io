@@ -12,7 +12,8 @@ Ha egy függvény privát és csak kódrefaktorálási célt szolgál (nem öná
 Ellenkező esetben: util megfontolandó.
 ## Elnevezések:
 A kódban legyen minden angolul.
-Soundcloud, Youtube a nevek  
+Soundcloud, Youtube a nevek.
+Az "id" sima szó, nem mozaikszó.
 camelCase a preferált const, let és var és függvények esetében  
 PascalCase a típusok esetében  
 catch ág hibája: _e_
