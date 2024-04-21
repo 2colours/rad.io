@@ -110,8 +110,21 @@ export interface HelpInfo {
 	params: ParameterData[];
 	ownDescription: string;
 }
+
+export interface CreatorConstructorData {
+    userId: Snowflake;
+    fallbackName: string;
+    link?: string;
+}
 export class Creator {
-	constructor(readonly id: Snowflake, private alias: string, private link?: string) { }
+    readonly id: Snowflake;
+    private alias: string;
+    private link?: string;
+	constructor({ userId, fallbackName, link } : CreatorConstructorData) {
+        this.id = userId;
+        this.alias = fallbackName;
+        this.link = link;
+    }
 	resolveMarkdown() {
 		const user = client.users.resolve(this.id);
 		const text = user ? user.tag : this.alias;
