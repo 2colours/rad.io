@@ -371,8 +371,6 @@ export const defaultRadio = 'kossuth';
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;
-//const youtubeEmoji = '<:youtube:506897247145951233>';
-//const soundcloudEmoji = '<:sc:595619676827025408>';
 const { soundcloud: soundcloudEmoji, youtube: youtubeEmoji } = JSON.parse(process.env.emojis);
 export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
     const emojis: Map<StreamType, EmojiIdentifierResolvable> = new Map<StreamType, EmojiIdentifierResolvable>([
@@ -385,15 +383,14 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 }
 export const tickEmoji = '_☑️_';
 const creatorsConfig = JSON.parse(process.env.creators);
-export const creators = creatorsConfig.map((creatorData: CreatorConstructorData) => new Creator(creatorData)); //[new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800'), new Creator('236922361918652416', 'Peketr#4324')];
-export const dedicatedClientId = JSON.parse(process.env.dedicatedClientId);//'430326522146979861';
+export const creators = creatorsConfig.map((creatorData: CreatorConstructorData) => new Creator(creatorData));
+export const dedicatedClientId = JSON.parse(process.env.dedicatedClientId);
 export const { usersDisplay: usersChanId, guildsDisplay: guildsChanId, joinLeaveLog: devChanId } = JSON.parse(process.env.monitoring);
 //export const guildsChanId = '470522240551616523';
 //export const usersChanId = '470522309132943360';
-//export const devChanId = '470574072565202944';
-export const devServerInvite = JSON.parse(process.env.devServerInvite);//'https://discord.gg/C83h4Sk';
+export const devServerInvite = JSON.parse(process.env.devServerInvite);
 const partnerHookConfig: WebhookClientDataIdWithToken = JSON.parse(process.env.partnerWebhook);
-export const partnerHook = new WebhookClient(partnerHookConfig);//new WebhookClient({ id: '663426173552033802',  });
-export const avatarURL = JSON.parse(process.env.avatarURL);//'https://i.imgur.com/FXgwVII.png';
+export const partnerHook = new WebhookClient(partnerHookConfig);
+export const avatarURL = JSON.parse(process.env.avatarURL);
 export const commandsCachePath = './data/commands-cache.json';
 export const dbPath = './data/radio.sqlite';
