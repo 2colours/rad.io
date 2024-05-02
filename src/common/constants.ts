@@ -371,7 +371,7 @@ export const defaultRadio = 'kossuth';
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;
-const { soundcloud: soundcloudEmoji, youtube: youtubeEmoji } = process.envTyped.emojis;
+const { soundcloud: soundcloudEmoji, youtube: youtubeEmoji } = process.envTyped.emojis as any;
 export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	const emojis: Map<StreamType, EmojiIdentifierResolvable> = new Map<StreamType, EmojiIdentifierResolvable>([
 		['yt', youtubeEmoji],
@@ -382,14 +382,12 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	return emojis.get(type);
 }
 export const tickEmoji = '_☑️_';
-const creatorsConfig = process.envTyped.creators
+const creatorsConfig: CreatorConstructorData[] = process.envTyped.creators as any;
 export const creators = creatorsConfig.map((creatorData: CreatorConstructorData) => new Creator(creatorData));
 export const dedicatedClientId = process.envTyped.dedicatedClientId;
-export const { usersDisplay: usersChanId, guildsDisplay: guildsChanId, joinLeaveLog: devChanId } = process.envTyped.monitoring;
-//export const guildsChanId = '470522240551616523';
-//export const usersChanId = '470522309132943360';
+export const { usersDisplay: usersChanId, guildsDisplay: guildsChanId, joinLeaveLog: devChanId } = process.envTyped.monitoring as any;
 export const devServerInvite = process.envTyped.devServerInvite;
-const partnerHookConfig: WebhookClientDataIdWithToken = process.envTyped.partnerWebhook;
+const partnerHookConfig: WebhookClientDataIdWithToken = process.envTyped.partnerWebhook as any;
 export const partnerHook = new WebhookClient(partnerHookConfig);
 export const avatarURL = process.envTyped.avatarURL;
 export const commandsCachePath = './data/commands-cache.json';
