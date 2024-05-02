@@ -1,7 +1,7 @@
-﻿import 'dotenv/config';
+﻿import '@2colours/toml-env/config';
 import * as Discord from 'discord.js';
 import { getVoiceConnection } from '@discordjs/voice';
-const token = process.env.radioToken;
+const token = process.envTyped.radioToken;
 
 import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue } from './index.js';
 import moment from 'moment';

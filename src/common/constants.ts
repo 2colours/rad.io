@@ -1,4 +1,4 @@
-﻿import { FallbackType, StreamType, Creator, RadioConstantData } from '../index.js';
+﻿import { FallbackType, StreamType, Creator, RadioConstantData, CreatorConstructorData } from '../index.js';
 import { WebhookClient, EmojiIdentifierResolvable } from 'discord.js';
 export const defaultConfig = {
 	fallback: 'radio' as FallbackType
@@ -224,11 +224,11 @@ const radios = {
 		url: 'https://stream.szunetradio.hu:8000/stream.mp3',
 		cult: 'hun'
 	},
-    'bezs': {
-        name: 'Rádió Bézs',
-        url: 'https://stream.radiobezs.hu:8011/bezs',
-        cult: 'hun'
-    },
+	'bezs': {
+		name: 'Rádió Bézs',
+		url: 'https://stream.radiobezs.hu:8011/bezs',
+		cult: 'hun'
+	},
 	'therapmixx': {
 		name: 'The Rap MIXX (Classic HipHop)',
 		url: 'http://ais-sa2.cdnstream1.com/1988_128.mp3',
@@ -371,8 +371,7 @@ export const defaultRadio = 'kossuth';
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;
-const youtubeEmoji = '<:youtube:506897247145951233>';
-const soundcloudEmoji = '<:sc:595619676827025408>';
+const { soundcloud: soundcloudEmoji, youtube: youtubeEmoji } = process.envTyped.emojis;
 export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	const emojis: Map<StreamType, EmojiIdentifierResolvable> = new Map<StreamType, EmojiIdentifierResolvable>([
 		['yt', youtubeEmoji],
@@ -383,13 +382,13 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	return emojis.get(type);
 }
 export const tickEmoji = '_☑️_';
-export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800'), new Creator('236922361918652416', 'Peketr#4324')];
-export const dedicatedClientId = '430326522146979861';
-export const guildsChanId = '470522240551616523';
-export const usersChanId = '470522309132943360';
-export const devChanId = '470574072565202944';
-export const devServerInvite = 'https://discord.gg/C83h4Sk';
-export const partnerHook = new WebhookClient({ id: '663426173552033802', token: process.env.partnerWebhookToken });
-export const avatarURL = 'https://i.imgur.com/FXgwVII.png';
+const creatorsConfig = process.envTyped.creators;
+export const creators = creatorsConfig.map((creatorData: CreatorConstructorData) => new Creator(creatorData));
+export const dedicatedClientId = process.envTyped.dedicatedClientId;
+export const { usersDisplay: usersChanId, guildsDisplay: guildsChanId, joinLeaveLog: devChanId } = process.envTyped.monitoring;
+export const devServerInvite = process.envTyped.devServerInvite;
+const partnerHookConfig = process.envTyped.partnerWebhook;
+export const partnerHook = new WebhookClient(partnerHookConfig);
+export const avatarURL = process.envTyped.avatarURL;
 export const commandsCachePath = './data/commands-cache.json';
 export const dbPath = './data/radio.sqlite';
