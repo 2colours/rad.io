@@ -371,7 +371,7 @@ export const defaultRadio = 'kossuth';
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;
-const { soundcloud: soundcloudEmoji, youtube: youtubeEmoji } = JSON.parse(process.env.emojis);
+const { soundcloud: soundcloudEmoji, youtube: youtubeEmoji } = process.envTyped.emojis;
 export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
     const emojis: Map<StreamType, EmojiIdentifierResolvable> = new Map<StreamType, EmojiIdentifierResolvable>([
         ['yt', youtubeEmoji],
@@ -382,15 +382,15 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
     return emojis.get(type);
 }
 export const tickEmoji = '_☑️_';
-const creatorsConfig = JSON.parse(process.env.creators);
+const creatorsConfig = process.envTyped.creators
 export const creators = creatorsConfig.map((creatorData: CreatorConstructorData) => new Creator(creatorData));
-export const dedicatedClientId = JSON.parse(process.env.dedicatedClientId);
-export const { usersDisplay: usersChanId, guildsDisplay: guildsChanId, joinLeaveLog: devChanId } = JSON.parse(process.env.monitoring);
+export const dedicatedClientId = process.envTyped.dedicatedClientId;
+export const { usersDisplay: usersChanId, guildsDisplay: guildsChanId, joinLeaveLog: devChanId } = process.envTyped.monitoring;
 //export const guildsChanId = '470522240551616523';
 //export const usersChanId = '470522309132943360';
-export const devServerInvite = JSON.parse(process.env.devServerInvite);
-const partnerHookConfig: WebhookClientDataIdWithToken = JSON.parse(process.env.partnerWebhook);
+export const devServerInvite = process.envTyped.devServerInvite;
+const partnerHookConfig: WebhookClientDataIdWithToken = process.envTyped.partnerWebhook;
 export const partnerHook = new WebhookClient(partnerHookConfig);
-export const avatarURL = JSON.parse(process.env.avatarURL);
+export const avatarURL = process.envTyped.avatarURL;
 export const commandsCachePath = './data/commands-cache.json';
 export const dbPath = './data/radio.sqlite';

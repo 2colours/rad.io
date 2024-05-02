@@ -6,7 +6,7 @@ import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import { PasteClient } from 'pastebin-api';
 import got from 'got';
-const pastebin = new PasteClient(JSON.parse(process.env.pastebin));
+const pastebin = new PasteClient(process.envTyped.pastebin);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
 	baseDict = baseDict.get(guildId) ? baseDict : baseDict.set(guildId, defaultValue);
 	return baseDict.get(guildId);
