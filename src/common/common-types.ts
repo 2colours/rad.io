@@ -6,25 +6,25 @@ import { AudioResource } from '@discordjs/voice';
 type MappableTypes = 'String' | 'Number' | 'Boolean' | 'Role';
 export type SupportedCommandOptionTypes = ApplicationCommandOptionTypes & MappableTypes;
 export type TypeFromParam<T extends SupportedCommandOptionTypes> =
-			('Number' extends T ? number : never) |
-			('String' extends T ? string : never) |
-			('Role' extends T ? Role : never) |
-			('Boolean' extends T ? boolean : never);
+	('Number' extends T ? number : never) |
+	('String' extends T ? string : never) |
+	('Role' extends T ? Role : never) |
+	('Boolean' extends T ? boolean : never);
 export interface Config {
 	fallbackModes: Map<Snowflake, FallbackType>;
 	fallbackChannels: Map<Snowflake, MusicData>;
-	roles: Map<Snowflake, Map<Snowflake,string[]>>; //TODO az a string[] specifikusan parancsnév a debatedCommands-ból
+	roles: Map<Snowflake, Map<Snowflake, string[]>>; //TODO az a string[] specifikusan parancsnév a debatedCommands-ból
 }
 type TextBasedChannels = DMChannel | TextChannel | NewsChannel | ThreadChannel | GuildTextBasedChannel;
 export type Resolvable<T> = T | Promise<T>;
 export type Predicate = (ctx: ThisBinding) => Resolvable<boolean>;
-export type Decorator = (toDecorate:Action) => Action;
+export type Decorator = (toDecorate: Action) => Action;
 export type ScrollableEmbedTitleResolver = (currentPage: number, maxPage: number) => string;
 export type PlayableCallbackVoid = () => void;
 export type PlayableCallbackBoolean = () => boolean;
 export type PlayableCallbackNumber = () => number;
-export type StreamProvider = (url:string) => Resolvable<string | Readable>;
-export type AudioResourceProvider = (url:string) => Resolvable<AudioResource>;
+export type StreamProvider = (url: string) => Resolvable<string | Readable>;
+export type AudioResourceProvider = (url: string) => Resolvable<AudioResource>;
 export interface GuildPlayerHolder {
 	guildPlayer: GuildPlayer;
 }
@@ -51,7 +51,7 @@ export interface RoleTableData {
 	roleID: Snowflake;
 	commands: string;
 }
-export type StreamType = 'yt' | 'custom' | 'radio'  | 'sc' ;
+export type StreamType = 'yt' | 'custom' | 'radio' | 'sc';
 export interface PlayableData {
 	url: string;
 	type: StreamType;
@@ -65,9 +65,9 @@ export interface PlayingData extends MusicData {
 	playingSeconds: number;
 }
 export interface RadioConstantData {
-	name:string;
-	url:string;
-	cult:string; //TODO biztos nem enum inkább?
+	name: string;
+	url: string;
+	cult: string; //TODO biztos nem enum inkább?
 }
 export type ApplicationCommandOptionTypes = keyof typeof ApplicationCommandOptionType;
 export interface ParameterData {
@@ -112,19 +112,19 @@ export interface HelpInfo {
 }
 
 export interface CreatorConstructorData {
-    userId: Snowflake;
-    fallbackName: string;
-    link?: string;
+	userId: Snowflake;
+	fallbackName: string;
+	link?: string;
 }
 export class Creator {
-    readonly id: Snowflake;
-    private alias: string;
-    private link?: string;
-	constructor({ userId, fallbackName, link } : CreatorConstructorData) {
-        this.id = userId;
-        this.alias = fallbackName;
-        this.link = link;
-    }
+	readonly id: Snowflake;
+	private alias: string;
+	private link?: string;
+	constructor({ userId, fallbackName, link }: CreatorConstructorData) {
+		this.id = userId;
+		this.alias = fallbackName;
+		this.link = link;
+	}
 	resolveMarkdown() {
 		const user = client.users.resolve(this.id);
 		const text = user ? user.tag : this.alias;
