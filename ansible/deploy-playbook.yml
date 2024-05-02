@@ -16,8 +16,8 @@
   
   - name: Create link for .env file
     ansible.builtin.file:
-      src: '{{ current_databank }}/.env'
-      dest: '{{ current_instance }}/.env'
+      src: '{{ current_databank }}/.env.toml'
+      dest: '{{ current_instance }}/.env.toml'
       state: link
 
   - name: Create link for data folder
