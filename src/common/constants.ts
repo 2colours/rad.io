@@ -1,5 +1,5 @@
 ﻿import { FallbackType, StreamType, Creator, RadioConstantData, CreatorConstructorData } from '../index.js';
-import { WebhookClient, EmojiIdentifierResolvable, WebhookClientDataIdWithToken } from 'discord.js';
+import { WebhookClient, EmojiIdentifierResolvable } from 'discord.js';
 export const defaultConfig = {
 	fallback: 'radio' as FallbackType
 };
@@ -371,7 +371,7 @@ export const defaultRadio = 'kossuth';
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;
-const { soundcloud: soundcloudEmoji, youtube: youtubeEmoji } = process.envTyped.emojis as any;
+const { soundcloud: soundcloudEmoji, youtube: youtubeEmoji } = process.envTyped.emojis;
 export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	const emojis: Map<StreamType, EmojiIdentifierResolvable> = new Map<StreamType, EmojiIdentifierResolvable>([
 		['yt', youtubeEmoji],
@@ -382,12 +382,12 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	return emojis.get(type);
 }
 export const tickEmoji = '_☑️_';
-const creatorsConfig: CreatorConstructorData[] = process.envTyped.creators as any;
+const creatorsConfig = process.envTyped.creators;
 export const creators = creatorsConfig.map((creatorData: CreatorConstructorData) => new Creator(creatorData));
 export const dedicatedClientId = process.envTyped.dedicatedClientId;
-export const { usersDisplay: usersChanId, guildsDisplay: guildsChanId, joinLeaveLog: devChanId } = process.envTyped.monitoring as any;
+export const { usersDisplay: usersChanId, guildsDisplay: guildsChanId, joinLeaveLog: devChanId } = process.envTyped.monitoring;
 export const devServerInvite = process.envTyped.devServerInvite;
-const partnerHookConfig: WebhookClientDataIdWithToken = process.envTyped.partnerWebhook as any;
+const partnerHookConfig = process.envTyped.partnerWebhook;
 export const partnerHook = new WebhookClient(partnerHookConfig);
 export const avatarURL = process.envTyped.avatarURL;
 export const commandsCachePath = './data/commands-cache.json';

@@ -7,9 +7,9 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import stringify from 'json-stringify-deterministic';
 
-const token = process.envTyped.radioToken as string;
-const clientId = process.envTyped.botId as string;
-const guildId = process.envTyped.testServerId as string;
+const token = process.envTyped.radioToken;
+const clientId = process.envTyped.botId;
+const guildId = process.envTyped.testServerId;
 const rest = new REST({ version: '10' }).setToken(token);
 const hashAlgorithm = 'sha256';
 const textualForm = 'base64'

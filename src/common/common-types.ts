@@ -1,4 +1,4 @@
-import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, Role, GuildTextBasedChannel, ChatInputCommandInteraction } from 'discord.js';
+import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, Role, GuildTextBasedChannel, ChatInputCommandInteraction, WebhookClientDataIdWithToken } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { Readable } from 'stream';
 import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../index.js';
@@ -139,4 +139,33 @@ export interface SearchResultView {
 
 export class StateError {
 	constructor(readonly message: string) { }
+}
+
+export interface EnvConfig {
+    pastebin: string;
+    radioToken: string;
+	emojis: {
+		soundcloud: string;
+		youtube: string;
+	};
+	creators: CreatorConstructorData[];
+	dedicatedClientId: Snowflake;
+	devServerInvite: string;
+	partnerWebhook: WebhookClientDataIdWithToken;
+	avatarURL: string;
+	monitoring: {
+		usersDisplay: Snowflake;
+		guildsDisplay: Snowflake;
+		joinLeaveLog: Snowflake;
+	};
+	botId: Snowflake;
+	testServerId: Snowflake;
+}
+
+declare global {
+    namespace NodeJS {
+        interface Process {
+            envTyped: EnvConfig
+        }
+    }
 }
