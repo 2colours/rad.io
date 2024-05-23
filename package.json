@@ -5,7 +5,7 @@
     "start": "tsx src/main.ts"
   },
   "dependencies": {
-    "@2colours/toml-env": "0.0.5",
+    "@2colours/toml-env": "0.1.0",
     "@discordjs/opus": "0.9.0",
     "@discordjs/voice": "0.17.0",
     "@types/node": "20.10.6",
