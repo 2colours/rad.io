@@ -154,6 +154,11 @@ const radios = {
 		url: 'http://stream.mercyradio.eu/mercyradio.mp3',
 		cult: 'hun'
 	},
+    'dikh': {
+		name: 'Dikh Rádió',
+		url: 'https://icast.connectmedia.hu/6121/live.mp3',
+		cult: 'hun'
+	},
 	'folkradio': {
 		name: 'Folkrádió',
 		url: 'https://stream.folkradio.hu/folkradio.mp3',
