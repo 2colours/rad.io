@@ -24,7 +24,7 @@
     "sqlite3": "5.1.7",
     "ts-type-object-entries": "1.0.7",
     "tsx": "4.10.4",
-    "typescript": "5.4.5",
+    "typescript": "5.5.2",
     "umzug": "3.8.1"
   },
   "engines": {
