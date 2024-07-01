@@ -43,4 +43,4 @@ jobs:
         run: npm install
 
       - name: Checking Typescript code
-        run: tsc --noemit
+        run: npx tsc --noemit
