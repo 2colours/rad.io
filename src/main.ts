@@ -57,7 +57,7 @@ client.on('guildCreate', guild => {
 });
 
 client.on('guildDelete', guild => {
-	(devChannel() as Discord.TextBasedChannel).send(`**${client.user.tag}** left \`${guild.name}\``);
+	devChannel().send(`**${client.user.tag}** left \`${guild.name}\``);
 	setPStatus();
 	updateStatusChannels()
 });
