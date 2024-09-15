@@ -26,7 +26,7 @@ const radios = {
 	},
 	'csango': {
 		name: 'Csángó Rádió',
-		url: 'https://sonic.xservere.net/8082/stream',
+		url: 'https://radio.sonicpanel.ro/8082/stream',
 		cult: 'hun'
 	},
 	'bocskai': {
@@ -38,11 +38,6 @@ const radios = {
 		cult: 'hun',
 		url: 'https://efm.radioca.st/stream',
 		name: 'Erdély FM'
-	},
-	'prima': {
-		cult: 'hun',
-		url: 'https://securestreams5.autopo.st:1992/player',
-		name: 'Prima Rádió (Székelyudvarhely)'
 	},
 	'funfm': {
 		cult: 'hun',
@@ -106,7 +101,7 @@ const radios = {
 	},
 	'radio1pecs': {
 		name: 'Rádió 1 Pécs',
-		url: 'http://stream.radio1pecs.hu:8200/pecs.mp3',
+		url: 'https://stream.radio1pecs.hu/pecs.mp3',
 		cult: 'hun'
 	},
 	'pecsfm': {
@@ -186,7 +181,7 @@ const radios = {
 	},
 	'klub': {
 		name: 'Klubrádió',
-		url: 'http://hu-stream02.klubradio.hu:8080/bpstream',
+		url: 'https://hu-stream02.klubradio.hu:8443/bpstream',
 		cult: 'hun'
 	},
 	'radiom': {
@@ -196,7 +191,7 @@ const radios = {
 	},
 	'halas': {
 		name: 'Halas Rádió Kiskunhalas',
-		url: 'https://stream.42netmedia.com:8443/halas',
+		url: 'https://halas.str.42net.hu/stream',
 		cult: 'hun'
 	},
 	'buddhafm': {
@@ -301,7 +296,7 @@ const radios = {
 	},
 	'sunshinelive': {
 		name: 'Sunshine Live 90er',
-		url: 'https://sunsl.streamabc.net/sunsl-90er-mp3-192-1681158',
+		url: 'https://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053',
 		cult: 'eng'
 	},
 	'magicflorida': {
@@ -357,11 +352,6 @@ const radios = {
 	'hot108': {
 		name: 'Hot 108 JAMZ (Hiphop)',
 		url: 'http://sc.hot108.com:4000/',
-		cult: 'eng'
-	},
-	'fimbul': {
-		name: 'Fimbul Radio',
-		url: 'http://s4.radio.co/sdda8682fb/listen',
 		cult: 'eng'
 	},
 	"nano": {
