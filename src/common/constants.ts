@@ -377,6 +377,7 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	return emojis.get(type);
 }
 export const tickEmoji = '_☑️_';
+export const commandPrefix = '/';
 const creatorsConfig = process.envTyped.creators;
 export const creators = creatorsConfig.map((creatorData: CreatorConstructorData) => new Creator(creatorData));
 export const dedicatedClientId = process.envTyped.dedicatedClientId;
