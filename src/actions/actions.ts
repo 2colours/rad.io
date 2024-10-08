@@ -3,7 +3,8 @@ import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, commands, creators, getEmoji, radios as radiosList, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, tickEmoji,
-	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest } from '../index.js';
+	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest, 
+    commandPrefix} from '../index.js';
 import * as play from 'play-dl';
 import { sscanf } from 'scanf';
 import { ComponentType } from 'discord.js';
@@ -126,7 +127,7 @@ export const actions: Actions = {
 				.join('\n');
 		}
 		let baseEmbed: Discord.EmbedBuilder = commonEmbed.call(this);
-		baseEmbed = baseEmbed.addFields({name: '❯ Használat', value: `\`$join <ID>\`\n\`$tune <ID>\``});
+		baseEmbed = baseEmbed.addFields({name: '❯ Használat', value: `\`${commandPrefix}join <ID>\`\n\`${commandPrefix}tune <ID>\``});
 		await this.reply({
 			embeds: [Discord.EmbedBuilder.from(baseEmbed)
 				.setTitle('❯ Magyar rádiók')
@@ -161,9 +162,9 @@ export const actions: Actions = {
 			let embed: Discord.EmbedBuilder = commonEmbed.call(this);
 			embed = embed
 				.addFields(
-				{name: '❯ Felhasználói parancsok', value: userCommands.map(cmd => `\`${cmd}\``).join(' ')},
-				{name: '❯ Adminisztratív parancsok', value: adminCommands.map(cmd => `\`${cmd}\``).join(' ')},
-				{name: '❯ Részletes leírás', value: `\`help <command>\``},
+				{name: '❯ Felhasználói parancsok', value: userCommands.map(cmd => `\`${commandPrefix}${cmd}\``).join(' ')},
+				{name: '❯ Adminisztratív parancsok', value: adminCommands.map(cmd => `\`${commandPrefix}${cmd}\``).join(' ')},
+				{name: '❯ Részletes leírás', value: `\`${commandPrefix}help <command>\``},
 				{name: '❯ Egyéb információk', value: `RAD.io meghívása saját szerverre: [Ide kattintva](https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=274881334336&scope=bot%20applications.commands)
 Meghívó a RAD.io Development szerverre: [${devServerInvite.substring('https://'.length)}](${devServerInvite})
 A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`}
@@ -177,7 +178,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			embed = embed
 				.addFields(
 				{name: '❯ Részletes leírás', value: currentCommand.helpRelated.ownDescription},
-				{name: '❯ Teljes parancs', value: `\`/${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``},
+				{name: '❯ Teljes parancs', value: `\`${commandPrefix}${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``},
 				{name: '❯ Használat feltételei', value: currentRequirements.length == 0 ? '-' : currentRequirements.join(' ')}
 				);
 			return void await this.reply({ embeds: [embed] });
