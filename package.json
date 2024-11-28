@@ -8,7 +8,7 @@
     "@2colours/toml-env": "0.1.0",
     "@discordjs/opus": "0.9.0",
     "@discordjs/voice": "0.17.0",
-    "@types/node": "20.14.9",
+    "@types/node": "22.10.1",
     "@types/ws": "8.5.12",
     "discord.js": "14.16.3",
     "ffmpeg-static": "5.2.0",
