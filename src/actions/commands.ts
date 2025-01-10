@@ -46,7 +46,7 @@ const setupCommands = (commandList: CommandDataEntries, defPermission: boolean) 
 }).map(command => command.toJSON());
 
 const commandsCache = await readFile(commandsCachePath, { encoding: 'utf-8' })
-							.then(data => JSON.parse(data), _ => null)
+							.then(data => JSON.parse(data), _ => null as null)
 						?? {};
 async function installGlobalCommands(commands: unknown): Promise<boolean> { //érték: cache frissül vagy nem
 	const commandsHashed = createHash(hashAlgorithm)
