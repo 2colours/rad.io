@@ -10,7 +10,7 @@
     "@discordjs/voice": "0.18.0",
     "@types/node": "22.10.5",
     "@types/ws": "8.5.13",
-    "discord.js": "14.17.3",
+    "discord.js": "14.18.0",
     "ffmpeg-static": "5.2.0",
     "got": "14.4.5",
     "json-stringify-deterministic": "1.0.12",
