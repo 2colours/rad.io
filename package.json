@@ -23,7 +23,7 @@
     "sequelize": "6.37.5",
     "sqlite3": "5.1.7",
     "ts-type-object-entries": "1.0.7",
-    "tsx": "4.19.2",
+    "tsx": "4.19.3",
     "typescript": "5.7.3",
     "umzug": "3.8.2"
   },
