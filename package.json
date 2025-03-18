@@ -12,7 +12,7 @@
     "@types/ws": "8.5.13",
     "discord.js": "14.17.3",
     "ffmpeg-static": "5.2.0",
-    "got": "14.4.5",
+    "got": "14.4.6",
     "json-stringify-deterministic": "1.0.12",
     "libsodium-wrappers": "0.7.15",
     "moment": "2.30.1",
