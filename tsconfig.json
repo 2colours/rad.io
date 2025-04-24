@@ -3,7 +3,7 @@
     "declaration": true,
     "emitDecoratorMetadata": false,
     "experimentalDecorators": false,
-    "module": "ESNext",
+    "module": "Node16",
     "moduleResolution": "node16",
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": true,
@@ -15,7 +15,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
   "compileOnSave": true
 }

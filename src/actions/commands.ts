@@ -1,4 +1,4 @@
-﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam, commandsCachePath } from '../internal.js';
+﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam, commandsCachePath, CommandExtraData } from '../index.js';
 import { SlashCommandBuilder, Snowflake } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
@@ -7,9 +7,9 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import stringify from 'json-stringify-deterministic';
 
-const token = process.env.radioToken;
-const clientId = process.env.botId;
-const guildId = process.env.testServerId;
+const token = process.envTyped.radioToken;
+const clientId = process.envTyped.botId;
+const guildId = process.envTyped.testServerId;
 const rest = new REST({ version: '10' }).setToken(token);
 const hashAlgorithm = 'sha256';
 const textualForm = 'base64'
@@ -46,7 +46,7 @@ const setupCommands = (commandList: CommandDataEntries, defPermission: boolean) 
 }).map(command => command.toJSON());
 
 const commandsCache = await readFile(commandsCachePath, { encoding: 'utf-8' })
-							.then(data => JSON.parse(data), _ => null)
+							.then(data => JSON.parse(data), _ => null as null)
 						?? {};
 async function installGlobalCommands(commands: unknown): Promise<boolean> { //érték: cache frissül vagy nem
 	const commandsHashed = createHash(hashAlgorithm)
@@ -84,6 +84,11 @@ async function setupMessageCommands(allCommandData: CommandData) {
 	cacheUpdate ||= await installGuildedCommands(guildId, devCommandsSerial);
 	if (cacheUpdate)
 		await writeFile(commandsCachePath, JSON.stringify(commandsCache));
+}
+
+type CommandValueData = Omit<CommandExtraData, 'name'>;
+type CommandDataConstraint = {
+	[name: CommandExtraData['name']]: CommandValueData
 }
 
 const commandData = {
@@ -130,8 +135,13 @@ const commandData = {
 				description: 'URL / cím',
 				required: true,
 				type: 'String'
-				
-			}
+			},
+            {
+                name: 'preshuffle',
+                description: 'Lejátszási lista megkeverése (opcionális)',
+                required: false,
+                type: 'Boolean'
+            }
 		],
 		descrip: 'Youtube stream sorba ütemezése URL vagy keresőszó alapján. Keresőszó esetén a választás a lenyíló menüvel történik.',
 		type: 'unlimited',
@@ -444,14 +454,14 @@ const commandData = {
 		type: 'grantable',
 		filters: new Set([Filter.vcBotNeeded, Filter.vcUserNeeded, Filter.sameVcNeeded, Filter.stateErrorNoNeeded, Filter.dedicationNeeded])
 	}
-} as const;
+} as const satisfies CommandDataConstraint;
 
 type CommandData = typeof commandData;
 type CompileTimeArray<T, V> = {
 	[K in keyof T]: V
 };
 type MappedArgs<T extends CompileTimeArray<C, ParameterData>, C> = { [K in keyof T]: TypeFromParam<T[K]['type']> };
-type ActionArgs<Key extends keyof CommandData> = MappedArgs<CommandData[Key]['params'], CommandData[keyof CommandData]['params']> & MappedArgs<CommandData[keyof CommandData]['params'], CommandData[keyof CommandData]['params']>;
+type ActionArgs<Key extends keyof CommandData> = MappedArgs<CommandData[Key]['params'], CommandData[keyof CommandData]['params']> & Array<unknown>;
 export type Actions = {
 	[commandName in keyof CommandData]: (this: ThisBinding, ...args: ActionArgs<commandName>) => Resolvable<void>;
 };

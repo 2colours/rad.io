@@ -1,0 +1,42 @@
+---
+- name: Deploy rad.io bot
+  hosts: bot_host
+  vars:
+    current_databank: '/home/{{ ansible_user }}/private_databank/debug'
+    current_instance: '/home/{{ ansible_user }}/rad.io-debug'
+
+  tasks:
+
+  - name: Example clone of a single branch
+    ansible.builtin.git:
+      repo: https://github.com/2colours/rad.io.git
+      dest: '{{ current_instance }}'
+      single_branch: yes
+      version: debug
+  
+  - name: Create link for .env file
+    ansible.builtin.file:
+      src: '{{ current_databank }}/.env.toml'
+      dest: '{{ current_instance }}/.env.toml'
+      state: link
+
+  - name: Create link for data folder
+    ansible.builtin.file:
+      src: '{{ current_databank }}/data'
+      dest: '{{ current_instance }}/data'
+      state: link
+
+  - name: Create link for pm2 config
+    ansible.builtin.file:
+      src: '{{ current_databank }}/ecosystem.json'
+      dest: '{{ current_instance }}/ecosystem.json'
+      state: link
+
+  - name: Install packages using npm
+    community.general.npm:
+      path: '{{ current_instance }}'
+
+  - name: Restart bot instance
+    ansible.builtin.shell: pm2 startOrRestart ecosystem.json
+    args:
+      chdir: '{{ current_instance }}'

@@ -3,7 +3,7 @@ import { AudioPlayer, AudioPlayerPlayingState, AudioPlayerStatus, AudioResource,
 import { Readable } from 'stream';
 import * as play from 'play-dl'; //Nem illik közvetlenül hívni
 import { getEmoji, MusicData, StreamType, shuffle, getFallbackMode,
-	getFallbackChannel, PlayingData, AudioResourceProvider, StateError } from '../internal.js';
+	getFallbackChannel, PlayingData, AudioResourceProvider, StateError } from '../index.js';
 import { Collection, GuildMember, VoiceChannel } from 'discord.js';
 import got from 'got';
 import EventEmitter from 'node:events';
@@ -172,10 +172,11 @@ export class GuildPlayer extends EventEmitter {
 		else
 			this.announce(`**Sorba került: ** ${getEmoji(musicData.type)} \`${musicData.name}\``);
 	}
-	bulkSchedule(musicDatas: MusicData[]) {
+	bulkSchedule(musicDatas: MusicData[], preshuffle: boolean) {
 		const autoSkip = this.autoSkip();
-		for (const musicData of musicDatas)
-			this.queue.push(musicData);
+        if (preshuffle)
+            shuffle(musicDatas);
+        this.queue.push(...musicDatas);
 		this.announce(`**${musicDatas.length} elem került a sorba.**`);
 		if (autoSkip)
 			this.startNext()

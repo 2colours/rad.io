@@ -9,6 +9,7 @@ data
 *-lock.json
 *.lock
 *.env
+*.env.toml
 /nbproject/
 /.vscode/
 /.settings/

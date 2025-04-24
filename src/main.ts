@@ -1,19 +1,15 @@
-﻿import 'dotenv/config';
+﻿import '@2colours/toml-env/config';
 import * as Discord from 'discord.js';
 import { getVoiceConnection } from '@discordjs/voice';
-const token = process.env.radioToken;
+const token = process.envTyped.radioToken;
 
-import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue } from './internal.js';
+import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue } from './index.js';
 import moment from 'moment';
 
 const devChannel = () => client.channels.resolve(devChanId) as Discord.TextChannel;
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
 client.on('ready', async () => {
-	/*client.guilds.cache.forEach(guild => {
-		if (guild.voice?.channel)
-			guild.voice.channel.leave();
-	}); Discord.js v12 legacy*/
 	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();
@@ -29,7 +25,7 @@ client.on('interactionCreate', async interaction => {
 			set(value) { return guildPlayers.set(this.guild.id, value); }
 		}) as ThisBinding;
 	const args = interaction.options.data.map(retrieveCommandOptionValue);
-	await Promise.resolve(commandFunction.call(thisBinding, ...args));
+	await commandFunction.call(thisBinding, ...args);
 });
 
 
@@ -61,7 +57,7 @@ client.on('guildCreate', guild => {
 });
 
 client.on('guildDelete', guild => {
-	(devChannel() as Discord.TextBasedChannel).send(`**${client.user.tag}** left \`${guild.name}\``);
+	devChannel().send(`**${client.user.tag}** left \`${guild.name}\``);
 	setPStatus();
 	updateStatusChannels()
 });

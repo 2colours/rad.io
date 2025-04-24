@@ -3,7 +3,8 @@ import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, commands, creators, getEmoji, radios as radiosList, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, tickEmoji,
-	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest } from '../internal.js';
+	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest, 
+    commandPrefix} from '../index.js';
 import * as play from 'play-dl';
 import { sscanf } from 'scanf';
 import { ComponentType } from 'discord.js';
@@ -23,7 +24,7 @@ export const actions: Actions = {
 		joinAndStartup.call(this, (gp: GuildPlayer) => gp.skip());
 	},
 
-	async yt(ytQuery) {
+	async yt(ytQuery, preshuffle) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		ytQuery = ytQuery.trim();
 		if (isLink(ytQuery)) {
@@ -34,7 +35,7 @@ export const actions: Actions = {
 				return void await this.reply({content: '**Érvénytelen youtube url.**', ephemeral: true});
 			}
 			await this.deferReply();
-			return void forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
+			return void forceSchedule({ voiceChannel, actionContext: this, playableData: toSchedule, preshuffle });
 		}
 		const ytString = sscanf(ytQuery, '%S') ?? '';
 		try {
@@ -66,13 +67,17 @@ export const actions: Actions = {
 			return;
 		}
 		const selectedResult = items[index];
-		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
-			name: selectedResult.title,
-			url: selectedResult.url,
-			type: 'yt',
-			lengthSeconds: selectedResult.durationInSec,
-			requester: this.member as Discord.GuildMember
-		}]);
+		forceSchedule({
+            voiceChannel,
+            actionContext: this,
+            playableData: [{
+                name: selectedResult.title,
+                url: selectedResult.url,
+                type: 'yt',
+                lengthSeconds: selectedResult.durationInSec,
+                requester: this.member as Discord.GuildMember
+		    }]
+        });
 	},
     async soundcloud(scQuery) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
@@ -83,19 +88,23 @@ export const actions: Actions = {
             return void await this.reply({content: '**Érvénytelen soundcloud url.**', ephemeral: true});
         }
         await this.deferReply();
-        forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, toSchedule);
+        forceSchedule({ voiceChannel, actionContext: this, playableData: toSchedule });
     },
 	async custom(url) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		url = sscanf(url, '%s') ?? '';
 		await this.deferReply();
-		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [{
-			name: 'Custom',
-			url,
-			type: 'custom',
-			lengthSeconds: undefined,
-			requester: this.member as Discord.GuildMember
-		}]);
+		forceSchedule({
+            voiceChannel,
+            actionContext: this,
+            playableData: [{
+                name: 'Custom',
+                url,
+                type: 'custom',
+                lengthSeconds: undefined,
+                requester: this.member as Discord.GuildMember
+            }]
+        });
 	},
 	async leave() {
 		const guildPlayer: GuildPlayer = this.guildPlayer;
@@ -118,7 +127,7 @@ export const actions: Actions = {
 				.join('\n');
 		}
 		let baseEmbed: Discord.EmbedBuilder = commonEmbed.call(this);
-		baseEmbed = baseEmbed.addFields({name: '❯ Használat', value: `\`$join <ID>\`\n\`$tune <ID>\``});
+		baseEmbed = baseEmbed.addFields({name: '❯ Használat', value: `\`${commandPrefix}join <ID>\`\n\`${commandPrefix}tune <ID>\``});
 		await this.reply({
 			embeds: [Discord.EmbedBuilder.from(baseEmbed)
 				.setTitle('❯ Magyar rádiók')
@@ -153,9 +162,9 @@ export const actions: Actions = {
 			let embed: Discord.EmbedBuilder = commonEmbed.call(this);
 			embed = embed
 				.addFields(
-				{name: '❯ Felhasználói parancsok', value: userCommands.map(cmd => `\`${cmd}\``).join(' ')},
-				{name: '❯ Adminisztratív parancsok', value: adminCommands.map(cmd => `\`${cmd}\``).join(' ')},
-				{name: '❯ Részletes leírás', value: `\`help <command>\``},
+				{name: '❯ Felhasználói parancsok', value: userCommands.map(cmd => `\`${commandPrefix}${cmd}\``).join(' ')},
+				{name: '❯ Adminisztratív parancsok', value: adminCommands.map(cmd => `\`${commandPrefix}${cmd}\``).join(' ')},
+				{name: '❯ Részletes leírás', value: `\`${commandPrefix}help <command>\``},
 				{name: '❯ Egyéb információk', value: `RAD.io meghívása saját szerverre: [Ide kattintva](https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=274881334336&scope=bot%20applications.commands)
 Meghívó a RAD.io Development szerverre: [${devServerInvite.substring('https://'.length)}](${devServerInvite})
 A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`}
@@ -169,7 +178,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			embed = embed
 				.addFields(
 				{name: '❯ Részletes leírás', value: currentCommand.helpRelated.ownDescription},
-				{name: '❯ Teljes parancs', value: `\`/${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``},
+				{name: '❯ Teljes parancs', value: `\`${commandPrefix}${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``},
 				{name: '❯ Használat feltételei', value: currentRequirements.length == 0 ? '-' : currentRequirements.join(' ')}
 				);
 			return void await this.reply({ embeds: [embed] });
@@ -273,11 +282,15 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		const channel = extractChannel(this, param);
 		await this.deferReply();
-		forceSchedule(this.channel as Discord.TextChannel, voiceChannel, this, [Object.assign({
-			type: 'radio' as StreamType,
-			lengthSeconds: undefined,
-			requester: this.member as Discord.GuildMember
-		}, radiosList.get(channel))]);
+		forceSchedule({
+            voiceChannel,
+            actionContext: this,
+            playableData: [Object.assign({
+                type: 'radio' as StreamType,
+                lengthSeconds: undefined,
+                requester: this.member as Discord.GuildMember
+            }, radiosList.get(channel))]
+        });
 	},
 	grant(commandSet, role) {
 		permissionReused.call(this, commandSet, role, (commands: string[], roleCommands: string[]) =>
@@ -304,7 +317,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		await this.reply({ embeds: [embed] });
 	},
 	async perms() {
-		const adminRight = await Promise.resolve(isAdmin(this));
+		const adminRight = await isAdmin(this);
 		const adminCommands = commandNamesByTypes(commands, 'adminOnly', 'grantable');
 		adminCommands.sort();
 		const unlimitedCommands = commandNamesByTypes(commands, 'unlimited');

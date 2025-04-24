@@ -1,12 +1,13 @@
 ﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder, ChatInputCommandInteraction } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
 import { CommandType, PlayableData, database, UserHolder, TextChannelHolder, client, embedC, MusicData,
-	GuildPlayer, ScrollableEmbedTitleResolver, FallbackModesTableData, FallbackDataTableData, RoleTableData, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding } from '../internal.js';
+	GuildPlayer, ScrollableEmbedTitleResolver, FallbackModesTableData, FallbackDataTableData, RoleTableData, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding, 
+    commandPrefix} from '../index.js';
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import { PasteClient } from 'pastebin-api';
 import got from 'got';
-const pastebin = new PasteClient(process.env.pastebin);
+const pastebin = new PasteClient(process.envTyped.pastebin);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
 	baseDict = baseDict.get(guildId) ? baseDict : baseDict.set(guildId, defaultValue);
 	return baseDict.get(guildId);
@@ -49,7 +50,8 @@ export async function sendGuild(guild: Guild, content: string, options?: Message
 		}
 	}
 }
-export function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildVoiceChannel, actionThis: ThisBinding, playableData: MusicData[]) {
+export function forceSchedule({ textChannel, voiceChannel, actionContext, playableData, preshuffle = false } : { textChannel?: TextChannel, voiceChannel: BaseGuildVoiceChannel, actionContext: ThisBinding, playableData: MusicData[], preshuffle?: boolean }) {
+    textChannel ??= actionContext.channel as TextChannel;
 	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
 		joinVoiceChannel({
 			channelId: voiceChannel.id,
@@ -57,14 +59,14 @@ export function forceSchedule(textChannel: TextChannel, voiceChannel: BaseGuildV
 			//@ts-ignore
 			adapterCreator: voiceChannel.guild.voiceAdapterCreator
 		});
-		actionThis.guildPlayer = new GuildPlayer(voiceChannel.guild);
+		actionContext.guildPlayer = new GuildPlayer(voiceChannel.guild);
 	}
-	actionThis.guildPlayer.removeAllListeners();
-	actionThis.guildPlayer.on('announcement', replyFirstSendRest(actionThis, textChannel));
+	actionContext.guildPlayer.removeAllListeners();
+	actionContext.guildPlayer.on('announcement', replyFirstSendRest(actionContext, textChannel));
 	if (playableData.length == 1)
-		actionThis.guildPlayer.schedule(playableData[0]);
+		actionContext.guildPlayer.schedule(playableData[0]);
 	else
-		actionThis.guildPlayer.bulkSchedule(playableData);
+		actionContext.guildPlayer.bulkSchedule(playableData, preshuffle);
 }
 export function replyFirstSendRest(interactionForReply: ChatInputCommandInteraction, channelForSend: TextChannel) {
 	let repliedAlready = false;
@@ -82,10 +84,10 @@ interface CommonEmbedThisBinding {
 	guild: Guild;
 	commandName: string;
 };
-export function commonEmbed(this: CommonEmbedThisBinding, additional: string = '') { //TODO ez sem akármilyen string, hanem parancsnév
+export function commonEmbed(this: CommonEmbedThisBinding, argText: string = '') {
 	return new EmbedBuilder()
 		.setColor(embedC)
-		.setFooter({ text: `${this.commandName}${additional} - ${client.user.username}`, iconURL: client.user.avatarURL() })
+		.setFooter({ text: `${commandPrefix}${this.commandName}${argText} - ${client.user.username}`, iconURL: client.user.avatarURL() })
 		.setTimestamp();
 }
 export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: EmbedBuilder, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
@@ -160,7 +162,7 @@ export const saveRow = {
 	}
 };
 export async function createPastebin(title: string, content: string): Promise<string> {
-	let paste: string = await pastebin.createPaste({ code: content, name: title });
+	const paste = await pastebin.createPaste({ code: content, name: title });
 	return paste;
 }
 export function isLink(text: string) {

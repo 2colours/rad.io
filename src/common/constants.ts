@@ -1,4 +1,4 @@
-﻿import { FallbackType, StreamType, Creator, RadioConstantData } from '../internal.js';
+﻿import { FallbackType, StreamType, Creator, RadioConstantData, CreatorConstructorData } from '../index.js';
 import { WebhookClient, EmojiIdentifierResolvable } from 'discord.js';
 export const defaultConfig = {
 	fallback: 'radio' as FallbackType
@@ -26,7 +26,7 @@ const radios = {
 	},
 	'csango': {
 		name: 'Csángó Rádió',
-		url: 'https://sonic.xservere.net/8082/stream',
+		url: 'https://radio.sonicpanel.ro/8082/stream',
 		cult: 'hun'
 	},
 	'bocskai': {
@@ -38,11 +38,6 @@ const radios = {
 		cult: 'hun',
 		url: 'https://efm.radioca.st/stream',
 		name: 'Erdély FM'
-	},
-	'prima': {
-		cult: 'hun',
-		url: 'https://securestreams5.autopo.st:1992/player',
-		name: 'Prima Rádió (Székelyudvarhely)'
 	},
 	'funfm': {
 		cult: 'hun',
@@ -99,14 +94,9 @@ const radios = {
 		url: 'http://icast.connectmedia.hu/4748/mr7.mp3',
 		cult: 'hun'
 	},
-	'risefm': {
-		name: 'Rise FM',
-		url: 'http://risefm1.stereoplayer.hu:8080/risefm_hq',
-		cult: 'hun'
-	},
 	'radio1pecs': {
 		name: 'Rádió 1 Pécs',
-		url: 'http://stream.radio1pecs.hu:8200/pecs.mp3',
+		url: 'https://stream.radio1pecs.hu/pecs.mp3',
 		cult: 'hun'
 	},
 	'pecsfm': {
@@ -136,7 +126,7 @@ const radios = {
 	},
 	'bestfm': {
 		name: 'BEST FM',
-		url: 'http://stream.webthings.hu:8000/fm95-x-128.mp3',
+		url: 'https://icast.connectmedia.hu/5101/live.mp3',
 		cult: 'hun'
 	},
 	'maxiradio': {
@@ -186,7 +176,7 @@ const radios = {
 	},
 	'klub': {
 		name: 'Klubrádió',
-		url: 'http://hu-stream02.klubradio.hu:8080/bpstream',
+		url: 'https://hu-stream02.klubradio.hu:8443/bpstream',
 		cult: 'hun'
 	},
 	'radiom': {
@@ -196,7 +186,7 @@ const radios = {
 	},
 	'halas': {
 		name: 'Halas Rádió Kiskunhalas',
-		url: 'https://stream.42netmedia.com:8443/halas',
+		url: 'https://halas.str.42net.hu/stream',
 		cult: 'hun'
 	},
 	'buddhafm': {
@@ -219,6 +209,11 @@ const radios = {
 		url: 'https://server4.streamserver24.com:26250/stream',
 		cult: 'hun'
 	},
+    'danubius': {
+        name: 'Danubius Rádió',
+        url: 'https://stream.danubiusradio.hu/danubius_192k',
+        cult: 'hun'
+    },
 	'sepsi': {
 		name: 'Sepsi Rádió',
 		url: 'https://stream.sepsiradio.ro:8001/SepsiRadio',
@@ -226,7 +221,12 @@ const radios = {
 	},
 	'szunet': {
 		name: 'Szünet Rádió',
-		url: 'https://stream.szunetradio.hu:8000/stream.mp3',
+		url: 'https://stream.szunetrad.io/listen/szunetradio/stream_sq.mp3',
+		cult: 'hun'
+	},
+	'bezs': {
+		name: 'Rádió Bézs',
+		url: 'https://stream.radiobezs.hu:8011/bezs',
 		cult: 'hun'
 	},
 	'therapmixx': {
@@ -291,12 +291,12 @@ const radios = {
 	},
 	'iluminafm': {
 		name: 'Ilumina fm (Christian)',
-		url: 'https://ss.redradios.net:8026/stream',
+		url: 'https://us-b4-p-e-cg11-audio.cdn.mdstrm.com/live-audio/6793dcfc099ac631ddd67e05/67c5cc3b28ec658a8c7848a6/icecast.audio',
 		cult: 'eng'
 	},
 	'sunshinelive': {
 		name: 'Sunshine Live 90er',
-		url: 'https://sunsl.streamabc.net/sunsl-90er-mp3-192-1681158',
+		url: 'https://sunsl.streamabc.net/sunsl-90er-mp3-192-9697679?sABC=680n93n0%230%234p3n9n5r7n968pq0p0ps12sr67341n5s%23enqvb.qr&aw_0_1st.playerid=radio.de&amsparams=playerid:radio.de;skey:1745523616',
 		cult: 'eng'
 	},
 	'magicflorida': {
@@ -331,7 +331,7 @@ const radios = {
 	},
 	'asfm': {
 		name: 'AS FM',
-		url: 'https://mastermedia.shoutca.st/proxy/radioasfm64?mp=/stream',
+		url: 'https://asfmonair-masterasfm.radioca.st/stream',
 		cult: 'eng'
 	},
 	'r101': {
@@ -354,11 +354,6 @@ const radios = {
 		url: 'http://sc.hot108.com:4000/',
 		cult: 'eng'
 	},
-	'fimbul': {
-		name: 'Fimbul Radio',
-		url: 'http://s4.radio.co/sdda8682fb/listen',
-		cult: 'eng'
-	},
 	"nano": {
 		name: 'Radio Nano',
 		url: 'http://s2.yesstreaming.net:7157/stream',
@@ -371,8 +366,7 @@ export const defaultRadio = 'kossuth';
 export const channels = [...r.keys()];
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;
-const youtubeEmoji = '<:youtube:506897247145951233>';
-const soundcloudEmoji = '<:sc:595619676827025408>';
+const { soundcloud: soundcloudEmoji, youtube: youtubeEmoji } = process.envTyped.emojis;
 export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	const emojis: Map<StreamType, EmojiIdentifierResolvable> = new Map<StreamType, EmojiIdentifierResolvable>([
 		['yt', youtubeEmoji],
@@ -383,12 +377,14 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 	return emojis.get(type);
 }
 export const tickEmoji = '_☑️_';
-export const creators = [new Creator('297037173541175296', 'Nemokosch#9980', 'https://www.buymeacoffee.com/2colours'), new Creator('419447790675165195', 'garton#8800'), new Creator('236922361918652416', 'Peketr#4324')];
-export const dedicatedClientId = '430326522146979861';
-export const guildsChanId = '470522240551616523';
-export const usersChanId = '470522309132943360';
-export const devChanId = '470574072565202944';
-export const devServerInvite = 'https://discord.gg/C83h4Sk';
-export const partnerHook = new WebhookClient({ id: '663426173552033802', token: process.env.partnerWebhookToken });
-export const avatarURL = 'https://i.imgur.com/FXgwVII.png';
+export const commandPrefix = '/';
+const creatorsConfig = process.envTyped.creators;
+export const creators = creatorsConfig.map((creatorData: CreatorConstructorData) => new Creator(creatorData));
+export const dedicatedClientId = process.envTyped.dedicatedClientId;
+export const { usersDisplay: usersChanId, guildsDisplay: guildsChanId, joinLeaveLog: devChanId } = process.envTyped.monitoring;
+export const devServerInvite = process.envTyped.devServerInvite;
+const partnerHookConfig = process.envTyped.partnerWebhook;
+export const partnerHook = new WebhookClient(partnerHookConfig);
+export const avatarURL = process.envTyped.avatarURL;
 export const commandsCachePath = './data/commands-cache.json';
+export const dbPath = './data/radio.sqlite';
