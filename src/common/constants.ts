@@ -94,11 +94,6 @@ const radios = {
 		url: 'http://icast.connectmedia.hu/4748/mr7.mp3',
 		cult: 'hun'
 	},
-	'risefm': {
-		name: 'Rise FM',
-		url: 'http://risefm1.stereoplayer.hu:8080/risefm_hq',
-		cult: 'hun'
-	},
 	'radio1pecs': {
 		name: 'Rádió 1 Pécs',
 		url: 'https://stream.radio1pecs.hu/pecs.mp3',
