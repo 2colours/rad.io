@@ -286,7 +286,7 @@ const radios = {
 	},
 	'iluminafm': {
 		name: 'Ilumina fm (Christian)',
-		url: 'https://ss.redradios.net:8026/stream',
+		url: 'https://us-b4-p-e-cg11-audio.cdn.mdstrm.com/live-audio/6793dcfc099ac631ddd67e05/67c5cc3b28ec658a8c7848a6/icecast.audio',
 		cult: 'eng'
 	},
 	'sunshinelive': {
