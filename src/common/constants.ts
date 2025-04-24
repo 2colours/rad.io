@@ -291,7 +291,7 @@ const radios = {
 	},
 	'sunshinelive': {
 		name: 'Sunshine Live 90er',
-		url: 'https://sunsl.streamabc.net/sunsl-sslsimulcast-mp3-192-4434053',
+		url: 'https://sunsl.streamabc.net/sunsl-90er-mp3-192-9697679?sABC=680n93n0%230%234p3n9n5r7n968pq0p0ps12sr67341n5s%23enqvb.qr&aw_0_1st.playerid=radio.de&amsparams=playerid:radio.de;skey:1745523616',
 		cult: 'eng'
 	},
 	'magicflorida': {
