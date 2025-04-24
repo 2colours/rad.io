@@ -216,7 +216,7 @@ const radios = {
 	},
 	'szunet': {
 		name: 'Szünet Rádió',
-		url: 'https://stream.szunetradio.hu:8000/stream.mp3',
+		url: 'https://stream.szunetrad.io/listen/szunetradio/stream_sq.mp3',
 		cult: 'hun'
 	},
 	'bezs': {
