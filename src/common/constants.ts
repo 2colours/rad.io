@@ -209,6 +209,11 @@ const radios = {
 		url: 'https://server4.streamserver24.com:26250/stream',
 		cult: 'hun'
 	},
+    'danubius': {
+        name: 'Danubius Rádió',
+        url: 'https://stream.danubiusradio.hu/danubius_192k',
+        cult: 'hun'
+    },
 	'sepsi': {
 		name: 'Sepsi Rádió',
 		url: 'https://stream.sepsiradio.ro:8001/SepsiRadio',
