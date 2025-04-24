@@ -126,7 +126,7 @@ const radios = {
 	},
 	'bestfm': {
 		name: 'BEST FM',
-		url: 'http://stream.webthings.hu:8000/fm95-x-128.mp3',
+		url: 'https://icast.connectmedia.hu/5101/live.mp3',
 		cult: 'hun'
 	},
 	'maxiradio': {
