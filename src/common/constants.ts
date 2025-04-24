@@ -326,7 +326,7 @@ const radios = {
 	},
 	'asfm': {
 		name: 'AS FM',
-		url: 'https://mastermedia.shoutca.st/proxy/radioasfm64?mp=/stream',
+		url: 'https://asfmonair-masterasfm.radioca.st/stream',
 		cult: 'eng'
 	},
 	'r101': {
