@@ -1,8 +1,7 @@
-﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam, commandsCachePath, CommandExtraData } from '../index.js';
+﻿import { actions, Command, Filter, ParameterData, ThisBinding, Resolvable, SupportedCommandOptionTypes, TypeFromParam, commandsCachePath, CommandExtraData, tsObjectEntries } from '../index.js';
 import { SlashCommandBuilder, Snowflake } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v10';
-import { tsObjectEntries } from 'ts-type-object-entries';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import stringify from 'json-stringify-deterministic';

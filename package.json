@@ -2,14 +2,12 @@
   "license": "GPL-3.0",
   "type": "module",
   "scripts": {
-    "start": "tsx src/main.ts"
+    "start": "bun src/main.ts"
   },
   "dependencies": {
     "@2colours/toml-env": "0.1.0",
     "@discordjs/opus": "0.10.0",
     "@discordjs/voice": "0.18.0",
-    "@types/node": "22.10.5",
-    "@types/ws": "8.5.13",
     "discord.js": "14.18.0",
     "ffmpeg-static": "5.2.0",
     "got": "14.4.7",
@@ -22,12 +20,6 @@
     "scanf": "1",
     "sequelize": "6.37.5",
     "sqlite3": "5.1.7",
-    "ts-type-object-entries": "1.0.7",
-    "tsx": "4.19.2",
-    "typescript": "5.7.3",
     "umzug": "3.8.2"
-  },
-  "engines": {
-    "node": "^22"
   }
 }

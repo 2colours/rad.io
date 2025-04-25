@@ -32,9 +32,10 @@
       dest: '{{ current_instance }}/ecosystem.json'
       state: link
 
-  - name: Install packages using npm
-    community.general.npm:
-      path: '{{ current_instance }}'
+  - name: Install packages using bun
+    ansible.builtin.shell: bun install
+    args:
+      chdir: '{{ current_instance }}'
 
   - name: Restart bot instance
     ansible.builtin.shell: pm2 startOrRestart ecosystem.json

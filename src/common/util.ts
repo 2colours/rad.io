@@ -185,3 +185,8 @@ export function retrieveCommandOptionValue(option: CommandInteractionOption): Su
 	option.type == ApplicationCommandOptionType.Role ? option.role as Role :
 	null;
 }
+
+export function tsObjectEntries<T, K extends string = string>(obj: { [s in K]: T } | ArrayLike<T>): [K, T][]
+{
+	return Object.entries(obj) as [K, T][]
+}
