@@ -214,6 +214,11 @@ const radios = {
         url: 'https://stream.danubiusradio.hu/danubius_192k',
         cult: 'hun'
     },
+    'youventus': {
+        name: 'Youventus Rádió',
+        url: 'https://s2.audiostream.hu/juventus_192k',
+        cult: 'hun'
+    },
 	'sepsi': {
 		name: 'Sepsi Rádió',
 		url: 'https://stream.sepsiradio.ro:8001/SepsiRadio',
