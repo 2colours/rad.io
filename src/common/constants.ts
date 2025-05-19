@@ -154,6 +154,11 @@ const radios = {
 		url: 'https://stream.folkradio.hu/folkradio.mp3',
 		cult: 'hun'
 	},
+    'forras': {
+        name: 'Forrás Rádió',
+        url: 'https://cloudfront44.lexanetwork.com:1540/forrasradio.mp3',
+        cult: 'hun'
+    },
 	'tilos': {
 		name: 'Tilos Rádió',
 		url: 'http://stream.tilos.hu/tilos',
@@ -217,6 +222,11 @@ const radios = {
     'youventus': {
         name: 'Youventus Rádió',
         url: 'https://s2.audiostream.hu/juventus_192k',
+        cult: 'hun'
+    },
+    'oxygen': {
+        name: 'Oxygen Music',
+        url: 'https://oxygenmusic.hu:8000/oxygenmusic_128',
         cult: 'hun'
     },
 	'sepsi': {
