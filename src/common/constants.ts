@@ -154,11 +154,6 @@ const radios = {
 		url: 'https://stream.folkradio.hu/folkradio.mp3',
 		cult: 'hun'
 	},
-    'forras': {
-        name: 'Forrás Rádió',
-        url: 'https://cloudfront44.lexanetwork.com:1540/forrasradio.mp3',
-        cult: 'hun'
-    },
 	'tilos': {
 		name: 'Tilos Rádió',
 		url: 'http://stream.tilos.hu/tilos',
