@@ -160,6 +160,7 @@ export interface EnvConfig {
 	};
 	botId: Snowflake;
 	testServerId: Snowflake;
+    leaveTimeoutMinutes: number | 'never';
 }
 
 declare global {

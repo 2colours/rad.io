@@ -43,11 +43,13 @@ class VoiceHandler {
 	constructor(private controlledPlayer: GuildPlayer) {
 	}
 	eventTriggered() {
+        if (process.envTyped.leaveTimeoutMinutes == 'never')
+            return;
 		const client = this.controlledPlayer.ownerGuild.client;
 		const botChannel = client.channels.resolve(getVoiceConnection(this.controlledPlayer.ownerGuild.id).joinConfig.channelId) as VoiceChannel;
 		const voiceEmpty = !(botChannel.members as Collection<string, GuildMember>)?.some(member => !member.user.bot);
 		if (voiceEmpty && !this.timeoutId)
-			this.timeoutId = global.setTimeout(() => {try{this.controlledPlayer.leave()} catch(e){console.log(e);}}, 60000 * 5);
+			this.timeoutId = global.setTimeout(() => {try{this.controlledPlayer.leave()} catch(e){console.log(e);}}, 60000 * process.envTyped.leaveTimeoutMinutes);
 		if (!voiceEmpty && this.timeoutId) {
 			global.clearTimeout(this.timeoutId);
 			delete this.timeoutId;
