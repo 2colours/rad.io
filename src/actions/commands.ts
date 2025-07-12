@@ -127,38 +127,6 @@ const commandData = {
 		type: 'unlimited',
 		filters: new Set([Filter.noBotVcNeeded, Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.playingFallbackNeeded])
 	},
-	'yt': {
-		params: [
-            {
-				name: 'ytQuery',
-				description: 'URL / cím',
-				required: true,
-				type: 'String'
-			},
-            {
-                name: 'preshuffle',
-                description: 'Lejátszási lista megkeverése (opcionális)',
-                required: false,
-                type: 'Boolean'
-            }
-		],
-		descrip: 'Youtube stream sorba ütemezése URL vagy keresőszó alapján. Keresőszó esetén a választás a lenyíló menüvel történik.',
-		type: 'unlimited',
-		filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded])
-	},
-    'soundcloud': {
-        params: [
-            {
-                name: 'scQuery',
-                description: 'soundcloud URL',
-                required: true,
-                type: 'String'
-            }
-        ],
-        descrip: 'Soundcloud stream sorba ütemezése URL alapján.',
-        type: 'unlimited',
-        filters: new Set([Filter.vcUserNeeded, Filter.eventualVcBotNeeded, Filter.sameOrNoBotVcNeeded])
-    },
 	'custom': {
 		params: [
 			{
@@ -466,27 +434,6 @@ export type Actions = {
 };
 export type Action = Actions[keyof Actions];
 export type ActionParams = Parameters<Action>; //TODO: fix this
-/*
-
-setupMessageCommand({
-	name: 'seek',
-	params: ['időpont (másodperc)'],
-	descrip: 'Az éppen játszott stream pozíciójának állítása.',
-	type: 'grantable',
-	filters: new Set([Filter.parameterNeeded, Filter.vcBotNeeded, Filter.sameVcNeeded, Filter.naturalErrorNoNeeded, Filter.dedicationNeeded]) //TODO: rádiónál lehessen?
-});*/
 
 await setupMessageCommands(commandData);
 export const debatedCommands = [...commands].filter(entry => entry[1].type == 'grantable').map(entry=>entry[0]);
-
-/*
-const commands = .map(command => command.toJSON());*/
-/*
-try {
-	await rest.put(Routes.applicationCommands(clientId), { body: commands });
-	await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
-	console.log('Successfully registered application commands.');
-}
-catch (e) {
-	console.error(e);
-}*/

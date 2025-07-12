@@ -2,12 +2,12 @@ import * as Discord from 'discord.js';
 import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, commands, creators, getEmoji, radios as radiosList, forceSchedule,
-	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, isLink, SearchResultView, partnerHook, avatarURL, webhookC, radios, tickEmoji,
-	discordEscape, setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest, 
+	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, partnerHook, avatarURL, webhookC, radios, tickEmoji,
+	setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest, 
     commandPrefix} from '../index.js';
 import * as play from 'play-dl';
 import { sscanf } from 'scanf';
-import { ComponentType } from 'discord.js';
+
 export const actions: Actions = {
 	async join(stationId) {
 		const channelToPlay = extractChannel(this, stationId);
@@ -23,73 +23,6 @@ export const actions: Actions = {
 	joinfallback() {
 		joinAndStartup.call(this, (gp: GuildPlayer) => gp.skip());
 	},
-
-	async yt(ytQuery, preshuffle) {
-		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
-		ytQuery = ytQuery.trim();
-		if (isLink(ytQuery)) {
-			try {
-				var toSchedule = await resolveYoutubeUrl(ytQuery, this.member as Discord.GuildMember);
-			}
-			catch (e) {
-				return void await this.reply({content: '**Érvénytelen youtube url.**', ephemeral: true});
-			}
-			await this.deferReply();
-			return void forceSchedule({ voiceChannel, actionContext: this, playableData: toSchedule, preshuffle });
-		}
-		const ytString = sscanf(ytQuery, '%S') ?? '';
-		try {
-			var items = await play.search(ytString, {
-				limit: 5
-			});
-			if (!items || items.length == 0)
-				return void await this.reply({content: '**Nincs találat.**', ephemeral: true});
-		}
-		catch (e) {
-			console.error(e);
-			await this.reply({content: '**Hiba a keresés során.**', ephemeral: true});
-		}
-		const resultsView: SearchResultView[] = items.map(elem => ({
-			title: elem.title,
-			duration: elem.durationInSec,
-			uploaderName: elem.channel.name
-		}));
-		try {
-			var index: number = await searchPick.call(this, resultsView);
-		}
-		catch (e) {
-			if (e == 'timeout')
-				await this.deleteReply();
-			else {
-				console.error('Hiba a keresés közben: ', e);
-				await this.editReply('Hiba a keresés közben!');
-			}
-			return;
-		}
-		const selectedResult = items[index];
-		forceSchedule({
-            voiceChannel,
-            actionContext: this,
-            playableData: [{
-                name: selectedResult.title,
-                url: selectedResult.url,
-                type: 'yt',
-                lengthSeconds: selectedResult.durationInSec,
-                requester: this.member as Discord.GuildMember
-		    }]
-        });
-	},
-    async soundcloud(scQuery) {
-		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
-        try {
-            var toSchedule = await resolveSoundcloudUrl(scQuery, this.member as Discord.GuildMember);
-        }
-        catch (e) {
-            return void await this.reply({content: '**Érvénytelen soundcloud url.**', ephemeral: true});
-        }
-        await this.deferReply();
-        forceSchedule({ voiceChannel, actionContext: this, playableData: toSchedule });
-    },
 	async custom(url) {
 		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		url = sscanf(url, '%s') ?? '';
@@ -403,92 +336,6 @@ function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
 		textChannelHolder.channel.send("**Hibás csatornanevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
 	}
 	return channelToPlay;
-}
-
-async function resolveYoutubeUrl(url: string, requester: Discord.GuildMember): Promise<MusicData[]> {
-	try {
-		const ytPlaylist = await play.playlist_info(url, { incomplete: true });
-		const fetchedVideos = await ytPlaylist.all_videos();
-		return fetchedVideos.map(elem => ({
-			name: elem.title,
-			url: elem.url,
-			type: 'yt',
-			lengthSeconds: elem.durationInSec,
-			requester
-		}) as MusicData);
-	}
-	catch (e) {
-		//Not a playlist
-		const ytVideo = (await play.video_info(url)).video_details;
-		return [{
-			name: ytVideo.title,
-			url,
-			type: 'yt',
-			lengthSeconds: ytVideo.durationInSec,
-			requester
-		}];
-	}
-}
-
-async function resolveSoundcloudUrl(url: string, requester: Discord.GuildMember): Promise<MusicData[]> {
-    const trackToMusicData = (track: play.SoundCloud):MusicData => ({
-        lengthSeconds: track.durationInSec,
-        name: track.name,
-        requester,
-        type: 'sc',
-        url: track.url
-    });
-    const scInfo = await play.soundcloud(url);
-    switch (scInfo.type) {
-        case 'user':
-            throw 'unsupported SC link type';
-        case 'playlist':
-            const allTracks = await (scInfo as play.SoundCloudPlaylist).all_tracks();
-            return allTracks.map(trackToMusicData);
-        case 'track':
-            return [trackToMusicData(scInfo)];
-    }
-}
-
-async function searchPick(this: ThisBinding, results: SearchResultView[]): Promise<number> {
-	if (results.length == 1)
-		return 0;
-	const topResults = results.map((elem, index) => `__${index+1}.__ - ${discordEscape(elem.title)} \`(${hourMinSec(elem.duration)})\``);
-	let embed: Discord.EmbedBuilder = commonEmbed.call(this);
-	embed = embed
-		.setTitle("❯ Találatok")
-		.setDescription(topResults.join('\n'));
-	const videoChooser = new Discord.StringSelectMenuBuilder()
-		.setCustomId('select')
-		.setPlaceholder('Válassz egy videót')
-		.setMinValues(1)
-		.setMaxValues(1)
-		.addOptions(results.map((resultData, index) => ({
-			label: discordEscape(resultData.title).slice(0, 100),
-			value: index.toString(),
-			description: `${hourMinSec(resultData.duration)} — ${resultData.uploaderName}`
-	})));
-	await this.deferReply();
-	const row = new Discord.ActionRowBuilder<Discord.MessageActionRowComponentBuilder>().addComponents(videoChooser);
-	const message = await this.channel.send({ embeds: [embed], components: [row]});
-	const filter = (i: Discord.StringSelectMenuInteraction) => {
-		i.deferUpdate();
-		return i.user.id == this.user.id;
-	};
-	try {
-		const selectInteraction = await message.awaitMessageComponent({ filter, time: 30000, componentType: ComponentType.StringSelect });
-		videoChooser.setDisabled(true);
-		message.edit({ components: [row] });
-		return +(selectInteraction as Discord.StringSelectMenuInteraction).values[0];
-	}
-	catch (e) {
-		const timeouted = e.message.endsWith('ending with reason: time');
-		if (timeouted)
-			embed.setTitle(`❯ Találatok - Lejárt a választási idő`);
-		row.components[0].setDisabled(true);
-		message.edit({embeds: [embed], components: [row] });
-		throw timeouted ? 'timeout' : e;
-	}
 }
 
 async function joinAndStartup(this: ThisBinding, startup: (guildPlayer: GuildPlayer) => void) {
