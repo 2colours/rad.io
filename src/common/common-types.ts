@@ -58,8 +58,8 @@ export interface PlayableData {
 }
 export interface MusicData extends PlayableData {
 	name: string;
-	lengthSeconds: number;
-	requester: GuildMember
+	lengthSeconds?: number;
+	requester?: GuildMember
 }
 export interface PlayingData extends MusicData {
 	playingSeconds: number;
@@ -141,6 +141,13 @@ export class StateError {
 	constructor(readonly message: string) { }
 }
 
+interface StartupPlayback {
+    guildId: Snowflake;
+    channelId: Snowflake;
+    type: 'radio' | 'custom';
+    parameter: string;
+}
+
 export interface EnvConfig {
     pastebin: string;
     radioToken: string;
@@ -161,6 +168,7 @@ export interface EnvConfig {
 	botId: Snowflake;
 	testServerId: Snowflake;
     leaveTimeoutMinutes: number | 'never';
+    startupPlaybacks?: StartupPlayback[];
 }
 
 declare global {

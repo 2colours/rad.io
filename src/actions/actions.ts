@@ -1,10 +1,12 @@
 import * as Discord from 'discord.js';
-import { getVoiceConnections, joinVoiceChannel } from '@discordjs/voice';
+import { getVoiceConnections } from '@discordjs/voice';
 import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, commands, creators, getEmoji, radios as radiosList, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, partnerHook, avatarURL, webhookC, radios, tickEmoji,
 	setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest, 
-    commandPrefix} from '../index.js';
+    commandPrefix,
+    createGuildPlayerForRequest,
+    resolveMusicData} from '../index.js';
 import * as play from 'play-dl';
 import { sscanf } from 'scanf';
 
@@ -24,17 +26,12 @@ export const actions: Actions = {
 		joinAndStartup.call(this, (gp: GuildPlayer) => gp.skip());
 	},
 	async custom(url) {
-		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		url = sscanf(url, '%s') ?? '';
 		await this.deferReply();
 		forceSchedule({
-            voiceChannel,
             actionContext: this,
             playableData: [{
-                name: 'Custom',
-                url,
-                type: 'custom',
-                lengthSeconds: undefined,
+                ...resolveMusicData('custom', url),
                 requester: this.member as Discord.GuildMember
             }]
         });
@@ -149,7 +146,8 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			return void await this.reply('**A sor jelenleg üres.**');
 		await this.reply(`**${queue.length} elem a sorban:**`);
 		const embed: Discord.EmbedBuilder = commonEmbed.call(this);
-		const queueLines = queue.map((elem,index) => `${getEmoji(elem.type)} **${index+1}.** \t [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}; Kérte: ${elem.requester})`);
+        const optionalRequester = (elem: MusicData) => elem.requester ? `; Kérte: ${elem.requester}` : '';
+		const queueLines = queue.map((elem,index) => `${getEmoji(elem.type)} **${index+1}.** \t [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}${optionalRequester(elem)})`);
 		await useScrollableEmbed(this, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}, Összesen ${queue.length} elem`, queueLines);
 	},
 	async fallback(mode) {
@@ -179,9 +177,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			fr = {
 				type: 'custom',
 				name: given,
-				url: given,
-				lengthSeconds: undefined,
-				requester: undefined
+				url: given
 			};
 		else
 			return void await this.reply({ content: '**Érvénytelen rádióadó.**', ephemeral: true });
@@ -212,17 +208,15 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		await this.reply(tickEmoji);
 	},
 	async tune(param) {
-		const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 		const channel = extractChannel(this, param);
 		await this.deferReply();
 		forceSchedule({
-            voiceChannel,
             actionContext: this,
-            playableData: [Object.assign({
-                type: 'radio' as StreamType,
-                lengthSeconds: undefined,
-                requester: this.member as Discord.GuildMember
-            }, radiosList.get(channel))]
+            playableData: [
+                {
+                    ...resolveMusicData('radio', channel),
+                    requester: this.member as Discord.GuildMember
+                }]
         });
 	},
 	grant(commandSet, role) {
@@ -339,16 +333,9 @@ function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
 }
 
 async function joinAndStartup(this: ThisBinding, startup: (guildPlayer: GuildPlayer) => void) {
-	const voiceChannel = (this.member as Discord.GuildMember).voice.channel;
 	try {
 		await this.reply('**Csatlakozva.**').catch();
-		joinVoiceChannel({
-			channelId: voiceChannel.id,
-			guildId: voiceChannel.guildId,
-			//@ts-ignore
-			adapterCreator: voiceChannel.guild.voiceAdapterCreator
-		});
-		this.guildPlayer = new GuildPlayer(this.guild);
+        createGuildPlayerForRequest(this);
 		this.guildPlayer.on('announcement', (message: string) => this.channel.send(message).catch());
 		startup(this.guildPlayer);
 	}

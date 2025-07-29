@@ -1,8 +1,11 @@
-﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, BaseGuildVoiceChannel, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder, ChatInputCommandInteraction } from 'discord.js';
-import { getVoiceConnection, joinVoiceChannel } from '@discordjs/voice';
-import { CommandType, PlayableData, database, UserHolder, TextChannelHolder, client, embedC, MusicData,
-	GuildPlayer, ScrollableEmbedTitleResolver, FallbackModesTableData, FallbackDataTableData, RoleTableData, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding, 
-    commandPrefix} from '../index.js';
+﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder, ChatInputCommandInteraction, GuildMember, VoiceBasedChannel } from 'discord.js';
+import { getVoiceConnection, joinVoiceChannel as joinVoiceChannelLowLevel } from '@discordjs/voice';
+import {
+	CommandType, PlayableData, database, UserHolder, TextChannelHolder, client, embedC, MusicData,
+	GuildPlayer, ScrollableEmbedTitleResolver, FallbackModesTableData, FallbackDataTableData, RoleTableData, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding,
+	commandPrefix,
+	radios
+} from '../index.js';
 import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import { PasteClient } from 'pastebin-api';
@@ -21,7 +24,7 @@ export function shuffle(array: any[]) {
 		[array[i], array[j]] = [array[j], array[i]];
 	}
 }
-export function couldPing(url: string):Promise<boolean> {
+export function couldPing(url: string): Promise<boolean> {
 	return new Promise((resolve, _) => {
 		got.stream(url, { timeout: { response: 5000 } })
 			.on('readable', () => resolve(true))
@@ -50,16 +53,41 @@ export async function sendGuild(guild: Guild, content: string, options?: Message
 		}
 	}
 }
-export function forceSchedule({ textChannel, voiceChannel, actionContext, playableData, preshuffle = false } : { textChannel?: TextChannel, voiceChannel: BaseGuildVoiceChannel, actionContext: ThisBinding, playableData: MusicData[], preshuffle?: boolean }) {
-    textChannel ??= actionContext.channel as TextChannel;
+export function resolveMusicData(type: 'radio' | 'custom', parameter: string): { name: string, type: 'radio' | 'custom', url: string } {
+	switch (type) {
+		case 'custom':
+			return ({
+				name: 'Custom',
+				type,
+				url: parameter
+			});
+		case 'radio':
+			const radio = radios.get(parameter);
+			return ({
+				name: radio.name,
+				type,
+				url: radio.url
+			});
+	}
+}
+export function joinVoiceChannel(voiceChannel: VoiceBasedChannel) {
+	joinVoiceChannelLowLevel({
+		channelId: voiceChannel.id,
+		guildId: voiceChannel.guildId,
+		//@ts-ignore
+		adapterCreator: voiceChannel.guild.voiceAdapterCreator
+	});
+}
+export function createGuildPlayerForRequest(ctx: ThisBinding) {
+	const voiceChannel = (ctx.member as GuildMember).voice.channel;
+	joinVoiceChannel(voiceChannel);
+	ctx.guildPlayer = new GuildPlayer(ctx.guild);
+}
+export function forceSchedule({ textChannel, actionContext, playableData, preshuffle = false }: { textChannel?: TextChannel, actionContext: ThisBinding, playableData: MusicData[], preshuffle?: boolean }) {
+	const voiceChannel = (this.member as GuildMember).voice.channel;
+	textChannel ??= actionContext.channel as TextChannel;
 	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
-		joinVoiceChannel({
-			channelId: voiceChannel.id,
-			guildId: voiceChannel.guildId,
-			//@ts-ignore
-			adapterCreator: voiceChannel.guild.voiceAdapterCreator
-		});
-		actionContext.guildPlayer = new GuildPlayer(voiceChannel.guild);
+		createGuildPlayerForRequest(actionContext);
 	}
 	actionContext.guildPlayer.removeAllListeners();
 	actionContext.guildPlayer.on('announcement', replyFirstSendRest(actionContext, textChannel));
@@ -70,7 +98,7 @@ export function forceSchedule({ textChannel, voiceChannel, actionContext, playab
 }
 export function replyFirstSendRest(interactionForReply: ChatInputCommandInteraction, channelForSend: TextChannel) {
 	let repliedAlready = false;
-	return (message: string):void => {
+	return (message: string): void => {
 		switch (repliedAlready) {
 			case false:
 				repliedAlready = true;
@@ -114,8 +142,8 @@ export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, ba
 	setButtonsDisabled();
 	const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(prevButton, nextButton);
 	const message = await ctx.channel.send({ embeds: [completeEmbed], components: [row] }) as Message;
-	const filter =  (i: MessageComponentInteraction) => (i.deferUpdate(), ['previous', 'next'].includes(i.customId) && i.user.id == ctx.user.id);
-	const collector = message.createMessageComponentCollector({filter, idle: 60000, componentType: ComponentType.Button });
+	const filter = (i: MessageComponentInteraction) => (i.deferUpdate(), ['previous', 'next'].includes(i.customId) && i.user.id == ctx.user.id);
+	const collector = message.createMessageComponentCollector({ filter, idle: 60000, componentType: ComponentType.Button });
 	for await (const [i, _] of collector) {
 		currentPage = i.customId == 'previous' ? currentPage - 1 : currentPage + 1;
 		const currentDescription = linesForDescription.slice((currentPage - 1) * elementsPerPage, currentPage * elementsPerPage).join('\n');
@@ -127,7 +155,7 @@ export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, ba
 	}
 	completeEmbed.setTitle(`**Lejárt az idő** - ${titleResolver(currentPage, maxPage)}`);
 	[prevButton, nextButton].forEach(b => b.setDisabled(true));
-	await message.edit({ embeds: [completeEmbed], components: [row] });	
+	await message.edit({ embeds: [completeEmbed], components: [row] });
 }
 export const saveRow = {
 	async fallbackModes(rowObj: FallbackModesTableData) {
@@ -182,11 +210,10 @@ export function commandNamesByTypes(commandMap: Map<string, Command>, ...types: 
 type SupportedCommandValueTypes = TypeFromParam<SupportedCommandOptionTypes>;
 export function retrieveCommandOptionValue(option: CommandInteractionOption): SupportedCommandValueTypes {
 	return [ApplicationCommandOptionType.Boolean, ApplicationCommandOptionType.String, ApplicationCommandOptionType.Number].includes(option.type) ? option.value :
-	option.type == ApplicationCommandOptionType.Role ? option.role as Role :
-	null;
+		option.type == ApplicationCommandOptionType.Role ? option.role as Role :
+			null;
 }
 
-export function tsObjectEntries<T, K extends string = string>(obj: { [s in K]: T } | ArrayLike<T>): [K, T][]
-{
+export function tsObjectEntries<T, K extends string = string>(obj: { [s in K]: T } | ArrayLike<T>): [K, T][] {
 	return Object.entries(obj) as [K, T][]
 }

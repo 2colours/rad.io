@@ -3,7 +3,7 @@ import * as Discord from 'discord.js';
 import { getVoiceConnection } from '@discordjs/voice';
 const token = process.envTyped.radioToken;
 
-import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue } from './index.js';
+import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue, joinVoiceChannel, resolveMusicData } from './index.js';
 import moment from 'moment';
 
 const devChannel = () => client.channels.resolve(devChanId) as Discord.TextChannel;
@@ -13,6 +13,7 @@ client.on('ready', async () => {
 	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();
+    playbackOnStartup();
 });
 
 
@@ -113,6 +114,18 @@ function updateStatusChannels() {
 	const usersChan = client.channels.resolve(usersChanId) as Discord.VoiceChannel;
 	guildsChan.setName(`RAD.io (${client.guilds.cache.size}) szerveren`);
 	usersChan.setName(`RAD.io (${client.users.cache.size}) felhasználóval`);
+}
+
+function playbackOnStartup() {
+    process.envTyped.startupPlaybacks?.forEach(async playbackEntry => {
+        const guild = client.guilds.resolve(playbackEntry.guildId);
+        const voiceChannel = guild.channels.resolve(playbackEntry.channelId) as Discord.VoiceChannel;
+        joinVoiceChannel(voiceChannel);
+        const guildPlayer = new GuildPlayer(guild);
+        guildPlayers.set(playbackEntry.guildId, guildPlayer);
+        guildPlayer.schedule(resolveMusicData(playbackEntry.type, playbackEntry.parameter));
+        guildPlayer.on('announcement', (message: string) => voiceChannel.send(message).catch());
+    });
 }
 
 
