@@ -1,12 +1,14 @@
 import * as Discord from 'discord.js';
 import { getVoiceConnections } from '@discordjs/voice';
-import { commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
+import {
+	commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
 	client, channels, commands, creators, getEmoji, radios as radiosList, forceSchedule,
 	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, partnerHook, avatarURL, webhookC, radios, tickEmoji,
-	setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest, 
-    commandPrefix,
-    createGuildPlayerForRequest,
-    resolveMusicData} from '../index.js';
+	setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest,
+	commandPrefix,
+	createGuildPlayerForRequest,
+	resolveMusicData
+} from '../index.js';
 import * as play from 'play-dl';
 import { sscanf } from 'scanf';
 
@@ -29,12 +31,12 @@ export const actions: Actions = {
 		url = sscanf(url, '%s') ?? '';
 		await this.deferReply();
 		forceSchedule({
-            actionContext: this,
-            playableData: [{
-                ...resolveMusicData('custom', url),
-                requester: this.member as Discord.GuildMember
-            }]
-        });
+			actionContext: this,
+			playableData: [{
+				...resolveMusicData('custom', url),
+				requester: this.member as Discord.GuildMember
+			}]
+		});
 	},
 	async leave() {
 		const guildPlayer: GuildPlayer = this.guildPlayer;
@@ -44,7 +46,7 @@ export const actions: Actions = {
 	},
 	async repeat(count) {
 		if (count <= 0 && count != null)
-			return void await this.reply({ content: '**Pozitív számot kell megadni.**', ephemeral: true });
+			return void await this.reply({ content: '**Pozitív számot kell megadni.**', flags: Discord.MessageFlags.Ephemeral });
 		this.guildPlayer.repeat(count);
 		await this.reply(`**Ismétlés felülírva: ${count ?? 'végtelen'} alkalom.**`);
 	},
@@ -57,12 +59,12 @@ export const actions: Actions = {
 				.join('\n');
 		}
 		let baseEmbed: Discord.EmbedBuilder = commonEmbed.call(this);
-		baseEmbed = baseEmbed.addFields({name: '❯ Használat', value: `\`${commandPrefix}join <ID>\`\n\`${commandPrefix}tune <ID>\``});
+		baseEmbed = baseEmbed.addFields({ name: '❯ Használat', value: `\`${commandPrefix}join <ID>\`\n\`${commandPrefix}tune <ID>\`` });
 		await this.reply({
 			embeds: [Discord.EmbedBuilder.from(baseEmbed)
 				.setTitle('❯ Magyar rádiók')
 				.setDescription(listRadios('hun')),
-				Discord.EmbedBuilder.from(baseEmbed)
+			Discord.EmbedBuilder.from(baseEmbed)
 				.setTitle('❯ Külföldi rádiók')
 				.setDescription(listRadios('eng'))]
 		});
@@ -92,12 +94,14 @@ export const actions: Actions = {
 			let embed: Discord.EmbedBuilder = commonEmbed.call(this);
 			embed = embed
 				.addFields(
-				{name: '❯ Felhasználói parancsok', value: userCommands.map(cmd => `\`${commandPrefix}${cmd}\``).join(' ')},
-				{name: '❯ Adminisztratív parancsok', value: adminCommands.map(cmd => `\`${commandPrefix}${cmd}\``).join(' ')},
-				{name: '❯ Részletes leírás', value: `\`${commandPrefix}help <command>\``},
-				{name: '❯ Egyéb információk', value: `RAD.io meghívása saját szerverre: [Ide kattintva](https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=274881334336&scope=bot%20applications.commands)
+					{ name: '❯ Felhasználói parancsok', value: userCommands.map(cmd => `\`${commandPrefix}${cmd}\``).join(' ') },
+					{ name: '❯ Adminisztratív parancsok', value: adminCommands.map(cmd => `\`${commandPrefix}${cmd}\``).join(' ') },
+					{ name: '❯ Részletes leírás', value: `\`${commandPrefix}help <command>\`` },
+					{
+						name: '❯ Egyéb információk', value: `RAD.io meghívása saját szerverre: [Ide kattintva](https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=274881334336&scope=bot%20applications.commands)
 Meghívó a RAD.io Development szerverre: [${devServerInvite.substring('https://'.length)}](${devServerInvite})
-A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`}
+A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`
+					}
 				);
 			return void await this.reply({ embeds: [embed] });
 		}
@@ -107,27 +111,27 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			let embed: Discord.EmbedBuilder = commonEmbed.call(this, ` ${helpCommand}`);
 			embed = embed
 				.addFields(
-				{name: '❯ Részletes leírás', value: currentCommand.helpRelated.ownDescription},
-				{name: '❯ Teljes parancs', value: `\`${commandPrefix}${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\``},
-				{name: '❯ Használat feltételei', value: currentRequirements.length == 0 ? '-' : currentRequirements.join(' ')}
+					{ name: '❯ Részletes leírás', value: currentCommand.helpRelated.ownDescription },
+					{ name: '❯ Teljes parancs', value: `\`${commandPrefix}${helpCommand}${['', ...currentCommand.helpRelated.params.map((param: ParameterData) => `<${param.name}>`)].join(' ')}\`` },
+					{ name: '❯ Használat feltételei', value: currentRequirements.length == 0 ? '-' : currentRequirements.join(' ') }
 				);
 			return void await this.reply({ embeds: [embed] });
 		}
-		await this.reply({ content: '**Nincs ilyen nevű parancs.**', ephemeral: true });
+		await this.reply({ content: '**Nincs ilyen nevű parancs.**', flags: Discord.MessageFlags.Ephemeral });
 	},
 	async guilds() {
 		const guildLines = client.guilds.cache.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
 		await createPastebin(`${client.user.username} on ${client.guilds.cache.size} guilds with ${client.users.cache.size} users.`, guildLines.join('\n'))
-			.then(link => this.reply({content: link, ephemeral: true}));
+			.then(link => this.reply({ content: link, flags: Discord.MessageFlags.Ephemeral }));
 	},
 	async connections() {
 		const connectionLines = Array.from(getVoiceConnections().values(), vc => `${client.guilds.resolve(vc.joinConfig.guildId).name} (${vc.joinConfig.guildId}) - ${(client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).name} (${(client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size})`);
 		const usersAffected = Array.from(getVoiceConnections().values(), vc => (client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
 		await createPastebin(`${client.user.username} on ${getVoiceConnections().size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
-			.then(link => this.reply({ content: link, ephemeral: true }));
+			.then(link => this.reply({ content: link, flags: Discord.MessageFlags.Ephemeral }));
 	},
 	async testradios() {
-		await this.deferReply({ ephemeral: true });
+		await this.deferReply({ flags: Discord.MessageFlags.Ephemeral });
 		const idAndAvailables = await Promise.all([...radios].map(async ([id, data]) => [id, await couldPing(data.url)]));
 		const offRadios = idAndAvailables.filter(([_, available]) => !available).map(([id, _]) => id);
 		await createPastebin(`${offRadios.length} radios went offline`, offRadios.join('\n'))
@@ -135,10 +139,10 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	},
 	async leaveguild(id) {
 		const guildToLeave = await client.guilds.resolve(id).leave();
-		await this.reply({ content: `**Szerver elhagyva:** ${guildToLeave.name}`, ephemeral: true});
+		await this.reply({ content: `**Szerver elhagyva:** ${guildToLeave.name}`, flags: Discord.MessageFlags.Ephemeral });
 	},
 	async voicecount() {
-		await this.reply({content: `:information_source: ${getVoiceConnections().size} voice connection(s) right now.`, ephemeral: true});
+		await this.reply({ content: `:information_source: ${getVoiceConnections().size} voice connection(s) right now.`, flags: Discord.MessageFlags.Ephemeral });
 	},
 	async queue() {
 		const queue: MusicData[] = this.guildPlayer.queue;
@@ -146,15 +150,15 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			return void await this.reply('**A sor jelenleg üres.**');
 		await this.reply(`**${queue.length} elem a sorban:**`);
 		const embed: Discord.EmbedBuilder = commonEmbed.call(this);
-        const optionalRequester = (elem: MusicData) => elem.requester ? `; Kérte: ${elem.requester}` : '';
-		const queueLines = queue.map((elem,index) => `${getEmoji(elem.type)} **${index+1}.** \t [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}${optionalRequester(elem)})`);
+		const optionalRequester = (elem: MusicData) => elem.requester ? `; Kérte: ${elem.requester}` : '';
+		const queueLines = queue.map((elem, index) => `${getEmoji(elem.type)} **${index + 1}.** \t [${elem.name}](${elem.url})\n\t(Hossz: ${hourMinSec(elem.lengthSeconds)}${optionalRequester(elem)})`);
 		await useScrollableEmbed(this, embed, (currentPage, maxPage) => `❯ Lista (felül: legkorábbi) Oldal: ${currentPage}/${maxPage}, Összesen ${queue.length} elem`, queueLines);
 	},
 	async fallback(mode) {
 		const aliases = new Map([['r', 'radio'], ['s', 'silence'], ['l', 'leave']]);
 		mode = aliases.get(mode) ?? mode;
 		if (!(new Set(aliases.values())).has(mode))
-			return void await this.reply({ content: '**Ilyen fallback mód nem létezik.**', ephemeral: true });
+			return void await this.reply({ content: '**Ilyen fallback mód nem létezik.**', flags: Discord.MessageFlags.Ephemeral });
 		setFallbackMode(this.guild.id, <FallbackType>mode);
 		await this.reply(`**Új fallback: ${mode}. **`);
 		try {
@@ -180,11 +184,11 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 				url: given
 			};
 		else
-			return void await this.reply({ content: '**Érvénytelen rádióadó.**', ephemeral: true });
+			return void await this.reply({ content: '**Érvénytelen rádióadó.**', flags: Discord.MessageFlags.Ephemeral });
 		setFallbackChannel(this.guild.id, fr);
 		await this.reply(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`);
 		try {
-			await saveRow.fallbackData({ guildID: this.guild.id, type: fr.type, name: fr.name, data: (fr.type=='radio')?given:fr.url });
+			await saveRow.fallbackData({ guildID: this.guild.id, type: fr.type, name: fr.name, data: (fr.type == 'radio') ? given : fr.url });
 		}
 		catch (e) {
 			console.error(e);
@@ -192,8 +196,8 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		}
 	},
 	async skip(amountToSkip) {
-		if (amountToSkip<=0)
-			amountToSkip=1;
+		if (amountToSkip <= 0)
+			amountToSkip = 1;
 		await this.deferReply();
 		this.guildPlayer.removeAllListeners();
 		this.guildPlayer.on('announcement', replyFirstSendRest(this, this.channel as Discord.TextChannel));
@@ -211,13 +215,13 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const channel = extractChannel(this, param);
 		await this.deferReply();
 		forceSchedule({
-            actionContext: this,
-            playableData: [
-                {
-                    ...resolveMusicData('radio', channel),
-                    requester: this.member as Discord.GuildMember
-                }]
-        });
+			actionContext: this,
+			playableData: [
+				{
+					...resolveMusicData('radio', channel),
+					requester: this.member as Discord.GuildMember
+				}]
+		});
 	},
 	grant(commandSet, role) {
 		permissionReused.call(this, commandSet, role, (commands: string[], roleCommands: string[]) =>
@@ -256,9 +260,9 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		allPerms.sort();
 		let embed: Discord.EmbedBuilder = commonEmbed.call(this);
 		const embedFields: Discord.APIEmbedField[] = [];
-		embedFields.push({name: '❯ Összes jogosultság', value: allPerms.map(cmd => `\`${cmd}\``).join(' ')});
+		embedFields.push({ name: '❯ Összes jogosultság', value: allPerms.map(cmd => `\`${cmd}\``).join(' ') });
 		if (adminRight)
-			embedFields.push({name: '❯ Adminisztrátor jog', value: adminCommands.map(cmd => `\`${cmd}\``).join(' ')});
+			embedFields.push({ name: '❯ Adminisztrátor jog', value: adminCommands.map(cmd => `\`${cmd}\``).join(' ') });
 		embed = embed.addFields(...embedFields, ...grantedPerms.map(([roleID, commands]) => ({
 			name: `❯ _${this.guild.roles.resolve(roleID).name}_ rang`,
 			value: commands.map(cmd => `\`${cmd}\``).join(' ')
@@ -267,7 +271,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	},
 	async volume(vol) {
 		if (vol == undefined || vol <= 0 || vol > 15)
-			return void await this.reply({ content: '**Paraméterként szám elvárt. (1-15)**', ephemeral: true });
+			return void await this.reply({ content: '**Paraméterként szám elvárt. (1-15)**', flags: Discord.MessageFlags.Ephemeral });
 		if (vol > 10)
 			this.channel.send('**Figyelem: erősítést alkalmaztál, a hangban torzítás léphet fel.**');
 		this.guildPlayer.setVolume(vol / 10);
@@ -309,7 +313,7 @@ async function permissionReused(this: ThisBinding, permCommands: string, role: D
 	const commandsArray = permCommands.toLowerCase() == 'all' ? debatedCommands : permCommands.split('|');
 	const firstWrong = commandsArray.find(elem => !debatedCommands.includes(elem));
 	if (firstWrong)
-		return void await this.reply({ content: `**\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.**`, ephemeral: true });
+		return void await this.reply({ content: `**\`${firstWrong}\` nem egy kérdéses jogosultságú parancs.**`, flags: Discord.MessageFlags.Ephemeral });
 	const currentRoles = getRoleSafe(this.guild.id);
 	const roleCommands = attach(currentRoles, role.id, new Array());
 	filler(commandsArray, roleCommands);
@@ -335,7 +339,7 @@ function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
 async function joinAndStartup(this: ThisBinding, startup: (guildPlayer: GuildPlayer) => void) {
 	try {
 		await this.reply('**Csatlakozva.**').catch();
-        createGuildPlayerForRequest(this);
+		createGuildPlayerForRequest(this);
 		this.guildPlayer.on('announcement', (message: string) => this.channel.send(message).catch());
 		startup(this.guildPlayer);
 	}
@@ -354,7 +358,7 @@ function sendToPartnerHook(link: string, content: string, username: string, serv
 }
 
 await play.setToken({
-    soundcloud: {
-        client_id: await play.getFreeClientID()
-    }
+	soundcloud: {
+		client_id: await play.getFreeClientID()
+	}
 });
