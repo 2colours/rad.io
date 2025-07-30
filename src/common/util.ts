@@ -84,7 +84,7 @@ export function createGuildPlayerForRequest(ctx: ThisBinding) {
 	ctx.guildPlayer = new GuildPlayer(ctx.guild);
 }
 export function forceSchedule({ textChannel, actionContext, playableData, preshuffle = false }: { textChannel?: TextChannel, actionContext: ThisBinding, playableData: MusicData[], preshuffle?: boolean }) {
-	const voiceChannel = (this.member as GuildMember).voice.channel;
+	const voiceChannel = (actionContext.member as GuildMember).voice.channel;
 	textChannel ??= actionContext.channel as TextChannel;
 	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
 		createGuildPlayerForRequest(actionContext);
