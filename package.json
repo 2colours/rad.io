@@ -14,7 +14,7 @@
     "json-stringify-deterministic": "1.0.12",
     "libsodium-wrappers": "0.7.15",
     "moment": "2.30.1",
-    "node-gyp": "11.2.0",
+    "node-gyp": "11.4.0",
     "pastebin-api": "7.0.0",
     "play-dl": "1.9.7",
     "scanf": "1",
