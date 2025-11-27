@@ -10,7 +10,7 @@
     "@discordjs/voice": "0.19.0",
     "discord.js": "14.22.1",
     "ffmpeg-static": "5.2.0",
-    "got": "14.4.7",
+    "got": "14.6.5",
     "json-stringify-deterministic": "1.0.12",
     "libsodium-wrappers": "0.7.15",
     "moment": "2.30.1",
