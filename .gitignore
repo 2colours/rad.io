@@ -8,7 +8,6 @@ data
 /.vs
 *.env
 *.env.toml
-/nbproject/
 /.vscode/
 /.settings/
 /.project
