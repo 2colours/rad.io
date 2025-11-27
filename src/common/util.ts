@@ -74,6 +74,7 @@ export function joinVoiceChannel(voiceChannel: VoiceBasedChannel) {
 	joinVoiceChannelLowLevel({
 		channelId: voiceChannel.id,
 		guildId: voiceChannel.guildId,
+        daveEncryption: false, //TODO nyerünk egy kis időt, amíg teljesen kötelezővé nem teszi a Discord (2026 március?), mert a teljesítménye katasztrofális
 		//@ts-ignore
 		adapterCreator: voiceChannel.guild.voiceAdapterCreator
 	});
