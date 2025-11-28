@@ -26,18 +26,7 @@
       dest: '{{ current_instance }}/data'
       state: link
 
-  - name: Create link for pm2 config
-    ansible.builtin.file:
-      src: '{{ current_databank }}/ecosystem.json'
-      dest: '{{ current_instance }}/ecosystem.json'
-      state: link
-
   - name: Install packages using bun
     ansible.builtin.shell: bun install
-    args:
-      chdir: '{{ current_instance }}'
-
-  - name: Restart bot instance
-    ansible.builtin.shell: pm2 startOrRestart ecosystem.json
     args:
       chdir: '{{ current_instance }}'
