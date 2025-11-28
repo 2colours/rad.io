@@ -181,7 +181,7 @@ const radios = {
 	},
 	'radiom': {
 		name: 'Rádió M',
-		url: 'http://hosting2.42netmedia.com:10060/;stream.mp3',
+		url: 'https://stream.42netmedia.com:8443/radiom',
 		cult: 'hun'
 	},
 	'halas': {
