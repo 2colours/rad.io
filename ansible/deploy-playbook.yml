@@ -30,3 +30,8 @@
     ansible.builtin.shell: bun install
     args:
       chdir: '{{ current_instance }}'
+
+  - name: Touch lock file to enforce restart
+    ansible.builtin.file:
+      path: '{{ current_instance }}/bun.lock'
+      state: touch
