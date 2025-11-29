@@ -8,13 +8,13 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install ansible control node
         run: sudo apt install ansible-core
       - name: Add hosts to /etc/hosts
         run: |
           sudo echo "${{ secrets.SERVICE_HOST }} vps.contabo" | sudo tee -a /etc/hosts > /dev/null
-      - uses: dawidd6/action-ansible-playbook@v2.8.0
+      - uses: dawidd6/action-ansible-playbook@v5
         with:
           directory: ansible
           # Ansible playbook filepath
@@ -32,12 +32,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
 
       - name: Install dependencies
         run: npm install
