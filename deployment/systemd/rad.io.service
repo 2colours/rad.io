@@ -1,0 +1,28 @@
+[Unit]
+Description=Rad.io instance
+
+After=network.target
+
+StartLimitIntervalSec=0
+
+[Service]
+
+Type=simple
+
+Restart=always
+
+RestartSec=30
+
+User=<user who manages the project on the host>
+
+ExecStartPre=
+
+ExecStart=<bun runtime path> --cwd=<project repo path> start
+
+ExecStop=
+
+ExecReload=
+
+[Install]
+
+WantedBy=multi-user.target

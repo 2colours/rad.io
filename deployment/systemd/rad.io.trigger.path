@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch for RAD.io instance
+
+[Path]
+PathChanged=<project repo path>/src/
+PathChanged=<project repo path>/bun.lock
+
+[Install]
+WantedBy=multi-user.target
