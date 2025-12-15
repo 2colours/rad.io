@@ -9,7 +9,7 @@ import moment from 'moment';
 const devChannel = () => client.channels.resolve(devChanId) as Discord.TextChannel;
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
-client.on('ready', async () => {
+client.on('clientReady', async () => {
 	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();
