@@ -384,7 +384,7 @@ export function getEmoji(type: StreamType): EmojiIdentifierResolvable {
 		['custom', ':radio:'],
 		['sc', soundcloudEmoji]
 	]);
-	return emojis.get(type);
+	return emojis.get(type)!;
 }
 export const tickEmoji = '_☑️_';
 export const commandPrefix = '/';

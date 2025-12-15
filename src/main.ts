@@ -10,7 +10,7 @@ const devChannel = () => client.channels.resolve(devChanId) as Discord.TextChann
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
 client.on('clientReady', async () => {
-	console.log(`${client.user.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
+	console.log(`${client.user?.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();
     playbackOnStartup();
@@ -37,9 +37,8 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 		return;
 	if (oldState.member?.user == client.user) {
 		if (!newState.channel) {//ha a bot szabályosan kilép VAGY elküldik - régen ilyen nem volt :))
-			console.log('kthxbye');
 			guildPlayer.leave();
-			guildPlayers.set(id, undefined);
+			guildPlayers.delete(id); //TODO ellenőrizni, hogy jól működik-e
 		}
 		else //ha a botot átrakják egy voice channelből egy másikba - át kell iratkoznia
 			guildPlayer.handler.eventTriggered();

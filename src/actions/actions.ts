@@ -41,6 +41,7 @@ export const actions: Actions = {
 	async leave() {
 		const guildPlayer: GuildPlayer = this.guildPlayer;
 		guildPlayer.leave();
+        //@ts-ignore //TODO nagyon specifikus eset, valahogy kezelni
 		this.guildPlayer = undefined; //guildPlayer törlése így tehető meg
 		await this.reply(tickEmoji);
 	},
@@ -98,7 +99,7 @@ export const actions: Actions = {
 					{ name: '❯ Adminisztratív parancsok', value: adminCommands.map(cmd => `\`${commandPrefix}${cmd}\``).join(' ') },
 					{ name: '❯ Részletes leírás', value: `\`${commandPrefix}help <command>\`` },
 					{
-						name: '❯ Egyéb információk', value: `RAD.io meghívása saját szerverre: [Ide kattintva](https://discord.com/api/oauth2/authorize?client_id=${client.user.id}&permissions=274881334336&scope=bot%20applications.commands)
+						name: '❯ Egyéb információk', value: `RAD.io meghívása saját szerverre: [Ide kattintva](https://discord.com/api/oauth2/authorize?client_id=${client.user!.id}&permissions=274881334336&scope=bot%20applications.commands)
 Meghívó a RAD.io Development szerverre: [${devServerInvite.substring('https://'.length)}](${devServerInvite})
 A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator.resolveMarkdown()).join(', ')}`
 					}
@@ -106,7 +107,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			return void await this.reply({ embeds: [embed] });
 		}
 		if (commands.has(helpCommand)) {
-			const currentCommand = commands.get(helpCommand);
+			const currentCommand = commands.get(helpCommand)!;
 			const currentRequirements = currentCommand.helpRelated.requirements;
 			let embed: Discord.EmbedBuilder = commonEmbed.call(this, ` ${helpCommand}`);
 			embed = embed
@@ -121,13 +122,13 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	},
 	async guilds() {
 		const guildLines = client.guilds.cache.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
-		await createPastebin(`${client.user.username} on ${client.guilds.cache.size} guilds with ${client.users.cache.size} users.`, guildLines.join('\n'))
+		await createPastebin(`${client.user?.username} on ${client.guilds.cache.size} guilds with ${client.users.cache.size} users.`, guildLines.join('\n'))
 			.then(link => this.reply({ content: link, flags: Discord.MessageFlags.Ephemeral }));
 	},
 	async connections() {
 		const connectionLines = Array.from(getVoiceConnections().values(), vc => `${client.guilds.resolve(vc.joinConfig.guildId).name} (${vc.joinConfig.guildId}) - ${(client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).name} (${(client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size})`);
 		const usersAffected = Array.from(getVoiceConnections().values(), vc => (client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
-		await createPastebin(`${client.user.username} on ${getVoiceConnections().size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
+		await createPastebin(`${client.user?.username} on ${getVoiceConnections().size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
 			.then(link => this.reply({ content: link, flags: Discord.MessageFlags.Ephemeral }));
 	},
 	async testradios() {
