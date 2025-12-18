@@ -1,7 +1,7 @@
-﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder, ChatInputCommandInteraction, GuildMember, VoiceBasedChannel } from 'discord.js';
+﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder, ChatInputCommandInteraction, VoiceBasedChannel } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel as joinVoiceChannelLowLevel } from '@discordjs/voice';
 import {
-	CommandType, PlayableData, database, UserHolder, TextChannelHolder, client, embedC, MusicData,
+	CommandType, database, UserHolder, TextChannelHolder, embedC, MusicData,
 	GuildPlayer, ScrollableEmbedTitleResolver, FallbackModesTableData, FallbackDataTableData, RoleTableData, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding,
 	commandPrefix,
 	radios
@@ -10,10 +10,14 @@ import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import { PasteClient } from 'pastebin-api';
 import got from 'got';
+import assert from 'node:assert';
 const pastebin = new PasteClient(process.envTyped.pastebin);
-export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
-	baseDict = baseDict.get(guildId) ? baseDict : baseDict.set(guildId, defaultValue);
-	return baseDict.get(guildId);
+export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T): T {
+    const initialValue = baseDict.get(guildId);
+    if (initialValue != undefined)
+        return initialValue;
+    baseDict.set(guildId, defaultValue);
+    return defaultValue;
 };
 export function randomElement<T>(array: T[]): T {
 	return array[(Math.random() * array.length) | 0];
@@ -31,7 +35,7 @@ export function couldPing(url: string): Promise<boolean> {
 			.on('error', _ => resolve(false));
 	});
 }
-export function hourMinSec(seconds: number) {
+export function hourMinSec(seconds?: number) {
 	if (seconds == undefined)
 		return 'N/A';
 	const hours = Math.floor(seconds / 3600);
@@ -62,7 +66,7 @@ export function resolveMusicData(type: 'radio' | 'custom', parameter: string): {
 				url: parameter
 			});
 		case 'radio':
-			const radio = radios.get(parameter);
+			const radio = radios.get(parameter)!; //a hívó felelőssége valid rádióadóval hívni
 			return ({
 				name: radio.name,
 				type,
@@ -75,17 +79,17 @@ export function joinVoiceChannel(voiceChannel: VoiceBasedChannel) {
 		channelId: voiceChannel.id,
 		guildId: voiceChannel.guildId,
         daveEncryption: false, //TODO nyerünk egy kis időt, amíg teljesen kötelezővé nem teszi a Discord (2026 március?), mert a teljesítménye katasztrofális
-		//@ts-ignore
 		adapterCreator: voiceChannel.guild.voiceAdapterCreator
 	});
 }
 export function createGuildPlayerForRequest(ctx: ThisBinding) {
-	const voiceChannel = (ctx.member as GuildMember).voice.channel;
+	const voiceChannel = ctx.member.voice.channel!; //ezt a filtereknek kell ellenőrizniük
 	joinVoiceChannel(voiceChannel);
 	ctx.guildPlayer = new GuildPlayer(ctx.guild);
 }
 export function forceSchedule({ textChannel, actionContext, playableData, preshuffle = false }: { textChannel?: TextChannel, actionContext: ThisBinding, playableData: MusicData[], preshuffle?: boolean }) {
-	const voiceChannel = (actionContext.member as GuildMember).voice.channel;
+    const client = actionContext.guild.client;
+	const voiceChannel = actionContext.member.voice.channel!; //ezt is a filtereknek kell ellenőrizniük
 	textChannel ??= actionContext.channel as TextChannel;
 	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
 		createGuildPlayerForRequest(actionContext);
@@ -114,9 +118,10 @@ interface CommonEmbedThisBinding {
 	commandName: string;
 };
 export function commonEmbed(this: CommonEmbedThisBinding, argText: string = '') {
+    const client = this.guild.client;
 	return new EmbedBuilder()
 		.setColor(embedC)
-		.setFooter({ text: `${commandPrefix}${this.commandName}${argText} - ${client.user.username}`, iconURL: client.user.avatarURL() })
+		.setFooter({ text: `${commandPrefix}${this.commandName}${argText} - ${client.user.username}`, iconURL: client.user.avatarURL() ?? undefined })
 		.setTimestamp();
 }
 export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: EmbedBuilder, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
@@ -201,20 +206,34 @@ export function isLink(text: string) {
 export function discordEscape(text: string) {
 	return text.replace(/\|/g, '\\|');
 }
-export function starterSeconds(data: PlayableData): number {
-	return parseInt(new URL(data.url).searchParams.get('t')) || 0
-}
 
 export function commandNamesByTypes(commandMap: Map<string, Command>, ...types: CommandType[]) {
 	return [...commandMap].filter(([_, command]) => types.includes(command.type)).map(([name, _]) => name);
 }
 type SupportedCommandValueTypes = TypeFromParam<SupportedCommandOptionTypes>;
 export function retrieveCommandOptionValue(option: CommandInteractionOption): SupportedCommandValueTypes {
-	return [ApplicationCommandOptionType.Boolean, ApplicationCommandOptionType.String, ApplicationCommandOptionType.Number].includes(option.type) ? option.value :
-		option.type == ApplicationCommandOptionType.Role ? option.role as Role :
-			null;
+    switch (option.type) {
+        case ApplicationCommandOptionType.Boolean:
+        case ApplicationCommandOptionType.String:
+        case ApplicationCommandOptionType.Integer:
+            assert(option.value != undefined);
+            return option.value;
+        case ApplicationCommandOptionType.Role:
+            assert(option.role instanceof Role);
+            return option.role;
+        default:
+            throw new Error(`Invalid command option type ${option.type}!`);
+    }
 }
 
 export function tsObjectEntries<T, K extends string = string>(obj: { [s in K]: T } | ArrayLike<T>): [K, T][] {
 	return Object.entries(obj) as [K, T][]
+}
+
+export function getBotVoiceChannel(guildPlayer: GuildPlayer): Snowflake {
+    return getVoiceConnection(guildPlayer.ownerGuild.id)!.joinConfig.channelId!; //TODO egyáltalán így kell lekérni? Miért lehet null?
+}
+
+export function botHasConnection(guildId: Snowflake): boolean {
+    return !!getVoiceConnection(guildId);
 }

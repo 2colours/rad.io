@@ -10,7 +10,7 @@
     "noImplicitReturns": false,
     "removeComments": false,
     "sourceMap": false,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "target": "ES2020",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
