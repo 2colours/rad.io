@@ -11,9 +11,12 @@ const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import { PasteClient } from 'pastebin-api';
 import got from 'got';
 const pastebin = new PasteClient(process.envTyped.pastebin);
-export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T) {
-	baseDict = baseDict.get(guildId) ? baseDict : baseDict.set(guildId, defaultValue);
-	return baseDict.get(guildId);
+export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T): T {
+    const initialValue = baseDict.get(guildId);
+    if (initialValue != undefined)
+        return initialValue;
+    baseDict.set(guildId, defaultValue);
+    return defaultValue;
 };
 export function randomElement<T>(array: T[]): T {
 	return array[(Math.random() * array.length) | 0];
@@ -31,7 +34,7 @@ export function couldPing(url: string): Promise<boolean> {
 			.on('error', _ => resolve(false));
 	});
 }
-export function hourMinSec(seconds: number) {
+export function hourMinSec(seconds?: number) {
 	if (seconds == undefined)
 		return 'N/A';
 	const hours = Math.floor(seconds / 3600);
@@ -62,7 +65,7 @@ export function resolveMusicData(type: 'radio' | 'custom', parameter: string): {
 				url: parameter
 			});
 		case 'radio':
-			const radio = radios.get(parameter);
+			const radio = radios.get(parameter)!; //a hívó felelőssége valid rádióadóval hívni
 			return ({
 				name: radio.name,
 				type,
@@ -80,12 +83,13 @@ export function joinVoiceChannel(voiceChannel: VoiceBasedChannel) {
 	});
 }
 export function createGuildPlayerForRequest(ctx: ThisBinding) {
-	const voiceChannel = (ctx.member as GuildMember).voice.channel;
+	const voiceChannel = ctx.member.voice.channel!; //ezt a filtereknek kell ellenőrizniük
 	joinVoiceChannel(voiceChannel);
 	ctx.guildPlayer = new GuildPlayer(ctx.guild);
 }
 export function forceSchedule({ textChannel, actionContext, playableData, preshuffle = false }: { textChannel?: TextChannel, actionContext: ThisBinding, playableData: MusicData[], preshuffle?: boolean }) {
-	const voiceChannel = (actionContext.member as GuildMember).voice.channel;
+    const client = actionContext.guild.client;
+	const voiceChannel = actionContext.member.voice.channel!; //ezt is a filtereknek kell ellenőrizniük
 	textChannel ??= actionContext.channel as TextChannel;
 	if (!voiceChannel.members.map(member => member.user).includes(client.user) || !getVoiceConnection(voiceChannel.guild.id)) {
 		createGuildPlayerForRequest(actionContext);

@@ -1,5 +1,6 @@
 ﻿import { FallbackType, StreamType, Creator, RadioConstantData, CreatorConstructorData } from '../index.js';
 import { WebhookClient, EmojiIdentifierResolvable } from 'discord.js';
+import assert from 'node:assert';
 export const defaultConfig = {
 	fallback: 'radio' as FallbackType
 };
@@ -374,6 +375,7 @@ const r: Map<string, RadioConstantData> = new Map(Object.entries(radios));
 export { r as radios };
 export const defaultRadio = 'kossuth';
 export const channels = [...r.keys()];
+assert(channels.includes(defaultRadio));
 export const embedC = 0xfcf5d2;
 export const webhookC = 0x36393f;
 const { soundcloud: soundcloudEmoji, youtube: youtubeEmoji } = process.envTyped.emojis;

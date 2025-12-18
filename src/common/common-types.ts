@@ -1,6 +1,7 @@
 import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, Role, GuildTextBasedChannel, ChatInputCommandInteraction, WebhookClientDataIdWithToken } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { Readable } from 'stream';
+import { VolumeTransformer } from 'prism-media';
 import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../index.js';
 import { AudioResource } from '@discordjs/voice';
 type MappableTypes = 'String' | 'Number' | 'Boolean' | 'Role';
@@ -24,7 +25,10 @@ export type PlayableCallbackVoid = () => void;
 export type PlayableCallbackBoolean = () => boolean;
 export type PlayableCallbackNumber = () => number;
 export type StreamProvider = (url: string) => Resolvable<string | Readable>;
-export type AudioResourceProvider = (url: string) => Resolvable<AudioResource>;
+export type VolumedAudioResourceProvider = (url: string) => Resolvable<VolumedAudioResource>;
+export type VolumedAudioResource = AudioResource & {
+    volume: VolumeTransformer;
+};
 export interface GuildPlayerHolder {
 	guildPlayer: GuildPlayer;
 }

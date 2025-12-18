@@ -139,7 +139,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 			.then(link => this.editReply({ content: link }));
 	},
 	async leaveguild(id) {
-		const guildToLeave = await client.guilds.resolve(id).leave();
+		const guildToLeave = await this.client.guilds.resolve(id)!.leave(); // ez dev parancs, a fejlesztő felelőssége jó id-t megadni
 		await this.reply({ content: `**Szerver elhagyva:** ${guildToLeave.name}`, flags: Discord.MessageFlags.Ephemeral });
 	},
 	async voicecount() {
@@ -265,7 +265,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		if (adminRight)
 			embedFields.push({ name: '❯ Adminisztrátor jog', value: adminCommands.map(cmd => `\`${cmd}\``).join(' ') });
 		embed = embed.addFields(...embedFields, ...grantedPerms.map(([roleID, commands]) => ({
-			name: `❯ _${this.guild.roles.resolve(roleID).name}_ rang`,
+			name: `❯ _${this.guild.roles.resolve(roleID)!.name}_ rang`, // a grantedPerms csak a member rangjaiból tartalmaz értékeket
 			value: commands.map(cmd => `\`${cmd}\``).join(' ')
 		})));
 		await this.reply({ embeds: [embed] });

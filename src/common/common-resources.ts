@@ -22,7 +22,7 @@ async function loadCFG(): Promise<Config> {
 			name: fbdRow.name,
 			lengthSeconds: undefined,
 			requester: undefined,
-			url: fbdRow.type == 'radio' ? radios.get(fbdRow.data).url : fbdRow.data
+			url: fbdRow.type == 'radio' ? radios.get(fbdRow.data)?.url : fbdRow.data //TODO ha nincs már ilyen rádió, ennél világosabb és koraibb visszajelzés is lehetne róla
 		}))),
 		database.query('SELECT * FROM role', { type: QueryTypes.SELECT }).then(roleRows => roleRows.forEach((roleRow: any) => roles.set(roleRow.guildID, new Map([...attach(roles, roleRow.guildID, new Map()), [roleRow.roleID, roleRow.commands != '' ? roleRow.commands.split('|') : []]]))))
 	];
@@ -122,7 +122,7 @@ const umzug = new Umzug({
 						fbdRow.name = fbdRow.data;
 						return;
 					}
-					const foundId = entryByName ? entryByName[0] : entryByUrl[0];
+					const foundId = entryByName ? entryByName[0] : entryByUrl![0]; // szégyen, hogy ezt a Typescript nem vezette le abból, hogy a kettő nem lehet egyszerre undefined
 					fbdRow.data = foundId;				
 				});
 				await context.bulkDelete('fallbackData', {});
@@ -142,8 +142,8 @@ const umzug = new Umzug({
 						fbdRow.url = urlById;
 						return;
 					}
-					fbdRow.name = radios.get(defaultRadio).name;
-					fbdRow.url = radios.get(defaultRadio).url;
+					fbdRow.name = radios.get(defaultRadio)!.name;
+					fbdRow.url = radios.get(defaultRadio)!.url;
 				});
 				await context.bulkDelete('fallbackData', {});
 				if (fbdRows.length > 0)

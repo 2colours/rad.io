@@ -7,12 +7,14 @@ import { getEmoji, MusicData, StreamType, shuffle, getFallbackMode,
 import { Collection, GuildMember, VoiceChannel } from 'discord.js';
 import got from 'got';
 import EventEmitter from 'node:events';
+import assert from 'node:assert';
+
 const fetchHttpStream = async (url: string) => got.stream(url, { timeout: { response: 5000 } }) as Readable;
-const resourceProducers = new Map<StreamType, AudioResourceProvider>([
-	['yt', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true}))],
-	['custom', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}))],
-	['radio', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}))],
-    ['sc', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true}))]
+const resourceProducers = new Map<StreamType, VolumedAudioResourceProvider>([
+	['yt', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true}) as VolumedAudioResource)],
+	['custom', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}) as VolumedAudioResource)],
+	['radio', url => fetchHttpStream(url).then(stream => createAudioResource(stream, {inlineVolume:true}) as VolumedAudioResource)],
+    ['sc', url => play.stream(url).then(stream => createAudioResource(stream.stream, {inputType: stream.type, inlineVolume:true}) as VolumedAudioResource)]
 ]);
 function isDefinite(data: MusicData | null) {
 	const definiteTypes: StreamType[] = ['yt', 'custom', 'sc'];
@@ -20,12 +22,12 @@ function isDefinite(data: MusicData | null) {
 }
 type ReadyHandler = (a: AudioResource) => void;
 class Playable {
-	private resource: AudioResource;
+	private resource: VolumedAudioResource;
 	private readyEmitter: EventEmitter = new EventEmitter();
 	constructor(private streamType: StreamType, private url: string, private volume: number) {}
 	async loadResource() {
 		this.resource = await resourceProducers.get(this.streamType)!(this.url);
-		this.resource.volume?.setVolume(this.volume);
+		this.resource.volume.setVolume(this.volume);
 		this.readyEmitter.emit('ready', this.resource);
 	}
 	onReady(handler: ReadyHandler) {
@@ -74,7 +76,8 @@ export class GuildPlayer extends EventEmitter {
 		await this.currentPlay.loadResource();
 	}
 	private async resetPlayingElement() {
-		this.announce(`**Ismétlődik: ** ${getEmoji(this._playingElement!.type)} \`${this._playingElement!.name}\``);
+        assert(this._playingElement); // csenden soha nem szabadna meghívódnia logikailag
+		this.announce(`**Ismétlődik: ** ${getEmoji(this._playingElement.type)} \`${this._playingElement.name}\``);
 		await this.currentPlay.loadResource();
 	}
 	private announce(message: string) {

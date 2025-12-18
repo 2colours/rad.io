@@ -104,7 +104,7 @@ function setPStatus() {
     if (!client.isReady())
         return void console.warn('A bot nem állt készen a setPStatus futtatása közben.');
 	const presenceEndings = [`G: ${client.guilds.cache.size}`, `Rádiók száma: ${channels.length} `, `@${client.user.username}`, `U: ${client.users.cache.size}`];
-	const randomRadioName = radios.get(randomElement(channels)).name;
+	const randomRadioName = radios.get(randomElement(channels))!.name;
 	const presence = `${randomRadioName} | ${randomElement(presenceEndings)}`;
 	client.user.setPresence({ activities: [{ name: presence, type: Discord.ActivityType.Listening }] });
 }
