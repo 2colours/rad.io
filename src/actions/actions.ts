@@ -364,8 +364,8 @@ function sendToPartnerHook(link: string, content: string, username: string, serv
 	partnerHook.send({ content: link, embeds: [embed], username, avatarURL }).catch(console.error);
 }
 
-await play.setToken({
-	soundcloud: {
-		client_id: await play.getFreeClientID()
-	}
-});
+// await play.setToken({
+// 	soundcloud: {
+// 		client_id: await play.getFreeClientID()
+// 	}
+// });
