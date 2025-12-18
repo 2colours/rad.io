@@ -216,6 +216,7 @@ export function retrieveCommandOptionValue(option: CommandInteractionOption): Su
         case ApplicationCommandOptionType.Boolean:
         case ApplicationCommandOptionType.String:
         case ApplicationCommandOptionType.Integer:
+        case ApplicationCommandOptionType.Number:
             assert(option.value != undefined);
             return option.value;
         case ApplicationCommandOptionType.Role:
