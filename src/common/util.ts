@@ -10,6 +10,7 @@ import sequelize from 'sequelize';
 const { QueryTypes } = sequelize; // Workaround (CommonJS -> ES modul)
 import { PasteClient } from 'pastebin-api';
 import got from 'got';
+import assert from 'node:assert';
 const pastebin = new PasteClient(process.envTyped.pastebin);
 export function attach<T>(baseDict: Map<Snowflake, T>, guildId: Snowflake, defaultValue: T): T {
     const initialValue = baseDict.get(guildId);
@@ -78,7 +79,6 @@ export function joinVoiceChannel(voiceChannel: VoiceBasedChannel) {
 		channelId: voiceChannel.id,
 		guildId: voiceChannel.guildId,
         daveEncryption: false, //TODO nyerünk egy kis időt, amíg teljesen kötelezővé nem teszi a Discord (2026 március?), mert a teljesítménye katasztrofális
-		//@ts-ignore
 		adapterCreator: voiceChannel.guild.voiceAdapterCreator
 	});
 }
@@ -118,9 +118,10 @@ interface CommonEmbedThisBinding {
 	commandName: string;
 };
 export function commonEmbed(this: CommonEmbedThisBinding, argText: string = '') {
+    const client = this.guild.client;
 	return new EmbedBuilder()
 		.setColor(embedC)
-		.setFooter({ text: `${commandPrefix}${this.commandName}${argText} - ${client.user.username}`, iconURL: client.user.avatarURL() })
+		.setFooter({ text: `${commandPrefix}${this.commandName}${argText} - ${client.user.username}`, iconURL: client.user.avatarURL() ?? undefined })
 		.setTimestamp();
 }
 export async function useScrollableEmbed(ctx: UserHolder & TextChannelHolder, baseEmbed: EmbedBuilder, titleResolver: ScrollableEmbedTitleResolver, linesForDescription: string[], elementsPerPage: number = 10) {
@@ -214,9 +215,18 @@ export function commandNamesByTypes(commandMap: Map<string, Command>, ...types: 
 }
 type SupportedCommandValueTypes = TypeFromParam<SupportedCommandOptionTypes>;
 export function retrieveCommandOptionValue(option: CommandInteractionOption): SupportedCommandValueTypes {
-	return [ApplicationCommandOptionType.Boolean, ApplicationCommandOptionType.String, ApplicationCommandOptionType.Number].includes(option.type) ? option.value :
-		option.type == ApplicationCommandOptionType.Role ? option.role as Role :
-			null;
+    switch (option.type) {
+        case ApplicationCommandOptionType.Boolean:
+        case ApplicationCommandOptionType.String:
+        case ApplicationCommandOptionType.Integer:
+            assert(option.value != undefined);
+            return option.value;
+        case ApplicationCommandOptionType.Role:
+            assert(option.role instanceof Role);
+            return option.role;
+        default:
+            throw new Error(`Invalid command option type ${option.type}!`);
+    }
 }
 
 export function tsObjectEntries<T, K extends string = string>(obj: { [s in K]: T } | ArrayLike<T>): [K, T][] {

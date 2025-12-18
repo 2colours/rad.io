@@ -1,4 +1,4 @@
-import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, Role, GuildTextBasedChannel, ChatInputCommandInteraction, WebhookClientDataIdWithToken } from 'discord.js';
+import { Snowflake, User, GuildMember, Role, GuildTextBasedChannel, ChatInputCommandInteraction, WebhookClientDataIdWithToken } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { Readable } from 'stream';
 import { VolumeTransformer } from 'prism-media';
@@ -16,7 +16,6 @@ export interface Config {
 	fallbackChannels: Map<Snowflake, MusicData>;
 	roles: Map<Snowflake, Map<Snowflake, string[]>>; //TODO az a string[] specifikusan parancsnév a debatedCommands-ból
 }
-type TextBasedChannels = DMChannel | TextChannel | NewsChannel | ThreadChannel | GuildTextBasedChannel;
 export type Resolvable<T> = T | Promise<T>;
 export type Predicate = (ctx: ThisBinding) => Resolvable<boolean>;
 export type Decorator = (toDecorate: Action) => Action;
@@ -36,9 +35,10 @@ export interface UserHolder {
 	user: User;
 }
 export interface TextChannelHolder {
-	channel: TextBasedChannels | PartialDMChannel;
+	channel: GuildTextBasedChannel;
 }
-export interface ThisBinding extends ChatInputCommandInteraction, GuildPlayerHolder { }
+type InteractionRelevant = ChatInputCommandInteraction<'cached'> & TextChannelHolder;
+export interface ThisBinding extends InteractionRelevant, GuildPlayerHolder { }
 export type FallbackType = 'leave' | 'radio' | 'silence';
 export interface FallbackModesTableData {
 	guildID: Snowflake;

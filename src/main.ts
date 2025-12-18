@@ -5,6 +5,7 @@ const token = process.envTyped.radioToken;
 
 import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue, joinVoiceChannel, resolveMusicData } from './index.js';
 import moment from 'moment';
+import assert from 'node:assert';
 
 const devChannel = (readyClient: Discord.Client<true>) => readyClient.channels.resolve(devChanId) as Discord.TextChannel;
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
@@ -18,9 +19,13 @@ client.on('clientReady', readyClient => {
 
 
 client.on('interactionCreate', async interaction => {
-	if (!interaction.isChatInputCommand() || !interaction.inGuild() || !commands.has(interaction.commandName))
+	if (!interaction.isChatInputCommand() || !interaction.inCachedGuild())
 		return;
-	const { decoratedAction: commandFunction } = commands.get(interaction.commandName);
+    const command = commands.get(interaction.commandName);
+    if (!command)
+        return;
+	const { decoratedAction: commandFunction } = command;
+    assert(interaction.channel);
 	const thisBinding: ThisBinding = Object.defineProperty(interaction, 'guildPlayer',{
 			get() { return guildPlayers.get(this.guild.id); },
 			set(value) { return guildPlayers.set(this.guild.id, value); }
@@ -70,12 +75,13 @@ process.on('unhandledRejection', (reason, _) => {
 	console.error(reason);
 });
 
-function logGuildJoin(guild: Discord.Guild) {
+async function logGuildJoin(guild: Discord.Guild) {
 	const created = moment(guild.createdAt).format("MMM Do YY");
+    const guildOwner = await guild.fetchOwner();
 	const embed = new Discord.EmbedBuilder()
 		.setDescription(`ID: ${guild.id}
 Members: ${guild.memberCount}
-Owner: ${guild.members.resolve(guild.ownerId)?.user?.tag ?? 'unable to fetch'}
+Owner: ${guildOwner.user.tag}
 Created At: ${created}
 Icon: [Link](${guild.iconURL() ? guild.iconURL() : guild.client.user.displayAvatarURL()})`);
 	devChannel(guild.client).send({ content: `**${guild.client.user.tag}** joined \`${guild.name}\``, embeds: [embed] });

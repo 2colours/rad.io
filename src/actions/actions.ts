@@ -14,7 +14,7 @@ import { sscanf } from 'scanf';
 
 export const actions: Actions = {
 	async join(stationId) {
-		const channelToPlay = extractChannel(this, stationId);
+		const channelToPlay = extractChannel(this.channel, stationId);
 		joinAndStartup.call(this, (gp: GuildPlayer) => {
 			if (channelToPlay)
 				gp.schedule(Object.assign({
@@ -87,6 +87,7 @@ export const actions: Actions = {
 		await this.reply(tickEmoji);
 	},
 	async help(helpCommand) {
+        const client = this.client;
 		if (!helpCommand) {
 			const userCommands = commandNamesByTypes(commands, 'grantable', 'unlimited');
 			userCommands.sort();
@@ -121,14 +122,17 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		await this.reply({ content: '**Nincs ilyen nevű parancs.**', flags: Discord.MessageFlags.Ephemeral });
 	},
 	async guilds() {
+        const client = this.client;
 		const guildLines = client.guilds.cache.map(g => `${g.name} **=>** \`${g.id}\` (${g.memberCount})`);
-		await createPastebin(`${client.user?.username} on ${client.guilds.cache.size} guilds with ${client.users.cache.size} users.`, guildLines.join('\n'))
+		await createPastebin(`${client.user.username} on ${client.guilds.cache.size} guilds with ${client.users.cache.size} users.`, guildLines.join('\n'))
 			.then(link => this.reply({ content: link, flags: Discord.MessageFlags.Ephemeral }));
 	},
 	async connections() {
-		const connectionLines = Array.from(getVoiceConnections().values(), vc => `${client.guilds.resolve(vc.joinConfig.guildId).name} (${vc.joinConfig.guildId}) - ${(client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).name} (${(client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size})`);
-		const usersAffected = Array.from(getVoiceConnections().values(), vc => (client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
-		await createPastebin(`${client.user?.username} on ${getVoiceConnections().size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
+        const client = this.client;
+        //@ts-ignore //TODO https://github.com/2colours/rad.io/issues/615
+		const connectionLines = Array.from(getVoiceConnections().values(), vc => `${client.guilds.resolve(vc.joinConfig.guildId)!.name} (${vc.joinConfig.guildId}) - ${(client.channels.resolve(vc.joinConfig.channelId!) as Discord.VoiceBasedChannel).name} (${(client.channels.resolve(vc.joinConfig.channelId) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size})`);
+		const usersAffected = Array.from(getVoiceConnections().values(), vc => (client.channels.resolve(vc.joinConfig.channelId!) as Discord.VoiceBasedChannel).members.filter(member => !member.user.bot).size).reduce((prev, curr) => prev + curr, 0);
+		await createPastebin(`${client.user.username} on ${getVoiceConnections().size} voice channels with ${usersAffected} users.`, connectionLines.join('\n'))
 			.then(link => this.reply({ content: link, flags: Discord.MessageFlags.Ephemeral }));
 	},
 	async testradios() {
@@ -189,7 +193,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		setFallbackChannel(this.guild.id, fr);
 		await this.reply(`**Fallback rádióadó sikeresen beállítva: ${getEmoji(fr.type)} \`${fr.name}\`**`);
 		try {
-			await saveRow.fallbackData({ guildID: this.guild.id, type: fr.type, name: fr.name, data: (fr.type == 'radio') ? given : fr.url });
+			await saveRow.fallbackData({ guildID: this.guildId, type: fr.type, name: fr.name, data: (fr.type == 'radio') ? given : fr.url });
 		}
 		catch (e) {
 			console.error(e);
@@ -213,7 +217,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		await this.reply(tickEmoji);
 	},
 	async tune(param) {
-		const channel = extractChannel(this, param);
+		const channel = extractChannel(this.channel, param);
 		await this.deferReply();
 		forceSchedule({
 			actionContext: this,
@@ -253,7 +257,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		const adminCommands = commandNamesByTypes(commands, 'adminOnly', 'grantable');
 		adminCommands.sort();
 		const unlimitedCommands = commandNamesByTypes(commands, 'unlimited');
-		const grantedPerms = getRoles(this.guild.id).filter(([roleID, _]) => (this.member as Discord.GuildMember).roles.cache.has(roleID)).filter(([_, commands]) => commands.length > 0);
+		const grantedPerms = getRoles(this.guildId).filter(([roleID, _]) => this.member.roles.cache.has(roleID)).filter(([_, commands]) => commands.length > 0);
 		grantedPerms.sort(([roleA, _commandsA], [roleB, _commandsB]) => roleA.localeCompare(roleB));
 		grantedPerms.forEach(([_, commands]) => commands.sort());
 		const allPerms = adminRight ? [...adminCommands] : [];
@@ -299,9 +303,10 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 		await this.reply(tickEmoji);
 	},
 	async announce(target, rawMessage) {
+        const client = this.client;
 		const message: string = eval(rawMessage);
 		const guildToAnnounce = target == 'all' ? Array.from(client.guilds.cache.values()) : target == 'conn' ? Array.from(getVoiceConnections().values(), conn => client.guilds.resolve(conn.joinConfig.channelId)) : [client.guilds.resolve(target)];
-		guildToAnnounce.forEach(guild => sendGuild(guild, message));
+		guildToAnnounce.forEach(guild => guild && sendGuild(guild, message));
 		await this.reply(tickEmoji);
 	},
 	async partner(inv, rawContent, username, serverName) {
@@ -328,11 +333,11 @@ async function permissionReused(this: ThisBinding, permCommands: string, role: D
 	}
 }
 
-function extractChannel(textChannelHolder: TextChannelHolder, param: string) {
+function extractChannel(channel: Discord.SendableChannels, param: string) {
 	let channelToPlay = sscanf(param, '%s') ?? '';
 	if (channelToPlay && !radiosList.has(channelToPlay)) {
 		channelToPlay = randomElement(channels);
-		textChannelHolder.channel.send("**Hibás csatornanevet adtál meg, ezért egy random csatorna kerül lejátszásra!**");
+		channel.send('**Hibás csatornanevet adtál meg, ezért egy random csatorna kerül lejátszásra!**');
 	}
 	return channelToPlay;
 }
