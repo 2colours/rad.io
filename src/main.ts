@@ -6,14 +6,14 @@ const token = process.envTyped.radioToken;
 import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue, joinVoiceChannel, resolveMusicData } from './index.js';
 import moment from 'moment';
 
-const devChannel = () => client.channels.resolve(devChanId) as Discord.TextChannel;
+const devChannel = (readyClient: Discord.Client<true>) => readyClient.channels.resolve(devChanId) as Discord.TextChannel;
 const guildPlayers: Map<Discord.Snowflake, GuildPlayer> = new Map();
 
-client.on('clientReady', async () => {
-	console.log(`${client.user?.tag}: client online, on ${client.guilds.cache.size} guilds, with ${client.users.cache.size} users.`);
+client.on('clientReady', readyClient => {
+	console.log(`${readyClient.user.tag}: client online, on ${readyClient.guilds.cache.size} guilds, with ${readyClient.users.cache.size} users.`);
 	setPStatus();
 	updateStatusChannels();
-    playbackOnStartup();
+    playbackOnStartup(readyClient);
 });
 
 
@@ -57,7 +57,7 @@ client.on('guildCreate', guild => {
 });
 
 client.on('guildDelete', guild => {
-	devChannel().send(`**${client.user.tag}** left \`${guild.name}\``);
+	devChannel(guild.client).send(`**${guild.client.user.tag}** left \`${guild.name}\``);
 	setPStatus();
 	updateStatusChannels()
 });
@@ -77,13 +77,13 @@ function logGuildJoin(guild: Discord.Guild) {
 Members: ${guild.memberCount}
 Owner: ${guild.members.resolve(guild.ownerId)?.user?.tag ?? 'unable to fetch'}
 Created At: ${created}
-Icon: [Link](${guild.iconURL() ? guild.iconURL() : client.user.displayAvatarURL()})`);
-	devChannel().send({ content: `**${client.user.tag}** joined \`${guild.name}\``, embeds: [embed] });
+Icon: [Link](${guild.iconURL() ? guild.iconURL() : guild.client.user.displayAvatarURL()})`);
+	devChannel(guild.client).send({ content: `**${guild.client.user.tag}** joined \`${guild.name}\``, embeds: [embed] });
 }
 
 async function sendWelcome(guild: Discord.Guild) {
 	const embed = new Discord.EmbedBuilder()
-		.setAuthor({ name: client.user.tag, iconURL: client.user.displayAvatarURL() })
+		.setAuthor({ name: guild.client.user.tag, iconURL: guild.client.user.displayAvatarURL() })
 		.setTitle('A RAD.io zenebot csatlakozott a szerverhez.')
 		.addFields(
 			{ name: '❯ Néhány szó a botról', value: 'A RAD.io egy magyar nyelvű és fejlesztésű zenebot.\nEgyedi funkciója az előre feltöltött élő rádióadók játszása, de megszokott funkciók (youtube-keresés játszási listával) többsége is elérhető.\nTovábbi információért használd a help parancsot.'},
@@ -101,6 +101,8 @@ function forceLogin(): Promise<any> {
 }
 
 function setPStatus() {
+    if (!client.isReady())
+        return void console.warn('A bot nem állt készen a setPStatus futtatása közben.');
 	const presenceEndings = [`G: ${client.guilds.cache.size}`, `Rádiók száma: ${channels.length} `, `@${client.user.username}`, `U: ${client.users.cache.size}`];
 	const randomRadioName = radios.get(randomElement(channels)).name;
 	const presence = `${randomRadioName} | ${randomElement(presenceEndings)}`;
@@ -108,6 +110,8 @@ function setPStatus() {
 }
 
 function updateStatusChannels() {
+    if (!client.isReady())
+        return void console.warn('A bot nem állt készen az updateStatusChannels futtatása közben.');
 	if (client.user.id != dedicatedClientId) return;
 	const guildsChan = client.channels.resolve(guildsChanId) as Discord.VoiceChannel;
 	const usersChan = client.channels.resolve(usersChanId) as Discord.VoiceChannel;
@@ -115,9 +119,11 @@ function updateStatusChannels() {
 	usersChan.setName(`RAD.io (${client.users.cache.size}) felhasználóval`);
 }
 
-function playbackOnStartup() {
-    process.envTyped.startupPlaybacks?.forEach(async playbackEntry => {
-        const guild = client.guilds.resolve(playbackEntry.guildId);
+function playbackOnStartup(readyClient: Discord.Client<true>) {
+    process.envTyped.startupPlaybacks?.forEach(playbackEntry => {
+        const guild = readyClient.guilds.resolve(playbackEntry.guildId);
+        if (!guild)
+            return void console.error(`A(z) ${playbackEntry.guildId} id-jű szervert nem érte el a bot.`);
         const voiceChannel = guild.channels.resolve(playbackEntry.channelId) as Discord.VoiceChannel;
         joinVoiceChannel(voiceChannel);
         const guildPlayer = new GuildPlayer(guild);
