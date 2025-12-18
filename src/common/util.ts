@@ -206,9 +206,6 @@ export function isLink(text: string) {
 export function discordEscape(text: string) {
 	return text.replace(/\|/g, '\\|');
 }
-export function starterSeconds(data: PlayableData): number {
-	return parseInt(new URL(data.url).searchParams.get('t')) || 0
-}
 
 export function commandNamesByTypes(commandMap: Map<string, Command>, ...types: CommandType[]) {
 	return [...commandMap].filter(([_, command]) => types.includes(command.type)).map(([name, _]) => name);
