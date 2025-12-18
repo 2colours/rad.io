@@ -1,10 +1,12 @@
 import * as Discord from 'discord.js';
-import { AudioPlayer, AudioPlayerPlayingState, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, getVoiceConnection, VoiceConnectionReadyState } from '@discordjs/voice';
+import { AudioPlayer, AudioPlayerStatus, AudioResource, createAudioPlayer, createAudioResource, getVoiceConnection } from '@discordjs/voice';
 import { Readable } from 'stream';
 import * as play from 'play-dl'; //Nem illik közvetlenül hívni
 import { getEmoji, MusicData, StreamType, shuffle, getFallbackMode,
-	getFallbackChannel, PlayingData, AudioResourceProvider, StateError } from '../index.js';
-import { Collection, GuildMember, VoiceChannel } from 'discord.js';
+	getFallbackChannel, PlayingData, VolumedAudioResourceProvider, StateError, 
+    getBotVoiceChannel,
+    VolumedAudioResource} from '../index.js';
+import { VoiceChannel } from 'discord.js';
 import got from 'got';
 import EventEmitter from 'node:events';
 import assert from 'node:assert';
@@ -39,6 +41,10 @@ class Playable {
 	playingSeconds() {
 		return Math.round(this.resource.playbackDuration / 1000);
 	}
+    setVolume(volume: number) {
+        this.volume = volume;
+        this.resource.volume.setVolume(this.volume);
+    }
 }
 class VoiceHandler {
 	private timeoutId?: NodeJS.Timeout;
@@ -48,8 +54,8 @@ class VoiceHandler {
         if (process.envTyped.leaveTimeoutMinutes == 'never')
             return;
 		const client = this.controlledPlayer.ownerGuild.client;
-		const botChannel = client.channels.resolve(getVoiceConnection(this.controlledPlayer.ownerGuild.id)!.joinConfig.channelId!) as VoiceChannel;
-		const voiceEmpty = !(botChannel.members as Collection<string, GuildMember>)?.some(member => !member.user.bot);
+		const botChannel = client.channels.resolve(getBotVoiceChannel(this.controlledPlayer)) as VoiceChannel;
+		const voiceEmpty = !botChannel.members.some(member => !member.user.bot);
 		if (voiceEmpty && !this.timeoutId)
 			this.timeoutId = global.setTimeout(() => {try{this.controlledPlayer.leave()} catch(e){console.log(e);}}, 60000 * process.envTyped.leaveTimeoutMinutes);
 		if (!voiceEmpty && this.timeoutId) {
@@ -64,7 +70,7 @@ class VoiceHandler {
 }
 export class GuildPlayer extends EventEmitter {
 	private engine: AudioPlayer;
-	private currentPlay: Playable;
+	private currentPlay: Playable; //TODO ez jelenleg elég nagy rák, implicit függ attól, hogy a _playingElement valami valid értéket tartalmaz
 	private _playingElement: MusicData | null;
 	private async setPlayingElement(value: MusicData | null) {
 		this._playingElement = value;
@@ -121,12 +127,10 @@ export class GuildPlayer extends EventEmitter {
 		this.setVolume(this.oldVolume!);
 	}
 	setVolume(vol: number) {
-		const connectionState = getVoiceConnection(this.ownerGuild.id)!.state as VoiceConnectionReadyState;
-		const playerState = connectionState.subscription?.player.state as AudioPlayerPlayingState;
-		if (!playerState)
+        if (!this._playingElement)
 			throw new StateError('Semmi nincs lejátszás alatt.');
-		playerState.resource.volume?.setVolume(vol);
-		this.volume = vol;
+        this.currentPlay.setVolume(vol);
+        this.volume = vol;
 	}
 	async seek(_seconds: number) {
 		//TODO
@@ -231,7 +235,7 @@ export class GuildPlayer extends EventEmitter {
 			return;
 		this.engine.removeAllListeners(AudioPlayerStatus.Idle);
 		this.engine.stop();
-		getVoiceConnection(this.ownerGuild.id)?.destroy(); //KÉRDÉSES!
+		getVoiceConnection(this.ownerGuild.id)?.destroy(); //KÉRDÉSES! //TODO https://github.com/2colours/rad.io/issues/615
 		this.handler.destroy();
         //@ts-ignore //TODO ez egy "weak reference"-ként kell hogy működjön, ezért kellett itt felszabadítanunk - meg kéne csinálni rendesen
 		delete this.ownerGuild;

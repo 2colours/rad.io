@@ -1,22 +1,26 @@
-﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators, ActionParams, StateError } from '../index.js';
+﻿import { Predicate, Action, Decorator, ThisBinding, creators, getRoles, getFallbackMode, client, aggregateDecorators, ActionParams, StateError, botHasConnection } from '../index.js';
 import { getVoiceConnection } from '@discordjs/voice';
 import { MessageFlags, PermissionsBitField, VoiceBasedChannel } from 'discord.js';
-export const isAdmin: Predicate = ctx => ctx.memberPermissions?.has(PermissionsBitField.Flags.Administrator);
-const isVcUser: Predicate = ctx => !!ctx.guild.members.resolve(ctx.user.id).voice.channel;
-const isDifferentVc: Predicate = ctx => client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) != ctx.guild.members.resolve(ctx.user.id).voice.channel;
-const isVcBot: Predicate = ctx => !!getVoiceConnection(ctx.guildId);
+export const isAdmin: Predicate = ctx => ctx.memberPermissions.has(PermissionsBitField.Flags.Administrator);
+const isVcUser: Predicate = ctx => !!ctx.member.voice.channel;
+// @ts-ignore //TODO https://github.com/2colours/rad.io/issues/615
+const isDifferentVc: Predicate = ctx => getVoiceConnection(ctx.guildId).joinConfig.channelId != ctx.member.voice.channelId;
+const isVcBot: Predicate = ctx => botHasConnection(ctx.guildId);
 const choiceFilter = (pred: Predicate, dec1: Decorator, dec2: Decorator) => (action: Action) => async function (...args: ActionParams) {
 	const currentDecorator = await pred(this) ? dec1 : dec2;
 	await currentDecorator(action).call(this, ...args);
 };
 const hasPermission: Predicate = ctx => {
 	const guildRoles = getRoles(ctx.guild.id);
-	return guildRoles.some(([roleName, relatedPerms]) => ctx.guild.members.resolve(ctx.user.id).roles.cache.has(roleName) && relatedPerms.includes(ctx.commandName));
+	return guildRoles.some(([roleName, relatedPerms]) => ctx.member.roles.cache.has(roleName) && relatedPerms.includes(ctx.commandName));
 }
-const hasVcPermission: Predicate = ctx => ctx.guild.members.resolve(ctx.user.id).voice.channel.joinable;
+// @ts-ignore //TODO ezt érdemes lenne felülvizsgálni, van-e értelme külön kezelni, amikor valószínűleg mindig a felhasználó csatornájába kéne ilyenkor belépni
+const hasVcPermission: Predicate = ctx => ctx.member.voice.channel.joinable;
 const isCreator: Predicate = ctx => creators.map(elem => elem.id).includes(ctx.user.id);
-const isAloneUser: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot && member != ctx.guild.members.resolve(ctx.user.id));
-const isAloneBot: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId)?.joinConfig?.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot);
+// @ts-ignore //TODO https://github.com/2colours/rad.io/issues/615
+const isAloneUser: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId).joinConfig.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot && member != ctx.guild.members.resolve(ctx.user.id));
+// @ts-ignore //TODO https://github.com/2colours/rad.io/issues/615
+const isAloneBot: Predicate = ctx => isVcBot(ctx) && !(client.channels.resolve(getVoiceConnection(ctx.guildId).joinConfig.channelId) as VoiceBasedChannel).members.some(member => !member.user.bot);
 const pass: Decorator = action => action;
 const rejectReply = (replyMessage: string) => (_: Action) => async function (this: ThisBinding, ..._args: ActionParams) {
 	await this.reply({ content: `**${replyMessage}**`, flags: MessageFlags.Ephemeral });
@@ -33,9 +37,10 @@ const sameOrNoBotVcNeeded: Decorator = choiceFilter(any(not(isVcBot), not(isDiff
 const permissionNeeded: Decorator = choiceFilter(hasPermission, pass, rejectReply('Nincs jogod a parancs használatához.'));
 const adminOrPermissionNeeded: Decorator = choiceFilter(isAdmin, pass, permissionNeeded);
 const creatorNeeded: Decorator = choiceFilter(isCreator, pass, nop);
-const vcPermissionNeeded: Decorator = action => async function (...args: ActionParams) {
+const vcPermissionNeeded: Decorator = action => async function (this: ThisBinding, ...args: ActionParams) {
 	if (!hasVcPermission(this))
-		await this.channel.send(`**Nincs jogom csatlakozni a** \`${this.guild.members.resolve(this.user.id).voice.channel.name}\` **csatornához!**`).catch(console.error);
+        // @ts-ignore //TODO ezt érdemes lenne felülvizsgálni, van-e értelme külön kezelni, amikor valószínűleg mindig a felhasználó csatornájába kéne ilyenkor belépni
+		await this.channel.send(`**Nincs jogom csatlakozni a** \`${this.member.voice.channel.name}\` **csatornához!**`).catch(console.error);
 	else
 		await action.call(this, ...args);
 };

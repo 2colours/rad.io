@@ -2,8 +2,8 @@ import * as Discord from 'discord.js';
 import { getVoiceConnections } from '@discordjs/voice';
 import {
 	commandNamesByTypes, randomElement, hourMinSec, attach, GuildPlayer, StreamType, FallbackType, MusicData,
-	client, channels, commands, creators, getEmoji, radios as radiosList, forceSchedule,
-	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, TextChannelHolder, partnerHook, avatarURL, webhookC, radios, tickEmoji,
+	channels, commands, creators, getEmoji, radios as radiosList, forceSchedule,
+	commonEmbed, useScrollableEmbed, sendGuild, saveRow, createPastebin, partnerHook, avatarURL, webhookC, radios, tickEmoji,
 	setFallbackMode, setFallbackChannel, getRoleSafe, getRoles, ThisBinding, Actions, isAdmin, devServerInvite, ParameterData, debatedCommands, couldPing, replyFirstSendRest,
 	commandPrefix,
 	createGuildPlayerForRequest,
@@ -305,6 +305,7 @@ A bot fejlesztői (kattints a támogatáshoz): ${creators.map(creator => creator
 	async announce(target, rawMessage) {
         const client = this.client;
 		const message: string = eval(rawMessage);
+        //@ts-ignore //TODO https://github.com/2colours/rad.io/issues/615
 		const guildToAnnounce = target == 'all' ? Array.from(client.guilds.cache.values()) : target == 'conn' ? Array.from(getVoiceConnections().values(), conn => client.guilds.resolve(conn.joinConfig.channelId)) : [client.guilds.resolve(target)];
 		guildToAnnounce.forEach(guild => guild && sendGuild(guild, message));
 		await this.reply(tickEmoji);

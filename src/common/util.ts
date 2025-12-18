@@ -1,7 +1,7 @@
-﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder, ChatInputCommandInteraction, GuildMember, VoiceBasedChannel } from 'discord.js';
+﻿import { Snowflake, Guild, TextChannel, MessageCreateOptions, Message, MessageComponentInteraction, CommandInteractionOption, Role, ApplicationCommandOptionType, EmbedBuilder, ComponentType, ButtonBuilder, ButtonStyle, ActionRowBuilder, MessageActionRowComponentBuilder, ChatInputCommandInteraction, VoiceBasedChannel } from 'discord.js';
 import { getVoiceConnection, joinVoiceChannel as joinVoiceChannelLowLevel } from '@discordjs/voice';
 import {
-	CommandType, PlayableData, database, UserHolder, TextChannelHolder, client, embedC, MusicData,
+	CommandType, database, UserHolder, TextChannelHolder, embedC, MusicData,
 	GuildPlayer, ScrollableEmbedTitleResolver, FallbackModesTableData, FallbackDataTableData, RoleTableData, Decorator, TypeFromParam, SupportedCommandOptionTypes, Command, ThisBinding,
 	commandPrefix,
 	radios
@@ -231,4 +231,12 @@ export function retrieveCommandOptionValue(option: CommandInteractionOption): Su
 
 export function tsObjectEntries<T, K extends string = string>(obj: { [s in K]: T } | ArrayLike<T>): [K, T][] {
 	return Object.entries(obj) as [K, T][]
+}
+
+export function getBotVoiceChannel(guildPlayer: GuildPlayer): Snowflake {
+    return getVoiceConnection(guildPlayer.ownerGuild.id)!.joinConfig.channelId!; //TODO egyáltalán így kell lekérni? Miért lehet null?
+}
+
+export function botHasConnection(guildId: Snowflake): boolean {
+    return !!getVoiceConnection(guildId);
 }

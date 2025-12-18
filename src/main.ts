@@ -1,9 +1,8 @@
 ﻿import '@2colours/toml-env/config';
 import * as Discord from 'discord.js';
-import { getVoiceConnection } from '@discordjs/voice';
 const token = process.envTyped.radioToken;
 
-import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue, joinVoiceChannel, resolveMusicData } from './index.js';
+import { client, GuildPlayer, embedC, channels, radios, randomElement, devServerInvite, sendGuild, dedicatedClientId, getBotVoiceChannel, guildsChanId, usersChanId, devChanId, commands, ThisBinding, retrieveCommandOptionValue, joinVoiceChannel, resolveMusicData } from './index.js';
 import moment from 'moment';
 import assert from 'node:assert';
 
@@ -50,7 +49,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 	}
 	if (oldState.member?.user.bot) //innen csak nem botokra figyelünk
 		return;
-	if ([oldState.channel?.id, newState.channel?.id].includes(getVoiceConnection(guildPlayer.ownerGuild.id).joinConfig.channelId))
+	if ([oldState.channel?.id, newState.channel?.id].includes(getBotVoiceChannel(guildPlayer)))
 		guildPlayer.handler.eventTriggered();
 });
 
