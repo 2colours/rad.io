@@ -1,6 +1,7 @@
-import { Snowflake, User, TextChannel, GuildMember, DMChannel, NewsChannel, ThreadChannel, PartialDMChannel, Role, GuildTextBasedChannel, ChatInputCommandInteraction, WebhookClientDataIdWithToken } from 'discord.js';
+import { Snowflake, User, GuildMember, Role, GuildTextBasedChannel, ChatInputCommandInteraction, WebhookClientDataIdWithToken } from 'discord.js';
 import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { Readable } from 'stream';
+import { VolumeTransformer } from 'prism-media';
 import { GuildPlayer, Filter, client, aggregateDecorators, Action } from '../index.js';
 import { AudioResource } from '@discordjs/voice';
 type MappableTypes = 'String' | 'Number' | 'Boolean' | 'Role';
@@ -15,7 +16,6 @@ export interface Config {
 	fallbackChannels: Map<Snowflake, MusicData>;
 	roles: Map<Snowflake, Map<Snowflake, string[]>>; //TODO az a string[] specifikusan parancsnév a debatedCommands-ból
 }
-type TextBasedChannels = DMChannel | TextChannel | NewsChannel | ThreadChannel | GuildTextBasedChannel;
 export type Resolvable<T> = T | Promise<T>;
 export type Predicate = (ctx: ThisBinding) => Resolvable<boolean>;
 export type Decorator = (toDecorate: Action) => Action;
@@ -24,7 +24,10 @@ export type PlayableCallbackVoid = () => void;
 export type PlayableCallbackBoolean = () => boolean;
 export type PlayableCallbackNumber = () => number;
 export type StreamProvider = (url: string) => Resolvable<string | Readable>;
-export type AudioResourceProvider = (url: string) => Resolvable<AudioResource>;
+export type VolumedAudioResourceProvider = (url: string) => Resolvable<VolumedAudioResource>;
+export type VolumedAudioResource = AudioResource & {
+    volume: VolumeTransformer;
+};
 export interface GuildPlayerHolder {
 	guildPlayer: GuildPlayer;
 }
@@ -32,9 +35,10 @@ export interface UserHolder {
 	user: User;
 }
 export interface TextChannelHolder {
-	channel: TextBasedChannels | PartialDMChannel;
+	channel: GuildTextBasedChannel;
 }
-export interface ThisBinding extends ChatInputCommandInteraction, GuildPlayerHolder { }
+type InteractionRelevant = ChatInputCommandInteraction<'cached'> & TextChannelHolder;
+export interface ThisBinding extends InteractionRelevant, GuildPlayerHolder { }
 export type FallbackType = 'leave' | 'radio' | 'silence';
 export interface FallbackModesTableData {
 	guildID: Snowflake;
@@ -58,8 +62,8 @@ export interface PlayableData {
 }
 export interface MusicData extends PlayableData {
 	name: string;
-	lengthSeconds: number;
-	requester: GuildMember
+	lengthSeconds?: number;
+	requester?: GuildMember
 }
 export interface PlayingData extends MusicData {
 	playingSeconds: number;
@@ -141,6 +145,13 @@ export class StateError {
 	constructor(readonly message: string) { }
 }
 
+interface StartupPlayback {
+    guildId: Snowflake;
+    channelId: Snowflake;
+    type: 'radio' | 'custom';
+    parameter: string;
+}
+
 export interface EnvConfig {
     pastebin: string;
     radioToken: string;
@@ -160,6 +171,8 @@ export interface EnvConfig {
 	};
 	botId: Snowflake;
 	testServerId: Snowflake;
+    leaveTimeoutMinutes: number | 'never';
+    startupPlaybacks?: StartupPlayback[];
 }
 
 declare global {

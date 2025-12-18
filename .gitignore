@@ -1,14 +1,10 @@
 ﻿/backup/
-*.js
-*.cjs
-*.d.ts
 node_modules
 data
 *.log
 /.vs
 *.env
 *.env.toml
-/nbproject/
 /.vscode/
 /.settings/
 /.project

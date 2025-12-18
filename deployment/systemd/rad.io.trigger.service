@@ -1,0 +1,6 @@
+[Unit]
+Description=Restart RAD.io instance on demand
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl restart <name of base service>
