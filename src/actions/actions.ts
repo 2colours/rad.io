@@ -9,7 +9,6 @@ import {
 	createGuildPlayerForRequest,
 	resolveMusicData
 } from '../index.js';
-import * as play from 'play-dl';
 import { sscanf } from 'scanf';
 
 export const actions: Actions = {
