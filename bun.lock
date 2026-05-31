@@ -16,7 +16,7 @@
         "moment": "2.30.1",
         "pastebin-api": "7.0.0",
         "play-dl": "1.9.7",
-        "scanf": "^1.2.0",
+        "scanf": "^1.2.1",
         "sequelize": "6.37.8",
         "sqlite3": "5.1.7",
         "umzug": "3.8.2",
@@ -499,7 +499,7 @@
 
     "safer-buffer": ["safer-buffer@2.1.2", "", {}, "sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg=="],
 
-    "scanf": ["scanf@1.2.0", "", {}, "sha512-I2wC8pY78d7mkkElvvfpf47F8Dzdx9ep8/bPvy/0/PeUYW8Fb4p+DD/Axcp5isO5cOUhcrmXp0IHZwDlTYeJAg=="],
+    "scanf": ["scanf@1.2.1", "", {}, "sha512-27/if94X3LFZAl9I/+xHfjAqwHNS8Vagm/CgojuAOYo4wNl1xj0Kc4sN2avw48wgLalC+l9cK25PyCT99UUU9w=="],
 
     "semver": ["semver@7.7.1", "", { "bin": { "semver": "bin/semver.js" } }, "sha512-hlq8tAfn0m/61p4BVRcPzIGr6LKiMwo4VM6dGi6pt4qcRkmNzTcWq6eCEjEh+qXjkMDvPlOFFSGwQjoEa6gyMA=="],
 
