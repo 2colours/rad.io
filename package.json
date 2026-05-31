@@ -20,7 +20,7 @@
     "scanf": "^1.2.0",
     "sequelize": "6.37.8",
     "sqlite3": "5.1.7",
-    "umzug": "3.8.2"
+    "umzug": "3.8.3"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
